@@ -1,0 +1,45 @@
+{
+  "name": "@micro-app/core",
+  "version": "0.0.11",
+  "description": "micro app core",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "files": [
+    "adapter/**/*",
+    "config/**/*",
+    "libs/**/*",
+    "src/**/*",
+    "utils/**/*",
+    "micro-app.config.js"
+  ],
+  "keywords": [
+    "micro",
+    "micro-app",
+    "core",
+    "cli"
+  ],
+  "author": {
+    "name": "Zyao89",
+    "email": "zyao89@gmail.com"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.15.0",
+    "eslint-config-2o3t": "^1.1.4"
+  },
+  "dependencies": {
+    "koa": "^2.7.0",
+    "koa-compose": "^4.1.0",
+    "koa-convert": "^1.2.0",
+    "koa-router": "^7.4.0",
+    "koa-static": "^5.0.0",
+    "koa-webpack-middleware": "^1.0.7",
+    "merge": "^1.2.1",
+    "module-alias": "^2.2.0",
+    "try-require": "^1.2.1",
+    "webpack-merge": "^4.2.1"
+  }
+}
