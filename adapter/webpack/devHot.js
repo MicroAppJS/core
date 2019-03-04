@@ -1,11 +1,12 @@
 'use strict';
 
+const logger = require('../../utils/logger');
 const requireMicro = require('../../utils/requireMicro');
 
 module.exports = function(webpackConfig) {
 
     if (!webpackConfig) {
-        console.error('webpackConfig null...');
+        logger.error('webpackConfig null...');
         return {};
     }
 

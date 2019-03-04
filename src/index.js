@@ -1,6 +1,7 @@
 'use strict';
 
 const adapter = require('../adapter');
+const logger = require('../utils/logger');
 const requireMicro = require('../utils/requireMicro');
 const constants = require('../config/constants');
 const tryRequire = require('try-require');
@@ -14,6 +15,7 @@ const microApp = function() {
 
 module.exports = Object.assign(microApp, requireMicro, adapter, {
     CONSTANT: constants,
+    logger,
     config() {
         if (!_configCache) {
             const cfg = tryRequire('config') || {};

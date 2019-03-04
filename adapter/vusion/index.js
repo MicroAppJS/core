@@ -1,5 +1,6 @@
 'use strict';
 
+const logger = require('../../utils/logger');
 const requireMicro = require('../../utils/requireMicro');
 const webpackAdapter = require('../webpack');
 const loadConfig = require('./loadConfig');
@@ -20,7 +21,7 @@ module.exports = {
         let webpackConfig = config.webpack;
         config.webpack = webpackAdapter.mergeConfig(webpackConfig);
         webpackConfig = config.webpack;
-        // console.log(webpackConfig);
+        // logger.info(webpackConfig);
 
         const selfConfig = requireMicro.self();
         const micros = selfConfig.micros;
@@ -35,7 +36,7 @@ module.exports = {
                 }
 
                 const vusionConfig = loadConfig(rootCWD);
-                // console.log(vusionConfig);
+                // logger.info(vusionConfig);
                 if (vusionConfig) {
                     if (vusionConfig.staticPath || vusionConfig.assetsPath) {
                         const CopyWebpackPlugin = tryRequire('copy-webpack-plugin');
@@ -63,7 +64,7 @@ module.exports = {
         if (!vusionConfigModule) {
             vusionConfigModule = tryRequire(path.join(process.cwd(), 'node_modules', 'vusion-cli/config/resolve'));
             if (!vusionConfigModule) {
-                console.error('load vusion-cli error!');
+                logger.error('load vusion-cli error!');
                 return null;
             }
         }
@@ -77,7 +78,7 @@ module.exports = {
         if (!vusionConfigModule) {
             vusionConfigModule = tryRequire(path.join(process.cwd(), 'node_modules', 'vusion-cli/config/resolve'));
             if (!vusionConfigModule) {
-                console.error('load vusion-cli error!');
+                logger.error('load vusion-cli error!');
                 return null;
             }
         }

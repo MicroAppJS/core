@@ -29,7 +29,7 @@ module.exports = {
     },
 
     micros: [ 'test' ],
-    // micros$test: { // 单独配置
+    // micros$$test: { // 单独配置
     //     disabled: true, // 禁用入口
     // },
 

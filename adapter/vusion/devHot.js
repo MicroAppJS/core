@@ -1,5 +1,6 @@
 'use strict';
 
+const logger = require('../../utils/logger');
 const tryRequire = require('try-require');
 const path = require('path');
 
@@ -8,7 +9,7 @@ module.exports = function(vusionConfig) {
     if (!webpackConfig) {
         webpackConfig = tryRequire(path.join(process.cwd(), 'node_modules', 'vusion-cli/webpack/' + vusionConfig.type));
         if (!webpackConfig) {
-            console.error('load vusion-cli error!');
+            logger.error('load vusion-cli error!');
             return null;
         }
     }
@@ -17,7 +18,7 @@ module.exports = function(vusionConfig) {
     if (!devCompiler) {
         devCompiler = tryRequire(path.join(process.cwd(), 'node_modules', 'vusion-cli/lib/dev'));
         if (!devCompiler) {
-            console.error('load vusion-cli error!');
+            logger.error('load vusion-cli error!');
             return null;
         }
     }

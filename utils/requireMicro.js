@@ -14,14 +14,23 @@ const requireMicro = function(id) {
     if (configCache[name]) {
         return configCache[name];
     }
-    const micPath = path.join(ROOT, NODE_MODULES_NAME, name);
-    // TODO 兼容 id
+    let micPath = path.join(ROOT, NODE_MODULES_NAME, name);
     if (micPath) {
         const microConfig = loadFile(micPath, CONFIG_NAME);
         if (microConfig) {
             const _microAppConfig = new MicroAppConfig(microConfig);
             configCache[name] = _microAppConfig;
             return _microAppConfig;
+        }
+        // 兼容 id
+        micPath = path.join(ROOT, NODE_MODULES_NAME, id);
+        if (micPath) {
+            const microConfig = loadFile(micPath, CONFIG_NAME);
+            if (microConfig) {
+                const _microAppConfig = new MicroAppConfig(microConfig);
+                configCache[name] = _microAppConfig;
+                return _microAppConfig;
+            }
         }
     }
     return null;

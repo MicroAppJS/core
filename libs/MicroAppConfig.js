@@ -53,6 +53,16 @@ class MicroAppConfig {
         return config.version || this.package.version || '';
     }
 
+    get description() {
+        const config = this.config;
+        return config.description || this.package.description || '';
+    }
+
+    get type() {
+        const config = this.config;
+        return config.type || '';
+    }
+
     get webpack() {
         const config = this.config;
         return config.webpack || {};
@@ -64,6 +74,18 @@ class MicroAppConfig {
             return [ ...new Set(config.micros) ];
         }
         return [];
+    }
+
+    get microsExtral() {
+        const config = this.config;
+        const result = {};
+        this.micros.forEach(micro => {
+            result[micro] = Object.assign({}, config[`micros$$${micro}`] || {
+                disabled: false, // 禁用入口
+                disable: false,
+            });
+        });
+        return result;
     }
 
     get root() {
@@ -106,7 +128,12 @@ class MicroAppConfig {
 
     toJSON() {
         return {
-
+            name: this.name,
+            version: this.version,
+            type: this.type,
+            description: this.description,
+            root: this.root,
+            micros: this.micros,
         };
     }
 }

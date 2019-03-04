@@ -5,6 +5,22 @@ const merge = require('webpack-merge');
 const tryRequire = require('try-require');
 const path = require('path');
 
+// 附加选项配置
+function extralCustomConfig(microConfig, extralConfig) {
+    if (!microConfig) {
+        return;
+    }
+    const webpackConfig = microConfig.webpack;
+    if (!webpackConfig) {
+        return;
+    }
+    const disabled = extralConfig.disabled || extralConfig.disable;
+    if (disabled) { // disabled entry
+        delete webpackConfig.entry;
+        delete webpackConfig.plugins;
+    }
+}
+
 // 修补
 function patchWebpack(microConfig) {
     if (!microConfig) {
@@ -22,25 +38,6 @@ function patchWebpack(microConfig) {
     }
     if (microConfig.nodeModules && !webpackConfig.resolve.modules.includes(microConfig.nodeModules)) {
         webpackConfig.resolve.modules.push(microConfig.nodeModules);
-    }
-
-    // inject alias
-    if (!webpackConfig.resolve.alias) {
-        webpackConfig.resolve.alias = {};
-    }
-    const alias = webpackConfig.resolve.alias;
-    const aliasName = microConfig.name;
-    if (aliasName) {
-        const aliasKey = aliasName[0] !== '@' ? `@${aliasName}` : aliasName;
-        if (aliasName) {
-            Object.keys(microConfig.alias).forEach(key => {
-                const p = microConfig.alias[key];
-                if (p && typeof p === 'string' && !alias[`${aliasKey}/${key}`]) {
-                    const filePath = path.resolve(microConfig.root, p);
-                    alias[`${aliasKey}/${key}`] = filePath;
-                }
-            });
-        }
     }
 
     // fix entry path
@@ -75,12 +72,54 @@ function patchWebpack(microConfig) {
     return webpackConfig;
 }
 
+// inject alias
+function injectWebpackAlias(microConfig) {
+    if (!microConfig) {
+        return;
+    }
+    const webpackConfig = microConfig.webpack;
+    if (!webpackConfig) {
+        return;
+    }
+    injectSelfWebpackAlias(microConfig, webpackConfig);
+}
+
+// inject self alias
+function injectSelfWebpackAlias(microConfig, webpackConfig) {
+    if (!microConfig) {
+        return;
+    }
+    if (!webpackConfig) {
+        return;
+    }
+    if (!webpackConfig.resolve) {
+        webpackConfig.resolve = {};
+    }
+    if (!webpackConfig.resolve.alias) {
+        webpackConfig.resolve.alias = {};
+    }
+    const alias = webpackConfig.resolve.alias;
+    const aliasName = microConfig.name;
+    if (aliasName) {
+        const aliasKey = aliasName[0] !== '@' ? `@${aliasName}` : aliasName;
+        if (aliasName) {
+            Object.keys(microConfig.alias).forEach(key => {
+                const p = microConfig.alias[key];
+                if (p && typeof p === 'string' && !alias[`${aliasKey}/${key}`]) {
+                    const filePath = path.resolve(microConfig.root, p);
+                    alias[`${aliasKey}/${key}`] = filePath;
+                }
+            });
+        }
+    }
+}
+
 // 去重复
 function uniqArray(webpackConfig) {
     if (!webpackConfig) {
         return null;
     }
-    if (webpackConfig.resolve.modules && Array.isArray(webpackConfig.resolve.modules)) {
+    if (webpackConfig.resolve && webpackConfig.resolve.modules && Array.isArray(webpackConfig.resolve.modules)) {
         webpackConfig.resolve.modules = [ ...new Set(webpackConfig.resolve.modules) ];
     }
     if (webpackConfig.entry) {
@@ -100,6 +139,11 @@ module.exports = function webpackMerge(config = {}, ...names) {
     if (!names || names.length <= 0) {
         return config;
     }
+
+    const selfConfig = requireMicro.self() || {};
+    // extral config
+    const microsExtral = selfConfig.microsExtral || {};
+
     const microConfigs = [];
     names.forEach(key => {
         const microConfig = requireMicro(key);
@@ -111,10 +155,20 @@ module.exports = function webpackMerge(config = {}, ...names) {
                 //     webpackConfig = webpackMerge(webpackConfig, micros);
                 // }
 
+                // inject
+                injectWebpackAlias(microConfig);
+
+                const extralConfig = microsExtral[key];
+                if (extralConfig) {
+                    extralCustomConfig(microConfig, extralConfig);
+                }
                 microConfigs.push(webpackConfig);
             }
         }
     });
+    // inject self
+    injectSelfWebpackAlias(selfConfig, config);
+
     if (microConfigs.length) {
         config = merge(...microConfigs, config);
     }

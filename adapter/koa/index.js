@@ -1,5 +1,6 @@
 'use strict';
 
+const logger = require('../../utils/logger');
 const requireMicro = require('../../utils/requireMicro');
 const routerMerge = require('../../utils/merge-router');
 const middlewareMerge = require('../../utils/merge-middleware');
@@ -55,7 +56,7 @@ module.exports = {
         app.use = x => _use.call(app, convert(x));
 
         app.on('error', (error, ctx) => {
-            console.error('koa server error: ', error);
+            logger.error('koa server error: ', error);
         });
 
         // 读取配置文件
@@ -142,12 +143,12 @@ module.exports = {
             }
         }
 
-        const port = programOpts.port || serverConfig.port || 8080;
+        const port = programOpts.port || serverConfig.port || 8888;
         const host = programOpts.host || serverConfig.host || 'localhost';
         app.listen(port, host === 'localhost' ? '0.0.0.0' : host, err => {
-            if (err) { return console.error(err); }
+            if (err) { return logger.error(err); }
 
-            console.info(`Server running..., listen on ${port}`);
+            logger.success(`Server running..., listen on ${port}`);
 
             const url = `http://${host}:${port}`;
             callback && typeof callback === 'function' && callback(url);
@@ -155,7 +156,7 @@ module.exports = {
     },
     devServer(programOpts = {}, callback) {
 
-        console.info('DevServer Start...');
+        logger.info('DevServer Start...');
 
         return this.runServer(
             Object.assign({}, programOpts, {
