@@ -28,16 +28,18 @@ module.exports = {
         // router: '', // koa-router
     },
 
-    micros: [ 'test' ],
+    micros: [ 'test' ], // 被注册的容器
     // micros$$test: { // 单独配置
     //     disabled: true, // 禁用入口
     // },
 
     // 服务配置
     server: {
-        entry: '', // path
-        port: 8088,
-        staticBase: '/public', // path
-        options: { },
+        entry: '', // 服务端入口
+        port: 8088, // 服务端口号
+        staticBase: 'public', // 静态文件地址
+        options: {
+            // 服务端回调参数
+        },
     },
 };

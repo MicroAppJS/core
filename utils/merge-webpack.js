@@ -45,8 +45,8 @@ function patchWebpack(microConfig) {
         const entry = webpackConfig.entry;
         if (typeof entry === 'object') {
             Object.keys(entry).forEach(key => {
-                if (Array.isArray(entry[key])) {
-                    const _entrys = entry[key];
+                const _entrys = entry[key];
+                if (Array.isArray(_entrys)) {
                     entry[key] = _entrys.map(item => {
                         if (!tryRequire.resolve(item)) {
                             console.warn('fixed entry: ', item);
@@ -54,6 +54,11 @@ function patchWebpack(microConfig) {
                         }
                         return item;
                     });
+                } else if (typeof _entrys === 'string') {
+                    if (!tryRequire.resolve(_entrys)) {
+                        console.warn('fixed entry: ', _entrys);
+                        entry[key] = path.join(microConfig.root, _entrys);
+                    }
                 }
             });
         }

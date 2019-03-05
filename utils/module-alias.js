@@ -8,7 +8,7 @@ const cache = {};
 const injectCache = {};
 
 function injectAliasModule(names) {
-    if (!names || !name.length) return;
+    if (!names || !names.length) return;
     names.forEach(key => {
         if (!injectCache[key]) {
             const microConfig = requireMicro(key);
