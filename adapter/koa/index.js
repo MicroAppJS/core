@@ -63,13 +63,6 @@ module.exports = {
         const selfConfig = requireMicro.self();
         const serverConfig = selfConfig.server;
         const { entry, options = {} } = serverConfig;
-        if (entry) {
-            const entryFile = path.resolve(selfConfig.root, entry);
-            const entryCallback = tryRequire(entryFile);
-            if (entryCallback && typeof entryCallback === 'function') {
-                entryCallback(app, merge.recursive(true, options));
-            }
-        }
 
         // micro server
         const micros = selfConfig.micros;
@@ -90,6 +83,13 @@ module.exports = {
             _entrys.forEach(entry => {
                 entry(app, merge.recursive(true, ..._options, options));
             });
+        }
+        if (entry) {
+            const entryFile = path.resolve(selfConfig.root, entry);
+            const entryCallback = tryRequire(entryFile);
+            if (entryCallback && typeof entryCallback === 'function') {
+                entryCallback(app, merge.recursive(true, options));
+            }
         }
 
         // load micro
