@@ -64,31 +64,34 @@ module.exports = {
         const serverConfig = selfConfig.server;
         const { entry, options = {} } = serverConfig;
 
+        // init module-alias
+        fixedModuleAlias();
+
         // micro server
         const micros = selfConfig.micros;
         if (micros && Array.isArray(micros)) {
-            // init module-alias
-            fixedModuleAlias();
             const microServers = serverMerger(...micros);
             const _entrys = [];
             const _options = [];
-            microServers.forEach(({ entry, options }) => {
+            microServers.forEach(({ entry, options, info }) => {
                 if (entry) {
-                    _entrys.push(entry);
+                    _entrys.push({
+                        entry, info,
+                    });
                 }
                 if (options) {
                     _options.push(options);
                 }
             });
-            _entrys.forEach(entry => {
-                entry(app, merge.recursive(true, ..._options, options));
+            _entrys.forEach(({ entry, info }) => {
+                entry(app, merge.recursive(true, ..._options, options), info);
             });
         }
         if (entry) {
             const entryFile = path.resolve(selfConfig.root, entry);
             const entryCallback = tryRequire(entryFile);
             if (entryCallback && typeof entryCallback === 'function') {
-                entryCallback(app, merge.recursive(true, options));
+                entryCallback(app, merge.recursive(true, options), selfConfig.toJSON(true));
             }
         }
 

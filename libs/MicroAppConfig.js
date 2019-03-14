@@ -126,15 +126,18 @@ class MicroAppConfig {
         return config.server || {};
     }
 
-    toJSON() {
-        return {
+    toJSON(simple = false) {
+        const json = {
             name: this.name,
             version: this.version,
             type: this.type,
             description: this.description,
             root: this.root,
-            micros: this.micros,
         };
+        if (!simple) {
+            json.micros = this.micros;
+        }
+        return json;
     }
 }
 

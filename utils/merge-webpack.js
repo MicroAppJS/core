@@ -141,11 +141,13 @@ function uniqArray(webpackConfig) {
 }
 
 module.exports = function webpackMerge(config = {}, ...names) {
+    const selfConfig = requireMicro.self() || {};
     if (!names || names.length <= 0) {
+        // inject self
+        injectSelfWebpackAlias(selfConfig, config);
         return config;
     }
 
-    const selfConfig = requireMicro.self() || {};
     // extral config
     const microsExtral = selfConfig.microsExtral || {};
 

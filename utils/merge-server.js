@@ -22,6 +22,7 @@ module.exports = function serverMerge(...names) {
                     microServers.push({
                         entry: entryCallback,
                         options,
+                        info: microConfig.toJSON(true),
                     });
                 }
             }

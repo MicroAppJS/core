@@ -54,6 +54,9 @@ function injectSelfAliasModule(microConfig, key) {
 
 module.exports = function(...names) {
     if (!names || names.length <= 0) {
+        // inject self
+        const selfMicroConfig = requireMicro.self();
+        injectSelfAliasModule(selfMicroConfig, '__self__');
         return;
     }
     names.forEach(key => {
@@ -73,5 +76,6 @@ module.exports = function(...names) {
         }
     });
 
+    // inject self
     injectAliasModule(names);
 };
