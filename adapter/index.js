@@ -2,9 +2,9 @@
 
 const adapters = {};
 
-adapters.common = require('./common');
-adapters.koa = require('./koa');
-adapters.vusion = require('./vusion');
-adapters.webpack = require('./webpack');
+adapters.commonAdapter = require('./common');
+adapters.koaAdapter = require('./koa');
+adapters.vusionAdapter = require('./vusion');
+adapters.webpackAdapter = require('./webpack');
 
 module.exports = adapters;

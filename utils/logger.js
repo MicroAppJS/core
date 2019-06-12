@@ -3,7 +3,7 @@
 const chalk = require('chalk').default;
 const utils = require('util');
 
-const { NAME } = require('../config/constants');
+const CONSTANTS = require('../config/constants');
 
 module.exports = {
     error() {
@@ -19,6 +19,7 @@ module.exports = {
         return process.stdout.write(`${chalk.bgHex('#007007')(' SUCCESS ')} ${chalk.yellowBright('>>>')} ${chalk.greenBright(message)} \n`);
     },
     logo() {
+        const { NAME } = CONSTANTS;
         const message = utils.format(...(arguments || []));
         return process.stdout.write(`${chalk.bgHex('#662F88')(` ${NAME} `)} ${chalk.yellowBright('>>>')} ${message} \n`);
     },

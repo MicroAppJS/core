@@ -36,6 +36,7 @@
 
 
 const ma = require('../');
+// ma.CONSTANTS.ROOT = __dirname;
 console.log(ma('test'));
 // ma.koa.runServer();
 

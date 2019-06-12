@@ -3,7 +3,7 @@
 const path = require('path');
 const fs = require('fs');
 
-const { ROOT, SCOPE_NAME, CONFIG_NAME, NODE_MODULES_NAME } = require('../config/constants');
+const CONSTANTS = require('../config/constants');
 const loadFile = require('./loadFile');
 const MicroAppConfig = require('../libs/MicroAppConfig');
 
@@ -11,6 +11,7 @@ const SELF_CONFIG = Symbol('#self_config');
 const configCache = {};
 
 const self = function() {
+    const { ROOT, CONFIG_NAME } = CONSTANTS;
     if (configCache[SELF_CONFIG]) {
         return configCache[SELF_CONFIG];
     }
@@ -26,6 +27,7 @@ const self = function() {
 // 开发模式软链接
 const fixedDevLink = function(id, micPath) {
     const _selfConfig = self();
+    if (!_selfConfig) throw new Error('Not Found "micro-app.config.js"');
     // extral config
     const microsExtral = _selfConfig.microsExtral || {};
     const extralConfig = microsExtral[id];
@@ -36,6 +38,7 @@ const fixedDevLink = function(id, micPath) {
 };
 
 const requireMicro = function(id) {
+    const { ROOT, SCOPE_NAME, CONFIG_NAME, NODE_MODULES_NAME } = CONSTANTS;
     const name = `${SCOPE_NAME}/${id}`;
     if (configCache[name]) {
         return configCache[name];
