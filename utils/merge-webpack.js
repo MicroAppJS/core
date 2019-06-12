@@ -64,14 +64,23 @@ function patchWebpack(microConfig) {
         }
     }
     if (webpackConfig.plugins && Array.isArray(webpackConfig.plugins)) {
-        webpackConfig.plugins.forEach(item => {
-            if (item.options && item.options.template) {
-                const template = item.options.template;
-                if (!tryRequire(template)) {
-                    console.warn('fixed plugins->template: ', template);
-                    item.options.template = path.join(microConfig.root, template);
+        webpackConfig.plugins = webpackConfig.plugins.filter(item => {
+            const constru = item.constructor;
+            if (constru && constru.name) {
+                const constructorName = constru.name;
+                if (constructorName === 'HtmlWebpackPlugin') {
+                    if (item.options && item.options.template) {
+                        const template = item.options.template;
+                        if (!tryRequire(template)) {
+                            console.warn('fixed plugins->template: ', template);
+                            item.options.template = path.join(microConfig.root, template);
+                        }
+                    }
+                    return true;
                 }
             }
+            // 副产品不需要其他
+            return false;
         });
     }
     return webpackConfig;
