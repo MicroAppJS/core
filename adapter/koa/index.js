@@ -15,7 +15,14 @@ const path = require('path');
 
 const DEV = Symbol('koa#server#dev');
 
-module.exports = {
+const BaseServerAdapter = require('../base/BaseServerAdapter');
+
+class KoaAdapter extends BaseServerAdapter {
+
+    constructor() {
+        super('KOA');
+    }
+
     mergeRouter(router) {
         if (!router) {
             const koaRouter = require('koa-router');
@@ -29,7 +36,8 @@ module.exports = {
             router = routerMerge(router, ...micros);
         }
         return router;
-    },
+    }
+
     mergeMiddleware(app) {
         let middlewares = [];
         const selfConfig = requireMicro.self();
@@ -45,7 +53,8 @@ module.exports = {
             app.use(mw);
         }
         return mw;
-    },
+    }
+
     runServer(programOpts = {}, callback) {
         const Koa = require('koa');
         const convert = require('koa-convert');
@@ -156,9 +165,9 @@ module.exports = {
             const url = `http://${host}:${port}`;
             callback && typeof callback === 'function' && callback(url);
         });
-    },
-    devServer(programOpts = {}, callback) {
+    }
 
+    devHot(programOpts = {}, callback) {
         logger.info('DevServer Start...');
 
         return this.runServer(
@@ -167,5 +176,6 @@ module.exports = {
             }),
             callback
         );
-    },
-};
+    }
+}
+module.exports = new KoaAdapter();

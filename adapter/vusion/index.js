@@ -10,7 +10,14 @@ const vusionDevHot = require('./devHot');
 
 const path = require('path');
 
-module.exports = {
+const BaseAdapter = require('../base/BaseAdapter');
+
+class VusionAdapter extends BaseAdapter {
+
+    constructor() {
+        super('Vusion');
+    }
+
     mergeConfig(config) {
         if (!config) {
             config = {};
@@ -58,7 +65,8 @@ module.exports = {
             }
         });
         return config;
-    },
+    }
+
     build() {
         let vusionConfigModule = tryRequire('vusion-cli/config/resolve');
         if (!vusionConfigModule) {
@@ -72,7 +80,8 @@ module.exports = {
         vusionConfig = global.vusionConfig = this.mergeConfig(vusionConfig);
 
         return vusionBuild(vusionConfig);
-    },
+    }
+
     devHot(app) {
         let vusionConfigModule = tryRequire('vusion-cli/config/resolve');
         if (!vusionConfigModule) {
@@ -103,5 +112,7 @@ module.exports = {
             app.use(hotMiddleware(compiler));
         }
         return dh;
-    },
-};
+    }
+}
+
+module.exports = new VusionAdapter();

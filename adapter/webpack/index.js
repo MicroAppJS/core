@@ -5,7 +5,10 @@ const webpackMerge = require('../../utils/merge-webpack');
 const webpackBuild = require('./build');
 const webpackDevHot = require('./devHot');
 
-module.exports = {
+const BaseAdapter = require('../base/BaseAdapter');
+
+class WebpackV3Adapter extends BaseAdapter {
+
     mergeConfig(webpackConfig) {
         const selfConfig = requireMicro.self();
         if (!webpackConfig) {
@@ -16,11 +19,13 @@ module.exports = {
             webpackConfig = webpackMerge(webpackConfig, ...micros);
         }
         return webpackConfig;
-    },
+    }
+
     build() {
         const webpackConfig = this.mergeConfig();
         return webpackBuild(webpackConfig);
-    },
+    }
+
     devHot(app) {
         const webpackConfig = this.mergeConfig();
         const wpDH = webpackDevHot(webpackConfig);
@@ -41,5 +46,7 @@ module.exports = {
             app.use(hotMiddleware(compiler));
         }
         return wpDH;
-    },
-};
+    }
+}
+
+module.exports = new WebpackV3Adapter('WebpackV3');
