@@ -35,9 +35,9 @@
 // console.log('/abc/abc/ba/a'.replace(reg, '/'));
 
 
-const ma = require('../');
+// const ma = require('../');
 // ma.CONSTANTS.ROOT = __dirname;
-console.log(ma('test'));
+// console.log(ma('test'));
 // ma.koa.runServer();
 
 
@@ -45,8 +45,10 @@ console.log(ma('test'));
 // const a = tryRequire.resolve('/Users/zyao89/Code/New Direction/MicroApp/MicroApp-Core/utils/loadFile.js');
 // console.log(a);
 
-// const logger = require('../utils/logger');
-// logger.error('abc');
-// logger.info('abc');
-// logger.success('abc');
-// logger.logo('abc');
+const logger = require('../utils/logger');
+logger.error('abc');
+logger.info('abc');
+logger.success('abc');
+logger.logo('abc');
+logger.warn('abc');
+logger.debug('abc');

@@ -1,10 +1,11 @@
 'use strict';
 
+const tryRequire = require('try-require');
 const adapter = require('../adapter');
 const logger = require('../utils/logger');
 const requireMicro = require('../utils/requireMicro');
+const injectHtml = require('../utils/injectHtml');
 const constants = require('../config/constants');
-const tryRequire = require('try-require');
 
 let _configCache = null;
 
@@ -22,4 +23,5 @@ module.exports = Object.assign(microApp, requireMicro, adapter, {
         }
         return _configCache;
     },
+    injectHtml,
 });

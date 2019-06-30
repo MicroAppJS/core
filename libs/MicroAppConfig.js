@@ -108,16 +108,45 @@ class MicroAppConfig {
     // 后端共享
     get shared() {
         const config = this.config;
-        if (config) {
-            return config.shared || config.share || {};
+        const currShared = config.shared || config.share;
+        if (currShared) { // 兼容旧版
+            return currShared;
         }
-        return {};
+        const currAlias = config.alias || {};
+        return Object.keys(currAlias).reduce((obj, key) => {
+            const aliasObj = currAlias[key];
+            if (typeof aliasObj === 'string') {
+                obj[key] = aliasObj;
+            } else if (typeof aliasObj === 'object') {
+                const link = aliasObj.link;
+                if (link && typeof link === 'string') {
+                    obj[key] = link;
+                }
+            }
+            return obj;
+        }, {});
     }
 
     // 前端共享
     get alias() {
         const config = this.config;
-        return config.alias || {};
+        const currAlias = config.alias || {};
+        return Object.keys(currAlias).reduce((obj, key) => {
+            const aliasObj = currAlias[key];
+            if (typeof aliasObj === 'string') {
+                obj[key] = aliasObj;
+            } else if (typeof aliasObj === 'object') {
+                if (aliasObj.server === true || typeof aliasObj.type === 'string' && aliasObj.type.toUpperCase() === 'SERVER') {
+                    // server ?
+                    return obj;
+                }
+                const link = aliasObj.link;
+                if (link && typeof link === 'string') {
+                    obj[key] = link;
+                }
+            }
+            return obj;
+        }, {});
     }
 
     // server

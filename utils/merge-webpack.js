@@ -4,6 +4,7 @@ const requireMicro = require('./requireMicro');
 const merge = require('webpack-merge');
 const tryRequire = require('try-require');
 const path = require('path');
+const logger = require('./logger');
 
 // 附加选项配置
 function extralCustomConfig(microConfig, extralConfig) {
@@ -49,14 +50,14 @@ function patchWebpack(microConfig) {
                 if (Array.isArray(_entrys)) {
                     entry[key] = _entrys.map(item => {
                         if (!tryRequire.resolve(item)) {
-                            console.warn('fixed entry: ', item);
+                            logger.warn('fixed entry: ', item);
                             return path.join(microConfig.root, item);
                         }
                         return item;
                     });
                 } else if (typeof _entrys === 'string') {
                     if (!tryRequire.resolve(_entrys)) {
-                        console.warn('fixed entry: ', _entrys);
+                        logger.warn('fixed entry: ', _entrys);
                         entry[key] = path.join(microConfig.root, _entrys);
                     }
                 }
@@ -72,7 +73,7 @@ function patchWebpack(microConfig) {
                     if (item.options && item.options.template) {
                         const template = item.options.template;
                         if (!tryRequire(template)) {
-                            console.warn('fixed plugins->template: ', template);
+                            logger.warn('fixed plugins->template: ', template);
                             item.options.template = path.join(microConfig.root, template);
                         }
                     }
@@ -117,8 +118,9 @@ function injectSelfWebpackAlias(microConfig, webpackConfig) {
     if (aliasName) {
         const aliasKey = aliasName[0] !== '@' ? `@${aliasName}` : aliasName;
         if (aliasName) {
-            Object.keys(microConfig.alias).forEach(key => {
-                const p = microConfig.alias[key];
+            const currAlias = microConfig.alias;
+            Object.keys(currAlias).forEach(key => {
+                const p = currAlias[key];
                 if (p && typeof p === 'string' && !alias[`${aliasKey}/${key}`]) {
                     const filePath = path.resolve(microConfig.root, p);
                     alias[`${aliasKey}/${key}`] = filePath;

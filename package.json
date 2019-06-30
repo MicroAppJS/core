@@ -1,6 +1,6 @@
 {
   "name": "@micro-app/core",
-  "version": "0.0.32",
+  "version": "0.0.50",
   "description": "micro app core",
   "main": "src/index.js",
   "scripts": {
@@ -26,12 +26,13 @@
   },
   "license": "ISC",
   "devDependencies": {
-    "babel-eslint": "^10.0.1",
-    "eslint": "^5.15.0",
-    "eslint-config-2o3t": "^1.1.4"
+    "babel-eslint": "^10.0.2",
+    "eslint": "^5.16.0",
+    "eslint-config-2o3t": "^1.1.17"
   },
   "dependencies": {
     "chalk": "^2.4.2",
+    "cheerio": "^1.0.0-rc.3",
     "koa": "^2.7.0",
     "koa-compose": "^4.1.0",
     "koa-convert": "^1.2.0",
@@ -40,6 +41,7 @@
     "koa-webpack-middleware": "^1.0.7",
     "merge": "^1.2.1",
     "module-alias": "^2.2.0",
+    "stream-to-string": "^1.2.0",
     "try-require": "^1.2.1",
     "webpack": "^3.12.0",
     "webpack-merge": "^4.2.1"

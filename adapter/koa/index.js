@@ -4,18 +4,13 @@ const logger = require('../../utils/logger');
 const requireMicro = require('../../utils/requireMicro');
 const routerMerge = require('../../utils/merge-router');
 const middlewareMerge = require('../../utils/merge-middleware');
-const serverMerger = require('../../utils/merge-server');
 const fixedModuleAlias = require('../common/fixedModuleAlias');
 
 const staticServer = require('./staticServer');
 
-const tryRequire = require('try-require');
-const merge = require('merge');
-const path = require('path');
+const BaseServerAdapter = require('../base/BaseServerAdapter');
 
 const DEV = Symbol('koa#server#dev');
-
-const BaseServerAdapter = require('../base/BaseServerAdapter');
 
 class KoaAdapter extends BaseServerAdapter {
 
@@ -56,6 +51,8 @@ class KoaAdapter extends BaseServerAdapter {
     }
 
     runServer(programOpts = {}, callback) {
+        this._initDotenv();
+
         const Koa = require('koa');
         const convert = require('koa-convert');
 
@@ -64,52 +61,24 @@ class KoaAdapter extends BaseServerAdapter {
         const _use = app.use;
         app.use = x => _use.call(app, convert(x));
 
-        app.on('error', (error, ctx) => {
-            logger.error('koa server error: ', error);
-        });
-
-        // 读取配置文件
-        const selfConfig = requireMicro.self();
-        const serverConfig = selfConfig.server;
-        const { entry, options = {} } = serverConfig;
-
         // init module-alias
         fixedModuleAlias();
+        this._initHooks(app);
+
+        app.on('error', (error, ctx) => {
+            logger.error('koa server error: ', error);
+
+            this._hooks('error', error, ctx);
+        });
+
+        this._hooks('init'); // 优先级最高
+
+        this._hooks('before');
 
         // micro server
-        const micros = selfConfig.micros;
-        if (micros && Array.isArray(micros)) {
-            const microServers = serverMerger(...micros);
-            const _entrys = [];
-            const _options = [];
-            microServers.forEach(({ entry, options, info }) => {
-                if (entry) {
-                    _entrys.push({
-                        entry, info,
-                    });
-                }
-                if (options) {
-                    _options.push(options);
-                }
-            });
-            _entrys.forEach(({ entry, info }) => {
-                entry(app, merge.recursive(true, ..._options, options), info);
-            });
-        }
-        if (entry) {
-            const entryFile = path.resolve(selfConfig.root, entry);
-            const entryCallback = tryRequire(entryFile);
-            if (entryCallback && typeof entryCallback === 'function') {
-                entryCallback(app, merge.recursive(true, options), selfConfig.toJSON(true));
-            }
-        }
+        this._initEntry(app);
 
-        // load micro
-        // this.mergeMiddleware(app);
-
-        // const router = this.mergeRouter();
-        // app.use(router.routes());
-        // app.use(router.allowedMethods());
+        this._hooks('after');
 
         if (programOpts[DEV]) {
             // hotload webpack
@@ -155,6 +124,9 @@ class KoaAdapter extends BaseServerAdapter {
             }
         }
 
+        // 读取配置文件
+        const selfConfig = requireMicro.self();
+        const serverConfig = selfConfig.server;
         const port = programOpts.port || serverConfig.port || 8888;
         const host = programOpts.host || serverConfig.host || 'localhost';
         app.listen(port, host === 'localhost' ? '0.0.0.0' : host, err => {
@@ -164,6 +136,8 @@ class KoaAdapter extends BaseServerAdapter {
 
             const url = `http://${host}:${port}`;
             callback && typeof callback === 'function' && callback(url);
+
+            this._hooks('end'); // ? 用途不明确
         });
     }
 
