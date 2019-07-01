@@ -2,7 +2,7 @@
 
 const logger = require('../../utils/logger');
 const requireMicro = require('../../utils/requireMicro');
-const webpackAdapter = require('../webpack');
+const WebpackAdapter = require('../webpack');
 const loadConfig = require('./loadConfig');
 const tryRequire = require('try-require');
 const vusionBuild = require('./build');
@@ -26,7 +26,7 @@ class VusionAdapter extends BaseAdapter {
             config.webpack = {};
         }
         let webpackConfig = config.webpack;
-        config.webpack = webpackAdapter.mergeConfig(webpackConfig);
+        config.webpack = WebpackAdapter.mergeConfig(webpackConfig);
         webpackConfig = config.webpack;
         // logger.info(webpackConfig);
 
@@ -79,10 +79,12 @@ class VusionAdapter extends BaseAdapter {
         let vusionConfig = vusionConfigModule();
         vusionConfig = global.vusionConfig = this.mergeConfig(vusionConfig);
 
+        this._injectPlugins(vusionConfig.webpack);
+
         return vusionBuild(vusionConfig);
     }
 
-    devHot(app) {
+    devHot() {
         let vusionConfigModule = tryRequire('vusion-cli/config/resolve');
         if (!vusionConfigModule) {
             vusionConfigModule = tryRequire(path.join(process.cwd(), 'node_modules', 'vusion-cli/config/resolve'));
@@ -94,25 +96,11 @@ class VusionAdapter extends BaseAdapter {
         let vusionConfig = vusionConfigModule();
         vusionConfig = global.vusionConfig = this.mergeConfig(vusionConfig);
 
-        const dh = vusionDevHot(vusionConfig);
-        if (dh && app && typeof app.use === 'function') {
-            const { compiler, devOptions } = dh;
-            let publicPath = '/';
-            if (vusionConfig && vusionConfig.webpack && vusionConfig.webpack.output) {
-                publicPath = vusionConfig.webpack.output.publicPath || '/';
-            }
-            app.use(async (ctx, next) => {
-                if (ctx.url === '/') {
-                    ctx.url = `${publicPath}index.html`;
-                }
-                await next();
-            });
-            const { devMiddleware, hotMiddleware } = require('koa-webpack-middleware');
-            app.use(devMiddleware(compiler, devOptions));
-            app.use(hotMiddleware(compiler));
-        }
-        return dh;
+        this._injectPlugins(vusionConfig.webpack, true);
+
+        const wpDH = vusionDevHot(vusionConfig);
+        return wpDH;
     }
 }
 
-module.exports = new VusionAdapter();
+module.exports = VusionAdapter;

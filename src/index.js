@@ -19,7 +19,8 @@ module.exports = Object.assign(microApp, requireMicro, adapter, {
     config() {
         if (!_configCache) {
             const cfg = tryRequire('config') || {};
-            _configCache = adapter.commonAdapter.mergeConfig(cfg);
+            const commonAdapter = new adapter.CommonAdapter();
+            _configCache = commonAdapter.mergeConfig(cfg);
         }
         return _configCache;
     },

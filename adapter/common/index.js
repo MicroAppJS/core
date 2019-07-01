@@ -31,4 +31,4 @@ class CommonAdapter extends BaseAdapter {
 
 }
 
-module.exports = new CommonAdapter();
+module.exports = CommonAdapter;

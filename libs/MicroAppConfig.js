@@ -3,10 +3,11 @@
 const path = require('path');
 const fs = require('fs');
 const symbols = require('../config/symbols');
+const CONSTANTS = require('../config/constants');
 
-const NODE_MODULES = 'node_modules';
+// 默认配置
+const DEFAULT_CONFIG = JSON.stringify(JSON.parse(require('../config/default')));
 const PACKAGE_JSON = 'package.json';
-
 const INIT = Symbol('MicroAppConfig_INIT');
 
 class MicroAppConfig {
@@ -31,8 +32,20 @@ class MicroAppConfig {
         }
     }
 
+    get mode() {
+        return CONSTANTS.NODE_ENV || 'production';
+    }
+
+    get isDev() {
+        return this.config.mode === 'development';
+    }
+
+    get strict() {
+        return this.config.strict !== false;
+    }
+
     get config() {
-        return this._config || {};
+        return this._config || DEFAULT_CONFIG;
     }
 
     get packagePath() {
@@ -100,9 +113,15 @@ class MicroAppConfig {
 
     get nodeModules() {
         if (this.root) {
-            return path.join(this.root, NODE_MODULES);
+            const nodeModules = CONSTANTS.NODE_MODULES_NAME || 'node_modules';
+            return path.join(this.root, nodeModules);
         }
         return '';
+    }
+
+    get subModulesRoot() {
+        const scopeName = CONSTANTS.SCOPE_NAME || '';
+        return path.join(this.nodeModules, scopeName);
     }
 
     // 后端共享
@@ -153,6 +172,11 @@ class MicroAppConfig {
     get server() {
         const config = this.config;
         return config.server || {};
+    }
+
+    get plugin() {
+        const config = this.config;
+        return config.plugin || {};
     }
 
     toJSON(simple = false) {

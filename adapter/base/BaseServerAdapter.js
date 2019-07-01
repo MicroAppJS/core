@@ -4,12 +4,11 @@ const path = require('path');
 const merge = require('merge');
 const tryRequire = require('try-require');
 
-const logger = require('../../utils/logger');
 const BaseAdapter = require('./BaseAdapter');
+const logger = require('../../utils/logger');
 const HookEvent = require('../../libs/HookEvent');
 const CONSTANTS = require('../../config/constants');
 const serverHooksMerger = require('../../utils/merge-server-hooks');
-const requireMicro = require('../../utils/requireMicro');
 const serverMerger = require('../../utils/merge-server');
 
 class BaseServerAdapter extends BaseAdapter {
@@ -55,7 +54,7 @@ class BaseServerAdapter extends BaseAdapter {
     }
 
     _initHooks(app) {
-        const selfConfig = requireMicro.self();
+        const selfConfig = this.self;
         const serverConfig = selfConfig.server;
         const { options = {} } = serverConfig;
         const _options = [];
@@ -110,7 +109,7 @@ class BaseServerAdapter extends BaseAdapter {
 
     _initEntry(app) {
         // 读取配置文件
-        const selfConfig = requireMicro.self();
+        const selfConfig = this.self;
         const serverConfig = selfConfig.server;
         const { entry, options = {} } = serverConfig;
         const _options = [];

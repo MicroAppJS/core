@@ -12,6 +12,7 @@
     "libs/**/*",
     "src/**/*",
     "utils/**/*",
+    "plugins/**/*",
     "micro-app.config.js"
   ],
   "keywords": [

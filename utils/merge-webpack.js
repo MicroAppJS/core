@@ -184,11 +184,12 @@ module.exports = function webpackMerge(config = {}, ...names) {
             }
         }
     });
-    // inject self
-    injectSelfWebpackAlias(selfConfig, config);
 
     if (microConfigs.length) {
         config = merge(...microConfigs, config);
     }
+    // inject self
+    injectSelfWebpackAlias(selfConfig, config);
+
     return uniqArray(config);
 };

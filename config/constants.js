@@ -8,4 +8,5 @@ module.exports = {
     CONFIG_NAME: 'micro-app.config.js',
     TYPES: [],
     INJECT_ID: '_MICRO_APP_INJECT_',
+    NODE_ENV: process.env.NODE_ENV || 'production', // "production" | "development"
 };

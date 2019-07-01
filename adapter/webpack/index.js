@@ -9,6 +9,10 @@ const BaseAdapter = require('../base/BaseAdapter');
 
 class WebpackV3Adapter extends BaseAdapter {
 
+    constructor() {
+        super('WebpackV3');
+    }
+
     mergeConfig(webpackConfig) {
         const selfConfig = requireMicro.self();
         if (!webpackConfig) {
@@ -23,30 +27,16 @@ class WebpackV3Adapter extends BaseAdapter {
 
     build() {
         const webpackConfig = this.mergeConfig();
+        this._injectPlugins(webpackConfig);
         return webpackBuild(webpackConfig);
     }
 
-    devHot(app) {
+    devHot() {
         const webpackConfig = this.mergeConfig();
+        this._injectPlugins(webpackConfig, true);
         const wpDH = webpackDevHot(webpackConfig);
-        if (wpDH && app && typeof app.use === 'function') {
-            const { compiler, devOptions } = wpDH;
-            let publicPath = '/';
-            if (webpackConfig && webpackConfig.output) {
-                publicPath = webpackConfig.output.publicPath || '/';
-            }
-            app.use(async (ctx, next) => {
-                if (ctx.url === '/') {
-                    ctx.url = `${publicPath}index.html`;
-                }
-                await next();
-            });
-            const { devMiddleware, hotMiddleware } = require('koa-webpack-middleware');
-            app.use(devMiddleware(compiler, devOptions));
-            app.use(hotMiddleware(compiler));
-        }
         return wpDH;
     }
 }
 
-module.exports = new WebpackV3Adapter('WebpackV3');
+module.exports = WebpackV3Adapter;

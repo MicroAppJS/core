@@ -14,8 +14,10 @@ const DEV = Symbol('koa#server#dev');
 
 class KoaAdapter extends BaseServerAdapter {
 
-    constructor() {
+    constructor(webpackAdapter, options = {}) {
         super('KOA');
+        this.webpackAdapter = webpackAdapter;
+        this.options = options;
     }
 
     mergeRouter(router) {
@@ -50,7 +52,7 @@ class KoaAdapter extends BaseServerAdapter {
         return mw;
     }
 
-    runServer(programOpts = {}, callback) {
+    runServer(callback) {
         this._initDotenv();
 
         const Koa = require('koa');
@@ -80,11 +82,12 @@ class KoaAdapter extends BaseServerAdapter {
 
         this._hooks('after');
 
-        if (programOpts[DEV]) {
+        const programOpts = this.options;
+        if (this[DEV]) {
             // hotload webpack
             if (!programOpts.onlyNode && programOpts.type !== 'server') {
-                const webpackAdapter = programOpts.type === 'vusion' ? require('../vusion') : require('../webpack');
-                const webpackDevHot = webpackAdapter.devHot();
+                const WebpackAdapter = programOpts.type === 'vusion' ? require('../vusion') : require('../webpack');
+                const webpackDevHot = WebpackAdapter.devHot();
                 if (!webpackDevHot) {
                     throw new Error('load webpackDevHot error!!!');
                 }
@@ -141,15 +144,10 @@ class KoaAdapter extends BaseServerAdapter {
         });
     }
 
-    devHot(programOpts = {}, callback) {
+    devHot(callback) {
         logger.info('DevServer Start...');
-
-        return this.runServer(
-            Object.assign({}, programOpts, {
-                [DEV]: true,
-            }),
-            callback
-        );
+        this[DEV] = true;
+        return this.runServer(callback);
     }
 }
-module.exports = new KoaAdapter();
+module.exports = KoaAdapter;
