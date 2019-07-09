@@ -1,20 +1,19 @@
 'use strict';
 
-const requireMicro = require('../../utils/requireMicro');
 const webpackMerge = require('../../utils/merge-webpack');
 const webpackBuild = require('./build');
 const webpackDevHot = require('./devHot');
 
-const BaseAdapter = require('../base/BaseAdapter');
+const BaseWebpackAdapter = require('../base/BaseWebpackAdapter');
 
-class WebpackV3Adapter extends BaseAdapter {
+class WebpackV3Adapter extends BaseWebpackAdapter {
 
     constructor() {
         super('WebpackV3');
     }
 
     mergeConfig(webpackConfig) {
-        const selfConfig = requireMicro.self();
+        const selfConfig = this.self;
         if (!webpackConfig) {
             webpackConfig = selfConfig.webpack;
         }

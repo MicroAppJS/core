@@ -6,7 +6,7 @@ const symbols = require('../config/symbols');
 const CONSTANTS = require('../config/constants');
 
 // 默认配置
-const DEFAULT_CONFIG = JSON.stringify(JSON.parse(require('../config/default')));
+const DEFAULT_CONFIG = JSON.parse(JSON.stringify(require('../config/default')));
 const PACKAGE_JSON = 'package.json';
 const INIT = Symbol('MicroAppConfig_INIT');
 

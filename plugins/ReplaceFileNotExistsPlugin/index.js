@@ -9,7 +9,7 @@ const defaultOpts = {
     loader: path.join(__dirname, './loader.js'),
     micros: [],
     debug: false, // 开启log
-    warnHint: '',
+    warnHint: 'Not Found',
 };
 
 class ReplaceFileNotExistsPlugin {
@@ -22,79 +22,60 @@ class ReplaceFileNotExistsPlugin {
         this.micros = this.options.micros;
         this.warnHint = this.options.warnHint;
         this.debug = this.options.debug;
+        this._selfName = this.options.selfName || '------------------ 用于排除自己 ------------------';
     }
 
-    queryStr(request) {
-        return `?original=${request}&hint=${this.warnHint}`;
+    queryStr(request, microName) {
+        return `?original=${encodeURIComponent(request)}&hint=${encodeURIComponent(this.warnHint)}&microName=${encodeURIComponent(microName)}`;
+    }
+
+    beforeResolve(result, callback) {
+        if (!result) { return typeof callback === 'function' ? callback(null, result) : result; }
+        const resourceRegExp = this.regExpTest;
+        if (!resourceRegExp) { return typeof callback === 'function' ? callback(null, result) : result; }
+        const request = result.request;
+        if (!request.startsWith(this._selfName) && resourceRegExp.test(request)) {
+            const prefix = request.replace(resourceRegExp, '').split('/')[0];
+            if (prefix && !this.micros.some(key => key === prefix)) {
+                if (this.debug) {
+                    logger.debug('[ReplaceFileNotExistsPlugin][request] ' + request);
+                }
+                result.request = this.resource + this.queryStr(request, prefix);
+            }
+        }
+        return typeof callback === 'function' ? callback(null, result) : result;
+    }
+
+    afterResolve(result, callback) {
+        if (!result) { return typeof callback === 'function' ? callback(null, result) : result; }
+        if (result.rawRequest && result.rawRequest.startsWith(this.resource)) {
+            if (this.debug) {
+                const querystring = result.resource && result.resource.split('?')[1] || '';
+                const original = querystring.split('&')[0].replace(/^original=/, '') || '';
+                logger.debug('[ReplaceFileNotExistsPlugin][resource] ' + (original ? original : result.rawRequest));
+            }
+            result.loaders.unshift({
+                loader: this.loader,
+            });
+        }
+        return typeof callback === 'function' ? callback(null, result) : result;
     }
 
     apply(compiler) {
-        const resourceRegExp = this.regExpTest;
-        if (!resourceRegExp) return;
         const hooks = compiler.hooks;
         if (!hooks) {
             compiler.plugin('normal-module-factory', nmf => {
-                nmf.plugin('before-resolve', (result, callback) => {
-                    if (!result) return callback();
-                    if (resourceRegExp.test(result.request)) {
-                        const request = result.request;
-                        const prefix = request.replace(resourceRegExp, '').split('/')[0];
-                        if (prefix && !this.micros.some(key => key === prefix)) {
-                            if (this.debug) {
-                                logger.debug('[request] ' + request);
-                            }
-                            result.request = this.resource + this.queryStr(request);
-                        }
-                    }
-                    return callback(null, result);
-                });
-                nmf.plugin('after-resolve', (result, callback) => {
-                    if (!result) return callback();
-                    if (result.rawRequest && result.rawRequest.startsWith(this.resource)) {
-                        if (this.debug) {
-                            logger.debug('[resource] ' + result.resource);
-                        }
-                        result.loaders.unshift({
-                            loader: this.loader,
-                        });
-                    }
-                    return callback(null, result);
-                });
+                nmf.plugin('before-resolve', this.beforeResolve.bind(this));
+                nmf.plugin('after-resolve', this.afterResolve.bind(this));
             });
+        } else { // 适配 wp4
+            compiler.hooks.normalModuleFactory.tap('NormalModuleReplacementPlugin',
+                nmf => {
+                    nmf.hooks.beforeResolve.tap('NormalModuleReplacementPlugin', this.beforeResolve.bind(this));
+                    nmf.hooks.afterResolve.tap('NormalModuleReplacementPlugin', this.afterResolve.bind(this));
+                }
+            );
         }
-
-        // TODO 适配 wp4
-
-        // compiler.hooks.normalModuleFactory.tap(
-        //     'NormalModuleReplacementPlugin',
-        //     nmf => {
-        //         nmf.hooks.beforeResolve.tap('NormalModuleReplacementPlugin', result => {
-        //             if (!result) return;
-        //             if (resourceRegExp.test(result.request)) {
-        //                 if (typeof newResource === 'function') {
-        //                     newResource(result);
-        //                 } else {
-        //                     result.request = newResource;
-        //                 }
-        //             }
-        //             return result;
-        //         });
-        //         nmf.hooks.afterResolve.tap('NormalModuleReplacementPlugin', result => {
-        //             if (!result) return;
-        //             if (resourceRegExp.test(result.resource)) {
-        //                 if (typeof newResource === 'function') {
-        //                     newResource(result);
-        //                 } else {
-        //                     result.resource = path.resolve(
-        //                         path.dirname(result.resource),
-        //                         newResource
-        //                     );
-        //                 }
-        //             }
-        //             return result;
-        //         });
-        //     }
-        // );
     }
 }
 

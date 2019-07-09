@@ -10,12 +10,13 @@ const vusionDevHot = require('./devHot');
 
 const path = require('path');
 
-const BaseAdapter = require('../base/BaseAdapter');
+const BaseWebpackAdapter = require('../base/BaseWebpackAdapter');
 
-class VusionAdapter extends BaseAdapter {
+class VusionAdapter extends BaseWebpackAdapter {
 
     constructor() {
         super('Vusion');
+        this.webpackAdapter = new WebpackAdapter();
     }
 
     mergeConfig(config) {
@@ -26,11 +27,11 @@ class VusionAdapter extends BaseAdapter {
             config.webpack = {};
         }
         let webpackConfig = config.webpack;
-        config.webpack = WebpackAdapter.mergeConfig(webpackConfig);
+        config.webpack = this.webpackAdapter.mergeConfig(webpackConfig);
         webpackConfig = config.webpack;
         // logger.info(webpackConfig);
 
-        const selfConfig = requireMicro.self();
+        const selfConfig = this.self;
         const micros = selfConfig.micros;
         micros.forEach(key => {
             const microConfig = requireMicro(key);

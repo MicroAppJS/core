@@ -29,7 +29,10 @@ class BaseWebpackAdapter extends BaseAdapter {
         if (isDev && selfConfig.strict === false) {
             const options = Object.assign({
                 test: CONSTANTS.SCOPE_NAME ? new RegExp('^' + CONSTANTS.SCOPE_NAME + '/') : /^@micro-app\//i,
-            }, pluginOpts.ReplaceFileNotExists);
+            }, pluginOpts.ReplaceFileNotExists || {}, {
+                micros: selfConfig.micros,
+                selfName: selfConfig.name,
+            });
             webpackConfig.plugins.push(new ReplaceFileNotExistsPlugin(options));
         }
     }

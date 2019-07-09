@@ -86,8 +86,7 @@ class KoaAdapter extends BaseServerAdapter {
         if (this[DEV]) {
             // hotload webpack
             if (!programOpts.onlyNode && programOpts.type !== 'server') {
-                const WebpackAdapter = programOpts.type === 'vusion' ? require('../vusion') : require('../webpack');
-                const webpackDevHot = WebpackAdapter.devHot();
+                const webpackDevHot = this.webpackAdapter.devHot();
                 if (!webpackDevHot) {
                     throw new Error('load webpackDevHot error!!!');
                 }
