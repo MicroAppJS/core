@@ -85,7 +85,7 @@ class VusionAdapter extends BaseWebpackAdapter {
         return vusionBuild(vusionConfig);
     }
 
-    devHot() {
+    serve() {
         let vusionConfigModule = tryRequire('vusion-cli/config/resolve');
         if (!vusionConfigModule) {
             vusionConfigModule = tryRequire(path.join(process.cwd(), 'node_modules', 'vusion-cli/config/resolve'));

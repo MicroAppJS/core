@@ -41,5 +41,13 @@ module.exports = {
     },
 
     // 一些插件配置项
-    plugin: {},
+    plugin: {
+        // ReplaceFileNotExists: {
+        //     debug: false, // 开启log
+        //     warnHint: 'Not Found',
+        //     loader: '', // 路径
+        //     resource: '', // 路径
+        //     test: /^@micros\//i, // 匹配规则
+        // },
+    },
 };

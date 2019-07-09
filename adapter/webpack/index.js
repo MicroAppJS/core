@@ -6,7 +6,7 @@ const webpackDevHot = require('./devHot');
 
 const BaseWebpackAdapter = require('../base/BaseWebpackAdapter');
 
-class WebpackV3Adapter extends BaseWebpackAdapter {
+class WebpackAdapter extends BaseWebpackAdapter {
 
     constructor() {
         super('WebpackV3');
@@ -30,7 +30,7 @@ class WebpackV3Adapter extends BaseWebpackAdapter {
         return webpackBuild(webpackConfig);
     }
 
-    devHot() {
+    serve() {
         const webpackConfig = this.mergeConfig();
         this._injectPlugins(webpackConfig, true);
         const wpDH = webpackDevHot(webpackConfig);
@@ -38,4 +38,4 @@ class WebpackV3Adapter extends BaseWebpackAdapter {
     }
 }
 
-module.exports = WebpackV3Adapter;
+module.exports = WebpackAdapter;

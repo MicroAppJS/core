@@ -21,7 +21,7 @@ class BaseServerAdapter extends BaseAdapter {
         throw new Error('Not Implemented!');
     }
 
-    runServer() {
+    start() {
         throw new Error('Not Implemented!');
     }
 

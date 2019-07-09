@@ -14,7 +14,7 @@ class BaseWebpackAdapter extends BaseAdapter {
         throw new Error('Not Implemented!');
     }
 
-    devHot() {
+    serve() {
         throw new Error('Not Implemented!');
     }
 
@@ -28,7 +28,7 @@ class BaseWebpackAdapter extends BaseAdapter {
         // inject plugin
         if (isDev && selfConfig.strict === false) {
             const options = Object.assign({
-                test: CONSTANTS.SCOPE_NAME ? new RegExp('^' + CONSTANTS.SCOPE_NAME + '/') : /^@micro-app\//i,
+                test: CONSTANTS.SCOPE_NAME ? new RegExp('^' + CONSTANTS.SCOPE_NAME + '/') : /^@micros\//i,
             }, pluginOpts.ReplaceFileNotExists || {}, {
                 micros: selfConfig.micros,
                 selfName: selfConfig.name,

@@ -52,7 +52,7 @@ class KoaAdapter extends BaseServerAdapter {
         return mw;
     }
 
-    runServer(callback) {
+    start(callback) {
         this._initDotenv();
 
         const Koa = require('koa');
@@ -86,7 +86,7 @@ class KoaAdapter extends BaseServerAdapter {
         if (this[DEV]) {
             // hotload webpack
             if (!programOpts.onlyNode && programOpts.type !== 'server') {
-                const webpackDevHot = this.webpackAdapter.devHot();
+                const webpackDevHot = this.webpackAdapter.serve();
                 if (!webpackDevHot) {
                     throw new Error('load webpackDevHot error!!!');
                 }
@@ -99,6 +99,7 @@ class KoaAdapter extends BaseServerAdapter {
                 }
                 app.use(async (ctx, next) => {
                     if (ctx.url === '/') {
+                        // FIXME 这里需要优化
                         ctx.url = `${publicPath}index.html`;
                     }
                     await next();
@@ -139,14 +140,14 @@ class KoaAdapter extends BaseServerAdapter {
             const url = `http://${host}:${port}`;
             callback && typeof callback === 'function' && callback(url);
 
-            this._hooks('end'); // ? 用途不明确
+            // this._hooks('end'); // ? 用途不明确
         });
     }
 
-    devHot(callback) {
+    serve(callback) {
         logger.info('DevServer Start...');
         this[DEV] = true;
-        return this.runServer(callback);
+        return this.start(callback);
     }
 }
 module.exports = KoaAdapter;

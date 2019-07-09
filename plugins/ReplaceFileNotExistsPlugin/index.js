@@ -19,9 +19,10 @@ class ReplaceFileNotExistsPlugin {
         this.regExpTest = this.options.test;
         this.resource = this.options.resource;
         this.loader = this.options.loader;
-        this.micros = this.options.micros;
         this.warnHint = this.options.warnHint;
         this.debug = this.options.debug;
+        // 内部
+        this.micros = this.options.micros;
         this._selfName = this.options.selfName || '------------------ 用于排除自己 ------------------';
     }
 
