@@ -1,5 +1,7 @@
 'use strict';
 
+const koaWebpack = require('koa-webpack');
+
 const logger = require('../../utils/logger');
 const requireMicro = require('../../utils/requireMicro');
 const routerMerge = require('../../utils/merge-router');
@@ -104,9 +106,10 @@ class KoaAdapter extends BaseServerAdapter {
                     }
                     await next();
                 });
-                const { devMiddleware, hotMiddleware } = require('koa-webpack-middleware');
-                app.use(devMiddleware(compiler, devOptions));
-                app.use(hotMiddleware(compiler));
+                (async () => {
+                    const middleware = await koaWebpack({ compiler, devMiddleware: devOptions });
+                    app.use(middleware);
+                })();
             }
         } else {
             // static file
