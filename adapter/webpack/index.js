@@ -27,7 +27,8 @@ class WebpackAdapter extends BaseWebpackAdapter {
     build() {
         const webpackConfig = this.mergeConfig();
         this._injectPlugins(webpackConfig);
-        return webpackBuild(webpackConfig);
+        const selfConfig = this.self;
+        return webpackBuild(webpackConfig, selfConfig);
     }
 
     serve() {

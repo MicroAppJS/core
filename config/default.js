@@ -49,5 +49,11 @@ module.exports = {
         //     resource: '', // 路径
         //     test: /^@micros\//i, // 匹配规则
         // },
+        // SpeedMeasurePlugin: {
+        //     disabled: true,
+        // },
+        // HappyPack: {
+        //     disabled: true,
+        // },
     },
 };
