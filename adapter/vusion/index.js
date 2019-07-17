@@ -82,7 +82,8 @@ class VusionAdapter extends BaseWebpackAdapter {
 
         this._injectPlugins(vusionConfig.webpack);
 
-        return vusionBuild(vusionConfig);
+        const selfConfig = this.self;
+        return vusionBuild(vusionConfig, selfConfig);
     }
 
     serve() {
