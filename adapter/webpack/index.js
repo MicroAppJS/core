@@ -9,7 +9,7 @@ const BaseWebpackAdapter = require('../base/BaseWebpackAdapter');
 class WebpackAdapter extends BaseWebpackAdapter {
 
     constructor() {
-        super('WebpackV4');
+        super('WebpackV3'); // WebpackV4
     }
 
     mergeConfig(webpackConfig) {

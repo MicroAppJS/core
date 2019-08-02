@@ -174,9 +174,25 @@ class MicroAppConfig {
         return config.server || {};
     }
 
+    // 服务代理
+    get proxy() {
+        const server = this.server;
+        return server.proxy || {};
+    }
+
+    get proxyGlobal() {
+        const server = this.server;
+        return server.proxyGlobal || false;
+    }
+
     get plugin() {
         const config = this.config;
         return config.plugin || {};
+    }
+
+    get dll() {
+        const config = this.config;
+        return config.dll || {};
     }
 
     toJSON(simple = false) {

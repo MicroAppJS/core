@@ -7,7 +7,7 @@ function removeUselessPlugins(webpackConfig) {
     if (plugins && Array.isArray(plugins)) {
         webpackConfig.plugins = plugins.filter(item => {
             const constru = item.constructor;
-            if (constru && constru.name) {
+            if (constru && constru.name && constru.name !== 'Function') {
                 return true;
             }
             return false;

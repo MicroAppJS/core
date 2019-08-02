@@ -1,6 +1,9 @@
 'use strict';
 
-const koaWebpack = require('koa-webpack');
+const Koa = require('koa');
+const koaRouter = require('koa-router');
+const koaCompose = require('koa-compose');
+const koaConvert = require('koa-convert');
 
 const logger = require('../../utils/logger');
 const requireMicro = require('../../utils/requireMicro');
@@ -24,7 +27,6 @@ class KoaAdapter extends BaseServerAdapter {
 
     mergeRouter(router) {
         if (!router) {
-            const koaRouter = require('koa-router');
             router = new koaRouter();
         }
         const selfConfig = requireMicro.self();
@@ -46,7 +48,6 @@ class KoaAdapter extends BaseServerAdapter {
             fixedModuleAlias();
             middlewares = middlewareMerge(...micros) || [];
         }
-        const koaCompose = require('koa-compose');
         const mw = koaCompose(middlewares);
         if (mw && app && typeof app.use === 'function') {
             app.use(mw);
@@ -57,13 +58,10 @@ class KoaAdapter extends BaseServerAdapter {
     start(callback) {
         this._initDotenv();
 
-        const Koa = require('koa');
-        const convert = require('koa-convert');
-
         const app = new Koa();
         // 兼容koa1的中间件
         const _use = app.use;
-        app.use = x => _use.call(app, convert(x));
+        app.use = x => _use.call(app, koaConvert(x));
 
         // init module-alias
         fixedModuleAlias();
@@ -75,14 +73,17 @@ class KoaAdapter extends BaseServerAdapter {
             this._hooks('error', error, ctx);
         });
 
-        this._hooks('init'); // 优先级最高
-
-        this._hooks('before');
-
-        // micro server
-        this._initEntry(app);
-
-        this._hooks('after');
+        // 服务代理 proxy
+        const isProxyGlobal = this._initProxy(app);
+        if (!isProxyGlobal) { // 全局代理则不走服务端业务逻辑
+            this._hooks('init'); // 优先级最高
+            this._hooks('before');
+            // micro server
+            this._initEntry(app);
+            this._hooks('after');
+        } else {
+            this._hooks('proxy');
+        }
 
         const programOpts = this.options;
         if (this[DEV]) {
@@ -106,10 +107,18 @@ class KoaAdapter extends BaseServerAdapter {
                     }
                     await next();
                 });
-                (async () => {
-                    const middleware = await koaWebpack({ compiler, devMiddleware: devOptions });
-                    app.use(middleware);
-                })();
+
+                if (this.webpackAdapter.TYPE === 'WebpackV3' || this.webpackAdapter.TYPE === 'Vusion') {
+                    const { devMiddleware, hotMiddleware } = require('koa-webpack-middleware');
+                    app.use(devMiddleware(compiler, devOptions));
+                    app.use(hotMiddleware(compiler));
+                } else {
+                    const koaWebpack = require('koa-webpack');
+                    (async () => {
+                        const middleware = await koaWebpack({ compiler, devMiddleware: devOptions });
+                        app.use(middleware);
+                    })();
+                }
             }
         } else {
             // static file
@@ -142,8 +151,6 @@ class KoaAdapter extends BaseServerAdapter {
 
             const url = `http://${host}:${port}`;
             callback && typeof callback === 'function' && callback(url);
-
-            // this._hooks('end'); // ? 用途不明确
         });
     }
 

@@ -54,7 +54,7 @@ module.exports = async function injectHtml(ctx) {
         if (ok) {
             const $ = cheerio.load(ctx.body);
             const { INJECT_ID } = CONSTANTS;
-            $('body>#_MICRO_APP_INJECT_').append(`<textarea id="${INJECT_ID}_${key}" style="display: none;">${encodeURIComponent(JSON.stringify(value))}</textarea>`);
+            $(`body>#${INJECT_ID}`).append(`<textarea id="${INJECT_ID}_${key}" style="display: none;">${encodeURIComponent(JSON.stringify(value))}</textarea>`);
             ctx.body = $.html();
         }
     };

@@ -3,6 +3,7 @@
 const path = require('path');
 const merge = require('merge');
 const tryRequire = require('try-require');
+const koaProxy = require('@2o3t/koa2-proxy-middleware');
 
 const BaseAdapter = require('./BaseAdapter');
 const logger = require('../../utils/logger');
@@ -84,10 +85,10 @@ class BaseServerAdapter extends BaseAdapter {
                     Object.keys(hooks).forEach(key => {
                         const func = hooks[key];
                         this._HookEvent.hooks(key, func.bind({ info, options: injectOptions }));
-                        logger.info(`【 ${info.name} 】Hook inject ${key}`);
+                        logger.info(`【 ${info.name} 】Hook inject "${key}"`);
                     });
                 }
-                logger.info(`【 ${info.name} 】Hooked`);
+                logger.info(`【 ${info.name} 】Hook loaded`);
             });
         }
 
@@ -100,10 +101,10 @@ class BaseServerAdapter extends BaseAdapter {
                 Object.keys(hooks).forEach(key => {
                     const func = hooks[key];
                     this._HookEvent.hooks(key, func.bind({ info, options: injectOptions }));
-                    logger.info(`【 ${info.name} 】Hook inject ${key}`);
+                    logger.info(`【 ${info.name} 】Hook inject "${key}"`);
                 });
             }
-            logger.info(`【 ${info.name} 】Hooked`);
+            logger.info(`【 ${info.name} 】Hook loaded`);
         });
     }
 
@@ -144,6 +145,50 @@ class BaseServerAdapter extends BaseAdapter {
                 logger.info(`【 ${info.name} 】Inserted`);
             }
         }
+    }
+
+    _initProxy(app) {
+        // 读取配置文件
+        const selfConfig = this.self;
+        const serverProxy = selfConfig.proxy;
+        if (Array.isArray(serverProxy)) {
+            serverProxy.forEach(item => {
+                if (Array.isArray(item)) {
+                    if (item.length > 1) {
+                        app.use(koaProxy(item[0], item[1]));
+                    } else if (item.length > 0 && typeof item[0] === 'object') {
+                        app.use(koaProxy(item[0]));
+                    }
+                } else if (typeof item === 'object') {
+                    app.use(koaProxy(item));
+                }
+            });
+        } else {
+            Object.keys(serverProxy).forEach(key => {
+                const options = serverProxy[key];
+                let target = options;
+                if (typeof options === 'object') {
+                    target = options.target;
+                }
+                logger.info(`【 ${selfConfig.name} 】Proxy: ${key} --> ${target}`);
+                app.use(koaProxy(key, options));
+            });
+        }
+
+        // 对全局变量赋值
+        const isProxyGlobal = global.isProxyGlobal = !!selfConfig.proxyGlobal;
+        if (isProxyGlobal) {
+            logger.info(`【 ${selfConfig.name} 】Proxy: Global Mode`);
+        }
+        if (isProxyGlobal && typeof selfConfig.proxyGlobal === 'object') {
+            app.proxyGlobal = Object.freeze(selfConfig.proxyGlobal);
+            app.use((ctx, next) => {
+                ctx.proxyGlobal = Object.freeze(selfConfig.proxyGlobal);
+                next();
+            });
+            logger.info(`【 ${selfConfig.name} 】ProxyGlobal: ${JSON.stringify(selfConfig.proxyGlobal, null, 4)}`);
+        }
+        return isProxyGlobal;
     }
 }
 

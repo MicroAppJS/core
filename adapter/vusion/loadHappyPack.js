@@ -9,6 +9,14 @@ function getThreadSize() {
     return cupsSize > 8 ? Math.ceil(cupsSize / 3 * 2) : cupsSize;
 }
 
+function getHappyPackThreads(threadSize) {
+    const options = {};
+    if (threadSize > 4) {
+        options.threads = 4;
+    }
+    return options;
+}
+
 module.exports = function loadHappyPack(webpackConfig, pluginConfig) {
     if (!pluginConfig.HappyPack) return webpackConfig;
     const options = pluginConfig.HappyPack || {};
@@ -35,6 +43,7 @@ module.exports = function loadHappyPack(webpackConfig, pluginConfig) {
                         id: 'styles',
                         threadPool: happyThreadPool,
                         loaders,
+                        ...getHappyPackThreads(threadSize),
                     }));
                 }
             } else if (rule.test && rule.test.test('.js')) {
@@ -53,6 +62,7 @@ module.exports = function loadHappyPack(webpackConfig, pluginConfig) {
                         id: 'js',
                         threadPool: happyThreadPool,
                         loaders,
+                        ...getHappyPackThreads(threadSize),
                     }));
                 }
             } else if (rule.test && rule.test.test('.vue')) {
@@ -71,6 +81,7 @@ module.exports = function loadHappyPack(webpackConfig, pluginConfig) {
                         id: 'vue',
                         threadPool: happyThreadPool,
                         loaders,
+                        ...getHappyPackThreads(threadSize),
                     }));
                 }
             // } else if (rule.test && rule.test.test('.vue/index.js')) {

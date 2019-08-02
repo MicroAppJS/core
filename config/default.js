@@ -32,6 +32,14 @@ module.exports = {
         // port: 8888, // 服务端口号
         // staticBase: '', // 服务端静态文件目录
         // options: { }, // 服务端注入附加参数
+        // proxyGlobal: false, // 全局无服务, 只走代理
+        // proxy: { // 服务代理
+        //     '/api': {
+        //         target: 'http://127.0.0.1', // target host
+        //         changeOrigin: true, // needed for virtual hosted sites
+        //         ws: true, // proxy websockets
+        //     },
+        // },
     },
 
     // 自动向主容器同步 package.json
@@ -56,4 +64,11 @@ module.exports = {
         //     disabled: true,
         // },
     },
+
+    // dll: { // dll 基本配置, [ 只支持子模块中使用 ]
+    //     disabled: false,
+    //     context: '',
+    //     manifest: '',
+    //     filepath: '',
+    // },
 };
