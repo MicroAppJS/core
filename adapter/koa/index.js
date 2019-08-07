@@ -81,8 +81,6 @@ class KoaAdapter extends BaseServerAdapter {
             // micro server
             this._initEntry(app);
             this._hooks('after');
-        } else {
-            this._hooks('proxy');
         }
 
         const programOpts = this.options;
@@ -137,6 +135,10 @@ class KoaAdapter extends BaseServerAdapter {
                 });
                 app.use(koaStatic);
             }
+        }
+
+        if (isProxyGlobal) {
+            this._hooks('proxy');
         }
 
         // 读取配置文件
