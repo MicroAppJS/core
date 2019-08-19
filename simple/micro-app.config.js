@@ -31,11 +31,10 @@ module.exports = {
     },
     alias: { // 前端共享
         api: './client/api.js',
-    },
-    shared: { // 后端共享
-        config: './server/config.js',
-        // middleware: '', // koa-middleware
-        // router: '', // koa-router
+        config: {
+            type: 'server', // 后端共享
+            link: './server/config.js',
+        },
     },
 
     micros: [ 'test' ],

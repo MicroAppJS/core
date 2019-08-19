@@ -35,9 +35,10 @@
 // console.log('/abc/abc/ba/a'.replace(reg, '/'));
 
 
-// const ma = require('../');
+const ma = require('../');
 // ma.CONSTANTS.ROOT = __dirname;
-// console.log(ma('test'));
+console.log(ma('test'));
+console.log(ma.loadConfig());
 // ma.koa.start();
 
 

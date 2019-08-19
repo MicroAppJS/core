@@ -2,6 +2,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const tryRequire = require('try-require');
 const symbols = require('../config/symbols');
 const CONSTANTS = require('../config/constants');
 
@@ -15,6 +16,7 @@ class MicroAppConfig {
     constructor(config) {
         this[INIT](config);
         this._config = config || {};
+        this.webpack = config.webpack || {};
     }
 
     [INIT](config) {
@@ -37,7 +39,7 @@ class MicroAppConfig {
     }
 
     get isDev() {
-        return this.config.mode === 'development';
+        return this.mode === 'development';
     }
 
     get strict() {
@@ -61,6 +63,11 @@ class MicroAppConfig {
         return config.name || this.package.name || '';
     }
 
+    get aliasName() {
+        const aliasName = this.name;
+        return aliasName[0] !== '@' ? `@${aliasName}` : aliasName;
+    }
+
     get version() {
         const config = this.config;
         return config.version || this.package.version || '';
@@ -76,9 +83,124 @@ class MicroAppConfig {
         return config.type || '';
     }
 
-    get webpack() {
+    get entry() {
         const config = this.config;
-        return config.webpack || {};
+        const entry = config.entry || {};
+        // fix entry path
+        if (typeof entry === 'object') {
+            Object.keys(entry).forEach(key => {
+                const _entrys = entry[key];
+                if (Array.isArray(_entrys)) {
+                    entry[key] = _entrys.map(item => {
+                        if (!tryRequire.resolve(item)) {
+                            return path.resolve(this.root, item);
+                        }
+                        return item;
+                    });
+                } else if (typeof _entrys === 'string') {
+                    if (!tryRequire.resolve(_entrys)) {
+                        entry[key] = path.resolve(this.root, _entrys);
+                    }
+                }
+            });
+        } else if (Array.isArray(entry)) {
+            return entry.map(item => {
+                if (!tryRequire.resolve(item)) {
+                    return path.resolve(this.root, item);
+                }
+                return item;
+            });
+        } else if (typeof entry === 'string') {
+            if (!tryRequire.resolve(entry)) {
+                return path.resolve(this.root, entry);
+            }
+        }
+        return entry;
+    }
+
+    get html() {
+        const htmls = this.htmls;
+        return htmls[0] || {};
+    }
+
+    get htmls() { // 支持 array
+        const config = this.config;
+        const htmls = config.htmls || [];
+        const _html = config.html; // 兼容
+        if (_html && typeof _html === 'object') {
+            htmls.unshift(_html);
+        }
+        htmls.forEach(item => {
+            if (item && item.template) {
+                const template = item.template;
+                if (!tryRequire.resolve(template)) {
+                    item.template = path.resolve(this.root, template);
+                }
+            }
+        });
+        return htmls;
+    }
+
+    get dll() {
+        const dlls = this.dlls;
+        return dlls[0] || {};
+    }
+
+    get dlls() { // 支持 array
+        const config = this.config;
+        const dlls = config.dlls || [];
+        const _dll = config.dll; // 兼容
+        if (_dll && typeof _dll === 'object') {
+            dlls.unshift(_dll);
+        }
+        dlls.forEach(item => {
+            if (item && item.context) {
+                const context = item.context;
+                if (!tryRequire.resolve(context)) {
+                    item.context = path.resolve(this.root, context);
+                }
+            }
+            if (item && item.manifest) {
+                const manifest = item.manifest;
+                if (!tryRequire.resolve(manifest)) {
+                    item.manifest = path.resolve(this.root, manifest);
+                }
+            }
+            if (item && item.filepath) {
+                const filepath = item.filepath;
+                if (!tryRequire.resolve(filepath)) {
+                    item.filepath = path.resolve(this.root, filepath);
+                }
+            }
+        });
+        return dlls;
+    }
+
+    get staticPaths() { // String | Array
+        const config = this.config;
+        const staticPath = config.staticPath || [];
+        const staticPaths = [];
+        if (staticPath && typeof staticPath === 'string') {
+            staticPaths.push(staticPath);
+        } else if (Array.isArray(staticPath)) {
+            staticPaths.push(...staticPath);
+        }
+        return staticPaths.filter(item => {
+            return !!item;
+        }).map(item => {
+            if (!tryRequire.resolve(item)) {
+                return path.resolve(this.root, item);
+            }
+            return item;
+        });
+    }
+
+    get webpackChain() { // 不在强依赖
+        const config = this.config;
+        if (typeof config.webpackChain === 'function') {
+            return config.webpackChain;
+        }
+        return function() {};
     }
 
     get micros() {
@@ -146,6 +268,23 @@ class MicroAppConfig {
         }, {});
     }
 
+    get resolveShared() {
+        const alias = {};
+        const aliasName = this.aliasName;
+        if (aliasName) {
+            const currShared = this.shared;
+            Object.keys(currShared).forEach(k => {
+                const p = currShared[k];
+                const aliasKey = `${aliasName}/${k}`;
+                if (p && typeof p === 'string' && !alias[aliasKey]) {
+                    const filePath = path.resolve(this.root, p);
+                    alias[aliasKey] = filePath;
+                }
+            });
+        }
+        return alias;
+    }
+
     // 前端共享
     get alias() {
         const config = this.config;
@@ -166,6 +305,23 @@ class MicroAppConfig {
             }
             return obj;
         }, {});
+    }
+
+    get resolveAlias() {
+        const alias = {};
+        const aliasName = this.aliasName;
+        if (aliasName) {
+            const currAlias = this.alias;
+            Object.keys(currAlias).forEach(key => {
+                const p = currAlias[key];
+                const aliasKey = `${aliasName}/${key}`;
+                if (p && typeof p === 'string' && !alias[aliasKey]) {
+                    const filePath = path.resolve(this.root, p);
+                    alias[aliasKey] = filePath;
+                }
+            });
+        }
+        return alias;
     }
 
     // server
@@ -190,11 +346,6 @@ class MicroAppConfig {
         return config.plugin || {};
     }
 
-    get dll() {
-        const config = this.config;
-        return config.dll || {};
-    }
-
     toJSON(simple = false) {
         const json = {
             name: this.name,
@@ -207,6 +358,44 @@ class MicroAppConfig {
             json.micros = this.micros;
         }
         return json;
+    }
+
+    toConfig(includeWebpack = false) {
+        const json = {
+            ...this.toJSON(),
+            aliasName: this.aliasName,
+            entry: this.entry,
+            htmls: this.htmls,
+            dlls: this.dlls,
+            alias: this.resolveAlias,
+            shared: this.resolveShared,
+            staticPaths: this.staticPaths,
+        };
+        if (includeWebpack) {
+            json.webpack = this.webpack;
+        }
+        return json;
+    }
+
+    toServerConfig() {
+        const root = this.root;
+        const _serverConfig = this.server;
+        const { entry, options = {} } = _serverConfig;
+        if (entry) {
+            const entryFile = path.resolve(root, entry);
+            const entryCallback = tryRequire(entryFile);
+            if (entryCallback && typeof entryCallback === 'function') {
+                return {
+                    entry: entryCallback,
+                    options,
+                    info: this.toJSON(true),
+                };
+            }
+        }
+        return {
+            options,
+            info: this.toJSON(true),
+        };
     }
 }
 

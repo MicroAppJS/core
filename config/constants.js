@@ -2,6 +2,7 @@
 
 module.exports = {
     NAME: 'Micro App',
+    VERSION: '0.1.0-RC1',
     ROOT: process.env.MICRO_APP_ROOT || process.cwd(),
     NODE_MODULES_NAME: 'node_modules',
     SCOPE_NAME: '@micro-app', // namespace
