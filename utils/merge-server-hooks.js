@@ -1,6 +1,5 @@
 'use strict';
 
-const requireMicro = require('./requireMicro');
 const tryRequire = require('try-require');
 const path = require('path');
 const fs = require('fs');
@@ -8,10 +7,8 @@ const fs = require('fs');
 function adapter(microConfig) {
     const microServers = [];
     const root = microConfig.root;
-    const _serverConfig = microConfig.server;
-    const { hooks, options = {} } = _serverConfig;
+    const { hooks, options = {}, info } = microConfig;
     if (hooks) {
-        const info = microConfig.toJSON(true);
         const hooksFile = path.resolve(root, hooks);
         if (fs.statSync(hooksFile).isDirectory()) {
             const hookFuncs = [];
@@ -49,13 +46,12 @@ function adapter(microConfig) {
     return microServers;
 }
 
-function serverHooksMerge(...names) {
-    if (!names || names.length <= 0) {
+function serverHooksMerge(...microConfigs) {
+    if (!microConfigs || microConfigs.length <= 0) {
         return [];
     }
     const microServers = [];
-    names.forEach(key => {
-        const microConfig = requireMicro(key);
+    microConfigs.forEach(microConfig => {
         if (microConfig) {
             microServers.push(...adapter(microConfig));
         }

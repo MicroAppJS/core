@@ -46,7 +46,7 @@ module.exports = {
     server: {
         entry: './server/entry.js', // path
         port: 8088,
-        staticBase: 'public', // path
+        contentBase: 'public', // path
         options: { },
     },
 };

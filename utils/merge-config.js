@@ -1,9 +1,11 @@
 'use strict';
 
+// 未使用
+
 const requireMicro = require('./requireMicro');
 const tryRequire = require('try-require');
 const path = require('path');
-const merge = require('merge');
+const merge = require('webpack-merge');
 const fs = require('fs');
 
 // 最外层 config 覆盖内部

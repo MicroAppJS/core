@@ -48,7 +48,7 @@ module.exports = {
         // entry: '', // 服务端入口
         // host: ‘’, // 服务 IP
         // port: 8888, // 服务端口号
-        // staticBase: '', // 服务端静态文件目录
+        // contentBase: '', // 服务端静态文件目录
         // options: { }, // 服务端注入附加参数
         // proxyGlobal: false, // 全局无服务, 只走代理
         // proxy: { // 服务代理
@@ -82,4 +82,10 @@ module.exports = {
         //     disabled: true,
         // },
     },
+
+    plugins: [
+        [
+            '', {},
+        ],
+    ],
 };

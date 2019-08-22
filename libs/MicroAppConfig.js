@@ -15,7 +15,8 @@ class MicroAppConfig {
 
     constructor(config) {
         this[INIT](config);
-        this._config = config || {};
+        this._config = config || DEFAULT_CONFIG;
+        // 校验 config
         this.webpack = config.webpack || {};
     }
 
@@ -47,7 +48,7 @@ class MicroAppConfig {
     }
 
     get config() {
-        return this._config || DEFAULT_CONFIG;
+        return this._config || {};
     }
 
     get packagePath() {
@@ -56,6 +57,10 @@ class MicroAppConfig {
 
     get package() {
         return Object.freeze(this._package);
+    }
+
+    get key() {
+        return this.name.replace(`${CONSTANTS.SCOPE_NAME}/`, '');
     }
 
     get name() {
@@ -99,20 +104,24 @@ class MicroAppConfig {
                     });
                 } else if (typeof _entrys === 'string') {
                     if (!tryRequire.resolve(_entrys)) {
-                        entry[key] = path.resolve(this.root, _entrys);
+                        entry[key] = [ path.resolve(this.root, _entrys) ];
                     }
                 }
             });
         } else if (Array.isArray(entry)) {
-            return entry.map(item => {
-                if (!tryRequire.resolve(item)) {
-                    return path.resolve(this.root, item);
-                }
-                return item;
-            });
+            return {
+                main: entry.map(item => {
+                    if (!tryRequire.resolve(item)) {
+                        return path.resolve(this.root, item);
+                    }
+                    return item;
+                }),
+            };
         } else if (typeof entry === 'string') {
             if (!tryRequire.resolve(entry)) {
-                return path.resolve(this.root, entry);
+                return {
+                    main: [ path.resolve(this.root, entry) ],
+                };
             }
         }
         return entry;
@@ -193,14 +202,6 @@ class MicroAppConfig {
             }
             return item;
         });
-    }
-
-    get webpackChain() { // 不在强依赖
-        const config = this.config;
-        if (typeof config.webpackChain === 'function') {
-            return config.webpackChain;
-        }
-        return function() {};
     }
 
     get micros() {
@@ -330,6 +331,14 @@ class MicroAppConfig {
         return config.server || {};
     }
 
+    get contentBase() {
+        const server = this.server;
+        if (server.contentBase) {
+            return path.resolve(this.root, server.contentBase);
+        }
+        return '.';
+    }
+
     // 服务代理
     get proxy() {
         const server = this.server;
@@ -341,61 +350,91 @@ class MicroAppConfig {
         return server.proxyGlobal || false;
     }
 
-    get plugin() {
+    get plugin() { // 弃用
         const config = this.config;
         return config.plugin || {};
     }
 
-    toJSON(simple = false) {
+    get plugins() {
+        const config = this.config;
+        const _plugins = config.plugins || [];
+        return _plugins.map(p => {
+            let opts;
+            let id;
+            let others;
+            if (Array.isArray(p)) {
+                opts = p[1];
+                if (typeof p[0] === 'object') {
+                    others = p[0];
+                    id = p[0].id;
+                    p = p[0].link;
+                } else {
+                    p = id = p[0];
+                }
+            }
+            id = id || p;
+            if (!tryRequire.resolve(p)) {
+                p = path.resolve(this.root, p);
+            }
+            return {
+                ...(others || {}),
+                id,
+                link: p,
+                opts: opts || {},
+            };
+        });
+    }
+
+    toJSON(notSimple = false) {
         const json = {
+            key: this.key,
             name: this.name,
             version: this.version,
             type: this.type,
             description: this.description,
             root: this.root,
+            nodeModules: this.nodeModules,
         };
-        if (!simple) {
+        if (notSimple) {
             json.micros = this.micros;
         }
         return json;
     }
 
-    toConfig(includeWebpack = false) {
+    toConfig(notSimple = false) {
         const json = {
             ...this.toJSON(),
             aliasName: this.aliasName,
             entry: this.entry,
             htmls: this.htmls,
             dlls: this.dlls,
-            alias: this.resolveAlias,
-            shared: this.resolveShared,
+            alias: this.alias,
+            resolveAlias: this.resolveAlias,
+            shared: this.shared,
+            resolveShared: this.resolveShared,
             staticPaths: this.staticPaths,
         };
-        if (includeWebpack) {
+        if (notSimple) {
+            json.plugins = this.plugins;
             json.webpack = this.webpack;
         }
         return json;
     }
 
     toServerConfig() {
-        const root = this.root;
         const _serverConfig = this.server;
-        const { entry, options = {} } = _serverConfig;
-        if (entry) {
-            const entryFile = path.resolve(root, entry);
-            const entryCallback = tryRequire(entryFile);
-            if (entryCallback && typeof entryCallback === 'function') {
-                return {
-                    entry: entryCallback,
-                    options,
-                    info: this.toJSON(true),
-                };
-            }
-        }
-        return {
+        const { entry, options = {}, hooks } = _serverConfig;
+        const json = {
+            ...this.toJSON(),
+            entry,
+            hooks,
             options,
-            info: this.toJSON(true),
+            info: this.toJSON(),
+            shared: this.shared,
+            resolveShared: this.resolveShared,
+            contentBase: this.contentBase,
         };
+        return json;
     }
 }
 

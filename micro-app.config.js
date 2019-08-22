@@ -17,8 +17,22 @@ module.exports = {
             alias: {},
             // modules: [],
         },
-        plugins: [],
+        plugins: [
+        ],
     },
+    htmls: [
+        {
+            template: './test/index.js',
+        },
+    ],
+    entry: {
+        main: './test/index.js',
+    },
+    // dlls: [
+    //     {
+    //         context: __dirname,
+    //     },
+    // ],
     alias: { // 前端
         api: '',
     },
@@ -38,9 +52,19 @@ module.exports = {
     server: {
         entry: '', // 服务端入口
         port: 8088, // 服务端口号
-        staticBase: 'public', // 静态文件地址
+        contentBase: 'public', // 静态文件地址
         options: {
             // 服务端回调参数
         },
     },
+
+    plugins: [
+        [{
+            id: 'test',
+            description: '这是test',
+            link: __dirname + '/test/testPlugin',
+        }, {
+            a: 1,
+        }],
+    ],
 };
