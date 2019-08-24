@@ -3,7 +3,7 @@
 ## Install
 
 ```sh
-npm install -g @micro-app/cli
+yarn add @micro-app/cli
 ```
 
 or
@@ -58,11 +58,15 @@ module.exports = {
 
     // 服务配置
     server: {
+        hooks: '', // 服务端 hook 路径
         entry: '', // 服务端入口
         port: 8088, // 服务端口号
         staticBase: 'public', // 静态文件地址
         options: {
             // 服务端回调参数
+        },
+        proxy: {
+            // 服务代理
         },
     },
 };

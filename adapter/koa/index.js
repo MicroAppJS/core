@@ -1,24 +1,32 @@
 'use strict';
 
+const Koa = require('koa');
+const koaRouter = require('koa-router');
+const koaCompose = require('koa-compose');
+const koaConvert = require('koa-convert');
+
 const logger = require('../../utils/logger');
 const requireMicro = require('../../utils/requireMicro');
 const routerMerge = require('../../utils/merge-router');
 const middlewareMerge = require('../../utils/merge-middleware');
-const serverMerger = require('../../utils/merge-server');
 const fixedModuleAlias = require('../common/fixedModuleAlias');
 
 const staticServer = require('./staticServer');
 
-const tryRequire = require('try-require');
-const merge = require('merge');
-const path = require('path');
+const BaseServerAdapter = require('../base/BaseServerAdapter');
 
 const DEV = Symbol('koa#server#dev');
 
-module.exports = {
+class KoaAdapter extends BaseServerAdapter {
+
+    constructor(webpackAdapter, options = {}) {
+        super('KOA');
+        this.webpackAdapter = webpackAdapter;
+        this.options = options;
+    }
+
     mergeRouter(router) {
         if (!router) {
-            const koaRouter = require('koa-router');
             router = new koaRouter();
         }
         const selfConfig = requireMicro.self();
@@ -29,7 +37,8 @@ module.exports = {
             router = routerMerge(router, ...micros);
         }
         return router;
-    },
+    }
+
     mergeMiddleware(app) {
         let middlewares = [];
         const selfConfig = requireMicro.self();
@@ -39,74 +48,46 @@ module.exports = {
             fixedModuleAlias();
             middlewares = middlewareMerge(...micros) || [];
         }
-        const koaCompose = require('koa-compose');
         const mw = koaCompose(middlewares);
         if (mw && app && typeof app.use === 'function') {
             app.use(mw);
         }
         return mw;
-    },
-    runServer(programOpts = {}, callback) {
-        const Koa = require('koa');
-        const convert = require('koa-convert');
+    }
+
+    start(callback) {
+        this._initDotenv();
 
         const app = new Koa();
         // 兼容koa1的中间件
         const _use = app.use;
-        app.use = x => _use.call(app, convert(x));
-
-        app.on('error', (error, ctx) => {
-            logger.error('koa server error: ', error);
-        });
-
-        // 读取配置文件
-        const selfConfig = requireMicro.self();
-        const serverConfig = selfConfig.server;
-        const { entry, options = {} } = serverConfig;
+        app.use = x => _use.call(app, koaConvert(x));
 
         // init module-alias
         fixedModuleAlias();
+        this._initHooks(app);
 
-        // micro server
-        const micros = selfConfig.micros;
-        if (micros && Array.isArray(micros)) {
-            const microServers = serverMerger(...micros);
-            const _entrys = [];
-            const _options = [];
-            microServers.forEach(({ entry, options, info }) => {
-                if (entry) {
-                    _entrys.push({
-                        entry, info,
-                    });
-                }
-                if (options) {
-                    _options.push(options);
-                }
-            });
-            _entrys.forEach(({ entry, info }) => {
-                entry(app, merge.recursive(true, ..._options, options), info);
-            });
-        }
-        if (entry) {
-            const entryFile = path.resolve(selfConfig.root, entry);
-            const entryCallback = tryRequire(entryFile);
-            if (entryCallback && typeof entryCallback === 'function') {
-                entryCallback(app, merge.recursive(true, options), selfConfig.toJSON(true));
-            }
+        app.on('error', (error, ctx) => {
+            logger.error('koa server error: ', error);
+
+            this._hooks('error', error, ctx);
+        });
+
+        // 服务代理 proxy
+        const isProxyGlobal = this._initProxy(app);
+        if (!isProxyGlobal) { // 全局代理则不走服务端业务逻辑
+            this._hooks('init'); // 优先级最高
+            this._hooks('before');
+            // micro server
+            this._initEntry(app);
+            this._hooks('after');
         }
 
-        // load micro
-        // this.mergeMiddleware(app);
-
-        // const router = this.mergeRouter();
-        // app.use(router.routes());
-        // app.use(router.allowedMethods());
-
-        if (programOpts[DEV]) {
+        const programOpts = this.options;
+        if (this[DEV]) {
             // hotload webpack
             if (!programOpts.onlyNode && programOpts.type !== 'server') {
-                const webpackAdapter = programOpts.type === 'vusion' ? require('../vusion') : require('../webpack');
-                const webpackDevHot = webpackAdapter.devHot();
+                const webpackDevHot = this.webpackAdapter.serve();
                 if (!webpackDevHot) {
                     throw new Error('load webpackDevHot error!!!');
                 }
@@ -119,13 +100,23 @@ module.exports = {
                 }
                 app.use(async (ctx, next) => {
                     if (ctx.url === '/') {
+                        // FIXME 这里需要优化
                         ctx.url = `${publicPath}index.html`;
                     }
                     await next();
                 });
-                const { devMiddleware, hotMiddleware } = require('koa-webpack-middleware');
-                app.use(devMiddleware(compiler, devOptions));
-                app.use(hotMiddleware(compiler));
+
+                if (this.webpackAdapter.TYPE === 'WebpackV3' || this.webpackAdapter.TYPE === 'Vusion') {
+                    const { devMiddleware, hotMiddleware } = require('koa-webpack-middleware');
+                    app.use(devMiddleware(compiler, devOptions));
+                    app.use(hotMiddleware(compiler));
+                } else {
+                    const koaWebpack = require('koa-webpack');
+                    (async () => {
+                        const middleware = await koaWebpack({ compiler, devMiddleware: devOptions });
+                        app.use(middleware);
+                    })();
+                }
             }
         } else {
             // static file
@@ -146,6 +137,13 @@ module.exports = {
             }
         }
 
+        if (isProxyGlobal) {
+            this._hooks('proxy');
+        }
+
+        // 读取配置文件
+        const selfConfig = requireMicro.self();
+        const serverConfig = selfConfig.server;
         const port = programOpts.port || serverConfig.port || 8888;
         const host = programOpts.host || serverConfig.host || 'localhost';
         app.listen(port, host === 'localhost' ? '0.0.0.0' : host, err => {
@@ -156,16 +154,12 @@ module.exports = {
             const url = `http://${host}:${port}`;
             callback && typeof callback === 'function' && callback(url);
         });
-    },
-    devServer(programOpts = {}, callback) {
+    }
 
+    serve(callback) {
         logger.info('DevServer Start...');
-
-        return this.runServer(
-            Object.assign({}, programOpts, {
-                [DEV]: true,
-            }),
-            callback
-        );
-    },
-};
+        this[DEV] = true;
+        return this.start(callback);
+    }
+}
+module.exports = KoaAdapter;

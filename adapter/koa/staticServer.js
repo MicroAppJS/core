@@ -1,6 +1,7 @@
 'use strict';
 
 const requireMicro = require('../../utils/requireMicro');
+const koaStaticServer = require('koa-static');
 const path = require('path');
 
 module.exports = function() {
@@ -17,7 +18,6 @@ module.exports = function() {
     if (!staticPath) {
         return { webpackConfig };
     }
-    const koaStaticServer = require('koa-static');
     const koaStatic = koaStaticServer(staticPath, Object.assign({
         maxage: 1000 * 60 * 60 * 1,
         index: 'index.html',

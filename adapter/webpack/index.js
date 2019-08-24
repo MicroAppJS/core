@@ -1,13 +1,19 @@
 'use strict';
 
-const requireMicro = require('../../utils/requireMicro');
 const webpackMerge = require('../../utils/merge-webpack');
 const webpackBuild = require('./build');
 const webpackDevHot = require('./devHot');
 
-module.exports = {
+const BaseWebpackAdapter = require('../base/BaseWebpackAdapter');
+
+class WebpackAdapter extends BaseWebpackAdapter {
+
+    constructor() {
+        super('WebpackV3'); // WebpackV4
+    }
+
     mergeConfig(webpackConfig) {
-        const selfConfig = requireMicro.self();
+        const selfConfig = this.self;
         if (!webpackConfig) {
             webpackConfig = selfConfig.webpack;
         }
@@ -16,30 +22,21 @@ module.exports = {
             webpackConfig = webpackMerge(webpackConfig, ...micros);
         }
         return webpackConfig;
-    },
+    }
+
     build() {
         const webpackConfig = this.mergeConfig();
-        return webpackBuild(webpackConfig);
-    },
-    devHot(app) {
+        this._injectPlugins(webpackConfig);
+        const selfConfig = this.self;
+        return webpackBuild(webpackConfig, selfConfig);
+    }
+
+    serve() {
         const webpackConfig = this.mergeConfig();
+        this._injectPlugins(webpackConfig, true);
         const wpDH = webpackDevHot(webpackConfig);
-        if (wpDH && app && typeof app.use === 'function') {
-            const { compiler, devOptions } = wpDH;
-            let publicPath = '/';
-            if (webpackConfig && webpackConfig.output) {
-                publicPath = webpackConfig.output.publicPath || '/';
-            }
-            app.use(async (ctx, next) => {
-                if (ctx.url === '/') {
-                    ctx.url = `${publicPath}index.html`;
-                }
-                await next();
-            });
-            const { devMiddleware, hotMiddleware } = require('koa-webpack-middleware');
-            app.use(devMiddleware(compiler, devOptions));
-            app.use(hotMiddleware(compiler));
-        }
         return wpDH;
-    },
-};
+    }
+}
+
+module.exports = WebpackAdapter;

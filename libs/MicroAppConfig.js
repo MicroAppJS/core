@@ -3,10 +3,11 @@
 const path = require('path');
 const fs = require('fs');
 const symbols = require('../config/symbols');
+const CONSTANTS = require('../config/constants');
 
-const NODE_MODULES = 'node_modules';
+// 默认配置
+const DEFAULT_CONFIG = JSON.parse(JSON.stringify(require('../config/default')));
 const PACKAGE_JSON = 'package.json';
-
 const INIT = Symbol('MicroAppConfig_INIT');
 
 class MicroAppConfig {
@@ -31,8 +32,20 @@ class MicroAppConfig {
         }
     }
 
+    get mode() {
+        return CONSTANTS.NODE_ENV || 'production';
+    }
+
+    get isDev() {
+        return this.config.mode === 'development';
+    }
+
+    get strict() {
+        return this.config.strict !== false;
+    }
+
     get config() {
-        return this._config || {};
+        return this._config || DEFAULT_CONFIG;
     }
 
     get packagePath() {
@@ -100,30 +113,86 @@ class MicroAppConfig {
 
     get nodeModules() {
         if (this.root) {
-            return path.join(this.root, NODE_MODULES);
+            const nodeModules = CONSTANTS.NODE_MODULES_NAME || 'node_modules';
+            return path.join(this.root, nodeModules);
         }
         return '';
+    }
+
+    get subModulesRoot() {
+        const scopeName = CONSTANTS.SCOPE_NAME || '';
+        return path.join(this.nodeModules, scopeName);
     }
 
     // 后端共享
     get shared() {
         const config = this.config;
-        if (config) {
-            return config.shared || config.share || {};
+        const currShared = config.shared || config.share;
+        if (currShared) { // 兼容旧版
+            return currShared;
         }
-        return {};
+        const currAlias = config.alias || {};
+        return Object.keys(currAlias).reduce((obj, key) => {
+            const aliasObj = currAlias[key];
+            if (typeof aliasObj === 'string') {
+                obj[key] = aliasObj;
+            } else if (typeof aliasObj === 'object') {
+                const link = aliasObj.link;
+                if (link && typeof link === 'string') {
+                    obj[key] = link;
+                }
+            }
+            return obj;
+        }, {});
     }
 
     // 前端共享
     get alias() {
         const config = this.config;
-        return config.alias || {};
+        const currAlias = config.alias || {};
+        return Object.keys(currAlias).reduce((obj, key) => {
+            const aliasObj = currAlias[key];
+            if (typeof aliasObj === 'string') {
+                obj[key] = aliasObj;
+            } else if (typeof aliasObj === 'object') {
+                if (aliasObj.server === true || typeof aliasObj.type === 'string' && aliasObj.type.toUpperCase() === 'SERVER') {
+                    // server ?
+                    return obj;
+                }
+                const link = aliasObj.link;
+                if (link && typeof link === 'string') {
+                    obj[key] = link;
+                }
+            }
+            return obj;
+        }, {});
     }
 
     // server
     get server() {
         const config = this.config;
         return config.server || {};
+    }
+
+    // 服务代理
+    get proxy() {
+        const server = this.server;
+        return server.proxy || {};
+    }
+
+    get proxyGlobal() {
+        const server = this.server;
+        return server.proxyGlobal || false;
+    }
+
+    get plugin() {
+        const config = this.config;
+        return config.plugin || {};
+    }
+
+    get dll() {
+        const config = this.config;
+        return config.dll || {};
     }
 
     toJSON(simple = false) {

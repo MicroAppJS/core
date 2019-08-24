@@ -5,7 +5,16 @@ const configMerge = require('../../utils/merge-config');
 const fixedModuleAlias = require('./fixedModuleAlias');
 
 // normal config
-module.exports = {
+const BaseAdapter = require('../base/BaseAdapter');
+
+class CommonAdapter extends BaseAdapter {
+
+    constructor() {
+        super('COMMON');
+
+        this.moduleAlias = fixedModuleAlias;
+    }
+
     mergeConfig(config) {
         if (!config) {
             config = {};
@@ -18,6 +27,8 @@ module.exports = {
             config = configMerge(config, ...micros);
         }
         return config;
-    },
-    moduleAlias: fixedModuleAlias,
-};
+    }
+
+}
+
+module.exports = CommonAdapter;

@@ -2,7 +2,7 @@
 
 const logger = require('../../utils/logger');
 const requireMicro = require('../../utils/requireMicro');
-const webpackAdapter = require('../webpack');
+const WebpackAdapter = require('../webpack');
 const loadConfig = require('./loadConfig');
 const tryRequire = require('try-require');
 const vusionBuild = require('./build');
@@ -10,7 +10,15 @@ const vusionDevHot = require('./devHot');
 
 const path = require('path');
 
-module.exports = {
+const BaseWebpackAdapter = require('../base/BaseWebpackAdapter');
+
+class VusionAdapter extends BaseWebpackAdapter {
+
+    constructor() {
+        super('Vusion');
+        this.webpackAdapter = new WebpackAdapter();
+    }
+
     mergeConfig(config) {
         if (!config) {
             config = {};
@@ -19,11 +27,11 @@ module.exports = {
             config.webpack = {};
         }
         let webpackConfig = config.webpack;
-        config.webpack = webpackAdapter.mergeConfig(webpackConfig);
+        config.webpack = this.webpackAdapter.mergeConfig(webpackConfig);
         webpackConfig = config.webpack;
         // logger.info(webpackConfig);
 
-        const selfConfig = requireMicro.self();
+        const selfConfig = this.self;
         const micros = selfConfig.micros;
         micros.forEach(key => {
             const microConfig = requireMicro(key);
@@ -58,7 +66,8 @@ module.exports = {
             }
         });
         return config;
-    },
+    }
+
     build() {
         let vusionConfigModule = tryRequire('vusion-cli/config/resolve');
         if (!vusionConfigModule) {
@@ -71,9 +80,13 @@ module.exports = {
         let vusionConfig = vusionConfigModule();
         vusionConfig = global.vusionConfig = this.mergeConfig(vusionConfig);
 
-        return vusionBuild(vusionConfig);
-    },
-    devHot(app) {
+        this._injectPlugins(vusionConfig.webpack);
+
+        const selfConfig = this.self;
+        return vusionBuild(vusionConfig, selfConfig);
+    }
+
+    serve() {
         let vusionConfigModule = tryRequire('vusion-cli/config/resolve');
         if (!vusionConfigModule) {
             vusionConfigModule = tryRequire(path.join(process.cwd(), 'node_modules', 'vusion-cli/config/resolve'));
@@ -85,23 +98,11 @@ module.exports = {
         let vusionConfig = vusionConfigModule();
         vusionConfig = global.vusionConfig = this.mergeConfig(vusionConfig);
 
-        const dh = vusionDevHot(vusionConfig);
-        if (dh && app && typeof app.use === 'function') {
-            const { compiler, devOptions } = dh;
-            let publicPath = '/';
-            if (vusionConfig && vusionConfig.webpack && vusionConfig.webpack.output) {
-                publicPath = vusionConfig.webpack.output.publicPath || '/';
-            }
-            app.use(async (ctx, next) => {
-                if (ctx.url === '/') {
-                    ctx.url = `${publicPath}index.html`;
-                }
-                await next();
-            });
-            const { devMiddleware, hotMiddleware } = require('koa-webpack-middleware');
-            app.use(devMiddleware(compiler, devOptions));
-            app.use(hotMiddleware(compiler));
-        }
-        return dh;
-    },
-};
+        this._injectPlugins(vusionConfig.webpack, true);
+
+        const wpDH = vusionDevHot(vusionConfig);
+        return wpDH;
+    }
+}
+
+module.exports = VusionAdapter;
