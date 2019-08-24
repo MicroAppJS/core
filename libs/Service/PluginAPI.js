@@ -109,14 +109,6 @@ class PluginAPI extends BaseAPI {
         return this.service.registerCommand(name, opts, fn);
     }
 
-    // beforeDevServer(listener) {
-    //     addListener('beforeDevServer', listener);
-    // }
-
-    // afterDevServer(listener) {
-    //     addListener('afterDevServer', listener);
-    // }
-
     // onDevCompileDone(listener) {
     //     addListener('onDevCompileDone', listener);
     // }

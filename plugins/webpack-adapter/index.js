@@ -15,9 +15,13 @@ module.exports = function WebpackAdapter(api, opts) {
         type: api.API_TYPE.EVENT,
         description: '合并 webpack 配置之后事件',
     });
+    api.registerMethod('modifyChainWebpcakConfig', {
+        type: api.API_TYPE.MODIFY,
+        description: '合并之后提供 webpack-chain 进行再次修改事件',
+    });
     api.registerMethod('onChainWebpcakConfig', {
         type: api.API_TYPE.EVENT,
-        description: '合并之后提供 webpack-chain 进行再次修改事件',
+        description: '修改之后提供 webpack-chain 进行查看事件',
     });
 
     api.onInitWillDone(() => {
@@ -49,9 +53,10 @@ module.exports = function WebpackAdapter(api, opts) {
             webpackChainConfig.plugin('replace-file-not-exists').use(ReplaceFileNotExistsPlugin, [ options ]);
         }
 
-        api.applyPluginHooks('onChainWebpcakConfig', webpackChainConfig);
+        const finalWebpackChainConfig = api.applyPluginHooks('modifyChainWebpcakConfig', webpackChainConfig);
+        api.applyPluginHooks('onChainWebpcakConfig', finalWebpackChainConfig);
 
-        api.setState('webpackChainConfig', webpackChainConfig);
-        api.setState('webpackConfig', webpackChainConfig.toConfig());
+        api.setState('webpackChainConfig', finalWebpackChainConfig);
+        api.setState('webpackConfig', finalWebpackChainConfig.toConfig());
     });
 };

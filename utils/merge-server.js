@@ -9,10 +9,10 @@ function adapter(microConfig) {
     const { entry, options = {}, info } = microConfig;
     if (entry) {
         const entryFile = path.resolve(root, entry);
-        const entryCallback = tryRequire(entryFile);
-        if (entryCallback && typeof entryCallback === 'function') {
+        const entryCallback = tryRequire.resolve(entryFile);
+        if (entryCallback && typeof entryCallback === 'string') {
             microServers.push({
-                entry: entryCallback,
+                link: entryCallback,
                 options,
                 info,
             });

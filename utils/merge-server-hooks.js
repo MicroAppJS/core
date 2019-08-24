@@ -14,8 +14,8 @@ function adapter(microConfig) {
             const hookFuncs = [];
             fs.readdirSync(hooksFile).forEach(filename => {
                 const fp = path.resolve(hooksFile, filename);
-                const hooksCallback = tryRequire(fp);
-                if (hooksCallback && typeof hooksCallback === 'function') {
+                const hooksCallback = tryRequire.resolve(fp);
+                if (hooksCallback && typeof hooksCallback === 'string') {
                     hookFuncs.push({
                         key: filename.replace(/\.js$/, ''),
                         value: hooksCallback,
@@ -24,7 +24,7 @@ function adapter(microConfig) {
             });
             if (hookFuncs.length) {
                 microServers.push({
-                    hooks: hookFuncs.reduce((obj, item) => {
+                    link: hookFuncs.reduce((obj, item) => {
                         obj[item.key] = item.value;
                         return obj;
                     }, {}),
@@ -33,10 +33,10 @@ function adapter(microConfig) {
                 });
             }
         } else {
-            const hooksCallback = tryRequire(hooksFile);
-            if (hooksCallback && typeof hooksCallback === 'function') {
+            const hooksCallback = tryRequire.resolve(hooksFile);
+            if (hooksCallback && typeof hooksCallback === 'string') {
                 microServers.push({
-                    hooks: hooksCallback,
+                    link: hooksCallback,
                     options,
                     info,
                 });

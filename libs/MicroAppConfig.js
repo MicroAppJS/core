@@ -3,6 +3,8 @@
 const path = require('path');
 const fs = require('fs');
 const tryRequire = require('try-require');
+const _ = require('lodash');
+
 const symbols = require('../config/symbols');
 const CONSTANTS = require('../config/constants');
 
@@ -90,7 +92,7 @@ class MicroAppConfig {
 
     get entry() {
         const config = this.config;
-        const entry = config.entry || {};
+        const entry = config.entry || this.webpack.entry || {}; // 兼容
         // fix entry path
         if (typeof entry === 'object') {
             Object.keys(entry).forEach(key => {
@@ -134,7 +136,16 @@ class MicroAppConfig {
 
     get htmls() { // 支持 array
         const config = this.config;
-        const htmls = config.htmls || [];
+        const htmls = config.htmls || (!config.html && this.webpack.plugins && Array.isArray(this.webpack.plugins) && this.webpack.plugins.filter(item => {
+            const constru = item.constructor;
+            if (constru && constru.name) {
+                const constructorName = constru.name;
+                if (constructorName === 'HtmlWebpackPlugin') {
+                    return true;
+                }
+            }
+            return false;
+        }).map(item => item.options)) || []; // 兼容
         const _html = config.html; // 兼容
         if (_html && typeof _html === 'object') {
             htmls.unshift(_html);
@@ -325,16 +336,33 @@ class MicroAppConfig {
         return alias;
     }
 
+    get deploy() {
+        const config = this.config;
+        return config.deploy;
+    }
+
     // server
     get server() {
         const config = this.config;
         return config.server || {};
     }
 
+    get host() {
+        const server = this.server;
+        return server.host;
+    }
+
+    get port() {
+        const server = this.server;
+        return server.port;
+    }
+
     get contentBase() {
         const server = this.server;
         if (server.contentBase) {
             return path.resolve(this.root, server.contentBase);
+        } else if (server.staticBase) {
+            return path.resolve(this.root, server.staticBase);
         }
         return '.';
     }
@@ -364,13 +392,17 @@ class MicroAppConfig {
             let others;
             if (Array.isArray(p)) {
                 opts = p[1];
-                if (typeof p[0] === 'object') {
+                if (_.isPlainObject(p[0])) {
                     others = p[0];
                     id = p[0].id;
                     p = p[0].link;
                 } else {
                     p = id = p[0];
                 }
+            } else if (_.isPlainObject(p)) {
+                others = p;
+                id = p.id;
+                p = p.link;
             }
             id = id || p;
             if (!tryRequire.resolve(p)) {
@@ -433,6 +465,9 @@ class MicroAppConfig {
             shared: this.shared,
             resolveShared: this.resolveShared,
             contentBase: this.contentBase,
+            port: this.port,
+            host: this.host,
+            proxy: this.proxy,
         };
         return json;
     }

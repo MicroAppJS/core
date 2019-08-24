@@ -6,7 +6,6 @@ const commands = require('../../plugins/commands');
 module.exports = {
     PreLoadPlugins: [
         '../../plugins/webpack-adapter',
-        '../../plugins/koa-adapter',
         ...commands.map(p => path.join('../../plugins/commands', p)),
     ].map(p => {
         return {

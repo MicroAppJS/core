@@ -35,6 +35,7 @@ const toString = {
 
 module.exports = {
     debug() {
+        if (!process.env.MICRO_DEBUG_LOGGER) return; // 是否开启
         return process.stdout.write(toString.debug.call(toString, ...arguments));
     },
     warn() {

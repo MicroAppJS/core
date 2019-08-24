@@ -10,6 +10,7 @@ const logger = require('../../utils/logger');
 
 const serverMerge = require('../../utils/merge-server');
 const serverHooksMerge = require('../../utils/merge-server-hooks');
+const injectAliasModule = require('../../utils/injectAliasModule');
 
 const PluginAPI = require('./PluginAPI');
 
@@ -31,11 +32,12 @@ class Service {
         this.microsConfig = this.initMicrosConfig();
         this.microsServerConfig = this.initMicrosServerConfig();
 
+        this.env = {}; // 环境变量
         this.config = {};
         this.serverConfig = {};
         this.state = GLOBAL_STATE; // 状态集
 
-        this.plugins = PreLoadPlugins.map(this.resolvePlugin);
+        this.plugins = PreLoadPlugins.map(this.resolvePlugin).filter(item => !!item);
     }
 
     get self() {
@@ -81,13 +83,14 @@ class Service {
         if (dotenv) {
             const result = dotenv.config();
             if (result.error) {
-                throw logger.toString.error(result.error);
+                logger.error(result.error);
             } else if (result.parsed) {
                 const config = result.parsed;
                 if (config.HOSTNAME) { // fixed
                     process.env.HOSTNAME = config.HOSTNAME;
                 }
-                logger.info('dotenv parsed envs:\n', JSON.stringify(result.parsed, null, 4));
+                Object.assign(this.env, config);
+                logger.debug('dotenv parsed envs:\n', JSON.stringify(this.env, null, 4));
             }
         } else {
             logger.warn('not found "dotenv"');
@@ -96,6 +99,9 @@ class Service {
 
     registerPlugin(opts) {
         assert(_.isPlainObject(opts), `opts should be plain object, but got ${opts}`);
+        assert(opts.link, 'link must supplied');
+        assert(typeof opts.link === 'string', 'link must be string');
+        opts = this.resolvePlugin(opts);
         const { id, apply } = opts;
         assert(id && apply, 'id and apply must supplied');
         assert(typeof id === 'string', 'id must be string');
@@ -104,11 +110,8 @@ class Service {
             id.indexOf('built-in:') !== 0,
             'service.registerPlugin() should not register plugin prefixed with "built-in:"'
         );
-        assert(
-            Object.keys(opts).every(key => [ 'id', 'apply', 'opts' ].includes(key)),
-            'Only id, apply and opts is valid plugin properties'
-        );
         this.plugins.push(opts);
+        logger.debug(`[Plugin] registerPlugin( ${id} ); Success!`);
     }
 
     resolvePlugin(item) {
@@ -121,12 +124,18 @@ class Service {
                 opts,
             };
         }
-        logger.warn(`not found plugin: "${id}"`);
+        logger.warn(`[Plugin] not found plugin: "${id || item}"\n   --> link: "${link}"`);
         return false;
     }
 
     applyPluginHooks(key, opts = {}) {
-        const defaultOpts = _.cloneDeep(opts);
+        logger.debug(`[Plugin] applyPluginHooks( ${key} )`);
+        let defaultOpts = opts;
+        try {
+            defaultOpts = _.cloneDeep(opts);
+        } catch (error) {
+            logger.debug(`[Plugin] Plugin: ${key}, _.cloneDeep() error`);
+        }
         return (this.pluginHooks[key] || []).reduce((last, { fn }) => {
             try {
                 return fn({
@@ -134,14 +143,20 @@ class Service {
                     args: defaultOpts,
                 });
             } catch (e) {
-                logger.error(`Plugin apply failed: ${e.message}`);
+                logger.error(`[Plugin] Plugin apply failed: ${e.message}`);
                 throw e;
             }
         }, opts);
     }
 
     async applyPluginHooksAsync(key, opts = {}) {
-        const defaultOpts = _.cloneDeep(opts);
+        logger.debug(`[Plugin] applyPluginHooksAsync( ${key} )`);
+        let defaultOpts = opts;
+        try {
+            defaultOpts = _.cloneDeep(opts);
+        } catch (error) {
+            logger.debug(`[Plugin] Plugin: ${key}, _.cloneDeep() error`);
+        }
         const hooks = this.pluginHooks[key] || [];
         let last = opts;
         for (const hook of hooks) {
@@ -161,9 +176,14 @@ class Service {
         const allplugins = micros.map(key => {
             return this.microsConfig[key].plugins || [];
         }).concat(plugins);
-        const pluginsObj = allplugins.map(item => {
-            return this.resolvePlugin(item);
-        }).filter(item => !!item);
+        const pluginsObj = allplugins.reduce((arr, item) => {
+            if (Array.isArray(item)) {
+                return arr.concat(item.map(_item => {
+                    return this.resolvePlugin(_item);
+                }));
+            }
+            return arr.concat(this.resolvePlugin(item));
+        }, []).filter(item => !!item);
         return pluginsObj;
     }
 
@@ -186,16 +206,19 @@ class Service {
                 }
             });
         });
+
+        logger.debug('[Plugin] initPlugins() End!');
     }
 
     initPlugin(plugin) {
-        const { id, apply, opts } = plugin;
+        const { id, apply, opts = {} } = plugin;
         assert(typeof apply === 'function',
-            logger.toString.error(`
-            plugin must export a function, e.g.
-              export default function(api) {
-                // Implement functions via api
-              }`.trim())
+            logger.toString.error('\n' + `
+plugin "${id}" must export a function,
+e.g.
+    export default function(api) {
+        // Implement functions via api
+    }`.trim())
         );
         const _api = new PluginAPI(id, this);
         const api = new Proxy(_api, {
@@ -247,6 +270,7 @@ class Service {
                 logger.warn(`plugin ${id}'s option changed, \n      nV: ${JSON.stringify(newOpts)}, \n      oV: ${JSON.stringify(oldOpts)}`);
             }
         });
+        logger.debug(`[Plugin] changePluginOption( ${id}, ${JSON.stringify(newOpts)} ); Success!`);
     }
 
     registerCommand(name, opts, fn) {
@@ -257,13 +281,14 @@ class Service {
         }
         opts = opts || {};
         this.commands[name] = { fn, opts };
+        logger.debug(`[Plugin] registerCommand( ${name} ); Success!`);
     }
 
     mergeConfig() {
         const selfConfig = this.selfConfig;
         const micros = _.cloneDeep([ ...this.micros ]);
         const microsConfig = this.microsConfig;
-        const finalConfig = merge.smart({}, micros.map(key => {
+        const finalConfig = merge.smart({}, ...micros.map(key => {
             if (!microsConfig[key]) return {};
             return _.pick(microsConfig[key], [
                 'entry',
@@ -303,6 +328,10 @@ class Service {
         this.applyPluginHooks('beforeMergeConfig', this.config);
         this.mergeConfig();
         this.applyPluginHooks('afterMergeConfig', this.config);
+
+        // 注入全局的别名
+        injectAliasModule(this.config.resolveShared);
+
         // merge server
         this.applyPluginHooks('beforeMergeServerConfig', this.serverConfig);
         this.mergeServerConfig();
@@ -310,6 +339,8 @@ class Service {
 
         this.applyPluginHooks('onInitWillDone');
         this.applyPluginHooks('onInitDone');
+
+        logger.debug('[Plugin] init(); Done!');
     }
 
     run(name = 'help', args) {
@@ -318,12 +349,12 @@ class Service {
     }
 
     runCommand(rawName, rawArgs) {
-        logger.debug(`raw command name: ${rawName}, args: `, rawArgs);
+        logger.debug(`[Plugin] raw command name: ${rawName}, args: `, rawArgs);
         const { name = rawName, args } = this.applyPluginHooks('modifyCommand', {
             name: rawName,
             args: rawArgs,
         });
-        logger.debug(`run ${name} with args: `, args);
+        logger.debug(`[Plugin] run ${name} with args: `, args);
 
         const command = this.commands[name];
         if (!command) {

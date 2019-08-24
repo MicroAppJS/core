@@ -10,7 +10,11 @@ module.exports = {
     entry: { // 入口
     },
 
-    htmls: [], // 模版
+    htmls: [
+        // {
+        //     template: '',
+        // },
+    ], // 模版
 
     staticPath: [], // String | Array
 
@@ -83,9 +87,9 @@ module.exports = {
         // },
     },
 
-    plugins: [
-        [
-            '', {},
-        ],
+    plugins: [ // 插件集
+        // [
+        //     '', {},
+        // ],
     ],
 };
