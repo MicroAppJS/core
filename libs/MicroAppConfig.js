@@ -9,15 +9,16 @@ const symbols = require('../config/symbols');
 const CONSTANTS = require('../config/constants');
 
 // 默认配置
-const DEFAULT_CONFIG = JSON.parse(JSON.stringify(require('../config/default')));
-const PACKAGE_JSON = 'package.json';
-const INIT = Symbol('MicroAppConfig_INIT');
+const DEFAULT_CONFIG = require('../config/default');
+const INIT = Symbol('@MicroAppConfig#INIT');
+const ORIGNAL_CONFIG = Symbol('@MicroAppConfig#ORIGNAL_CONFIG');
+
 
 class MicroAppConfig {
 
-    constructor(config) {
+    constructor(config /* , opts = {} */) {
         this[INIT](config);
-        this._config = config || DEFAULT_CONFIG;
+        this[ORIGNAL_CONFIG] = config || DEFAULT_CONFIG;
         // 校验 config
         this.webpack = config.webpack || {};
     }
@@ -25,7 +26,7 @@ class MicroAppConfig {
     [INIT](config) {
         if (config) {
             try {
-                const packagePath = path.join(config[symbols.root], PACKAGE_JSON);
+                const packagePath = path.join(config[symbols.ROOT], CONSTANTS.PACKAGE_JSON);
                 if (fs.existsSync(packagePath)) {
                     this._packagePath = packagePath;
                     this._package = require(packagePath);
@@ -35,6 +36,42 @@ class MicroAppConfig {
                 this._package = {};
             }
         }
+    }
+
+    get config() {
+        return this[ORIGNAL_CONFIG] || {};
+    }
+
+    get root() {
+        const config = this.config;
+        return config[symbols.ROOT] || '';
+    }
+
+    get orignalRoot() {
+        const config = this.config;
+        return config[symbols.ORIGINAL_ROOT] || '';
+    }
+
+    get isOpenSoftLink() {
+        return this.root !== this.orignalRoot;
+    }
+
+    get path() {
+        const config = this.config;
+        return config[symbols.PATH] || '';
+    }
+
+    get nodeModules() {
+        if (this.root) {
+            const nodeModules = CONSTANTS.NODE_MODULES_NAME || 'node_modules';
+            return path.join(this.root, nodeModules);
+        }
+        return '';
+    }
+
+    get subModulesRoot() {
+        const scopeName = CONSTANTS.SCOPE_NAME || '';
+        return path.join(this.nodeModules, scopeName);
     }
 
     get mode() {
@@ -49,16 +86,12 @@ class MicroAppConfig {
         return this.config.strict !== false;
     }
 
-    get config() {
-        return this._config || {};
-    }
-
     get packagePath() {
         return this._packagePath;
     }
 
     get package() {
-        return Object.freeze(this._package);
+        return Object.freeze(this._package || {});
     }
 
     get key() {
@@ -67,7 +100,11 @@ class MicroAppConfig {
 
     get name() {
         const config = this.config;
-        return config.name || this.package.name || '';
+        return config.name || this.packageName || '';
+    }
+
+    get packageName() {
+        return this.package.name || '';
     }
 
     get aliasName() {
@@ -223,39 +260,35 @@ class MicroAppConfig {
         return [];
     }
 
+    get globalMicroAppConfig() {
+        const MicroAppConfig = global.MicroAppConfig;
+        if (MicroAppConfig && _.isPlainObject(MicroAppConfig)) {
+            return _.cloneDeep(MicroAppConfig);
+        }
+        return {};
+    }
+
     get microsExtral() {
         const config = this.config;
         const result = {};
+        const MicroAppConfig = this.globalMicroAppConfig;
         this.micros.forEach(micro => {
             result[micro] = Object.assign({}, config[`micros$$${micro}`] || {
                 disabled: false, // 禁用入口
                 disable: false,
+                link: false,
             });
+
+            // 全局配置
+            if (!MicroAppConfig.OPEN_SOFT_LINK) { // 强制禁止使用 软链接
+                result[micro].link = false;
+            }
+            if (!MicroAppConfig.OPEN_DISABLED_ENTRY) { // 强制禁止使用 开启禁用指定模块入口, 优化开发速度
+                result[micro].disabled = false;
+                result[micro].disable = false;
+            }
         });
         return result;
-    }
-
-    get root() {
-        const config = this.config;
-        return config[symbols.root] || '';
-    }
-
-    get path() {
-        const config = this.config;
-        return config[symbols.path] || '';
-    }
-
-    get nodeModules() {
-        if (this.root) {
-            const nodeModules = CONSTANTS.NODE_MODULES_NAME || 'node_modules';
-            return path.join(this.root, nodeModules);
-        }
-        return '';
-    }
-
-    get subModulesRoot() {
-        const scopeName = CONSTANTS.SCOPE_NAME || '';
-        return path.join(this.nodeModules, scopeName);
     }
 
     // 后端共享
@@ -448,16 +481,16 @@ class MicroAppConfig {
         };
         if (notSimple) {
             json.plugins = this.plugins;
-            json.webpack = this.webpack;
+            json.webpack = this.webpack; // deprecated
+            json.package = this.package;
         }
         return json;
     }
 
-    toServerConfig() {
+    toServerConfig(notSimple) {
         const _serverConfig = this.server;
         const { entry, options = {}, hooks } = _serverConfig;
         const json = {
-            ...this.toJSON(),
             entry,
             hooks,
             options,
@@ -469,6 +502,9 @@ class MicroAppConfig {
             host: this.host,
             proxy: this.proxy,
         };
+        if (notSimple) {
+            Object.assign(json, this.toJSON());
+        }
         return json;
     }
 }

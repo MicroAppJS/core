@@ -30,5 +30,6 @@ module.exports = {
         'microsConfig',
         'microsServerConfig',
         'changePluginOption',
+        'runCommand',
     ],
 };

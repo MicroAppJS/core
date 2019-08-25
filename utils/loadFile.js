@@ -15,8 +15,8 @@ function load(filePath) {
     // const str = fs.readFileSync(filePath, 'utf8');
     const file = tryRequire(filePath);
     if (file) {
-        file[symbols.root] = path.dirname(filePath);
-        file[symbols.path] = filePath;
+        file[symbols.ROOT] = path.dirname(filePath);
+        file[symbols.PATH] = filePath;
     }
     return file;
 }

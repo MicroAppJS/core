@@ -6,8 +6,9 @@ const fs = require('fs');
 const CONSTANTS = require('../config/constants');
 const loadFile = require('./loadFile');
 const MicroAppConfig = require('../libs/MicroAppConfig');
+const symbols = require('../config/symbols');
 
-const SELF_CONFIG = Symbol('#self_config');
+const SELF_CONFIG = Symbol('@MicroAppConfig#SELF_CONFIG');
 const configCache = {};
 
 const self = function() {
@@ -43,21 +44,23 @@ const requireMicro = function(id) {
     if (configCache[name]) {
         return configCache[name];
     }
-    let micPath = path.join(ROOT, NODE_MODULES_NAME, name);
-    if (micPath) {
-        micPath = fixedDevLink(id, micPath);
+    let originalMicPath = path.join(ROOT, NODE_MODULES_NAME, name);
+    if (originalMicPath) {
+        const micPath = fixedDevLink(id, originalMicPath);
         const microConfig = loadFile(micPath, CONFIG_NAME);
         if (microConfig) {
+            microConfig[symbols.ORIGINAL_ROOT] = originalMicPath;
             const _microAppConfig = new MicroAppConfig(microConfig);
             configCache[name] = _microAppConfig;
             return _microAppConfig;
         }
         // 兼容 id
-        micPath = path.join(ROOT, NODE_MODULES_NAME, id);
-        if (micPath) {
-            micPath = fixedDevLink(id, micPath);
+        originalMicPath = path.join(ROOT, NODE_MODULES_NAME, id);
+        if (originalMicPath) {
+            const micPath = fixedDevLink(id, originalMicPath);
             const microConfig = loadFile(micPath, CONFIG_NAME);
             if (microConfig) {
+                microConfig[symbols.ORIGINAL_ROOT] = originalMicPath;
                 const _microAppConfig = new MicroAppConfig(microConfig);
                 configCache[name] = _microAppConfig;
                 return _microAppConfig;

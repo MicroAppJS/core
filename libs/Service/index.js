@@ -27,7 +27,7 @@ class Service {
         this.commands = {};
 
         this.selfConfig = this.self.toConfig(true);
-        this.selfServerConfig = this.self.toServerConfig();
+        this.selfServerConfig = this.self.toServerConfig(true);
         this.micros = new Set((this.self.micros || []));
         this.microsConfig = this.initMicrosConfig();
         this.microsServerConfig = this.initMicrosServerConfig();

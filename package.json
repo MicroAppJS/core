@@ -1,6 +1,6 @@
 {
     "name": "@micro-app/core",
-    "version": "0.1.0-beta.23",
+    "version": "0.1.0-beta.24",
     "description": "micro app core",
     "main": "src/index.js",
     "scripts": {
@@ -40,6 +40,7 @@
         "dotenv": "^8.1.0",
         "lodash": "^4.17.15",
         "module-alias": "^2.2.1",
+        "semver": "^6.3.0",
         "stream-to-string": "^1.2.0",
         "try-require": "^1.2.1",
         "webpack-chain": "^6.0.0",

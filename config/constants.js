@@ -10,4 +10,5 @@ module.exports = {
     TYPES: [], // support types
     INJECT_ID: '_MICRO_APP_INJECT_',
     NODE_ENV: process.env.NODE_ENV || 'production', // "production" | "development"
+    PACKAGE_JSON: 'package.json',
 };

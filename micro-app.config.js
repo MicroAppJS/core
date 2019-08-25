@@ -17,8 +17,6 @@ module.exports = {
             alias: {},
             // modules: [],
         },
-        plugins: [
-        ],
     },
     htmls: [
         {
