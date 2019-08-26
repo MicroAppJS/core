@@ -6,39 +6,42 @@ module.exports = {
     version: '0.0.1',
     type: '', // types 类型
     webpack: { // webpack 配置
-        entry: {
-
-        },
         // output: {
         //     path: path.resolve(__dirname, 'public'),
         //     publicPath: '/public/',
         // },
-        resolve: {
-            alias: {},
-            // modules: [],
-        },
     },
+
+    entry: {
+        main: './test/index.js',
+    },
+
     htmls: [
         {
             template: './test/index.js',
         },
     ],
-    entry: {
-        main: './test/index.js',
-    },
+
     // dlls: [
     //     {
     //         context: __dirname,
     //     },
     // ],
+
     alias: { // 前端
         api: '',
+        config: {
+            link: '',
+            description: '配置',
+        },
+        service: {
+            link: '',
+            description: '接口',
+            type: 'server',
+        },
     },
-    shared: { // 后端
-        config: '',
-        // middleware: '', // koa-middleware
-        // router: '', // koa-router
-    },
+
+    strict: true,
 
     micros: [ 'test' ], // 被注册的容器
     // micros$$test: { // 单独配置
@@ -65,4 +68,14 @@ module.exports = {
         //     a: 1,
         // }],
     ],
+
+    // deploy: {
+    //     git: 'git+ssh://git@xxxxx.git',
+    //     branch: 'test',
+    //     // branch: {
+    //     //     name: 'develop',
+    //     //     extends: true,
+    //     // },
+    //     message: '', // 提交 message 中增加内容
+    // },
 };
