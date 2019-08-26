@@ -39,13 +39,13 @@ Examples:
         const selfConfig = api.selfConfig;
         const microsConfig = api.microsConfig;
         const alias = aliasMerge(selfConfig, {
-            type: 'alias',
+            type: 'aliasObj',
             micros,
             microsConfig,
             padAlias: true,
         });
         const shared = aliasMerge(selfConfig, {
-            type: 'shared',
+            type: 'aliasObj',
             micros,
             microsConfig,
             padAlias: true,

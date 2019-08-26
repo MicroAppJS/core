@@ -22,6 +22,8 @@ module.exports = {
         },
     ],
 
+    // staticPath: '',
+
     // dlls: [
     //     {
     //         context: __dirname,

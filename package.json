@@ -1,6 +1,6 @@
 {
     "name": "@micro-app/core",
-    "version": "0.1.0-RC1",
+    "version": "0.1.0-RC4",
     "description": "micro app core",
     "main": "src/index.js",
     "scripts": {

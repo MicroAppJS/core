@@ -315,23 +315,48 @@ class MicroAppConfig {
     }
 
     // 后端共享
-    get shared() {
+    get _shared() {
         const config = this.config;
         const currShared = config.shared || config.share;
         if (currShared) { // 兼容旧版
-            return currShared;
+            return Object.keys(currShared).reduce((obj, key) => {
+                const aliasObj = currShared[key];
+                if (aliasObj && typeof aliasObj === 'string') {
+                    obj[key] = {
+                        link: aliasObj,
+                    };
+                } else if (aliasObj && typeof aliasObj === 'object') {
+                    const link = aliasObj.link;
+                    if (link && typeof link === 'string') {
+                        obj[key] = aliasObj;
+                    }
+                }
+                return obj;
+            }, {});
         }
         const currAlias = config.alias || {};
         return Object.keys(currAlias).reduce((obj, key) => {
             const aliasObj = currAlias[key];
             if (aliasObj && typeof aliasObj === 'string') {
-                obj[key] = aliasObj;
+                obj[key] = {
+                    link: aliasObj,
+                };
             } else if (aliasObj && typeof aliasObj === 'object') {
                 const link = aliasObj.link;
                 if (link && typeof link === 'string') {
                     obj[key] = aliasObj;
                 }
             }
+            return obj;
+        }, {});
+    }
+
+    // 后端共享
+    get shared() {
+        const currAlias = this._shared || {};
+        return Object.keys(currAlias).reduce((obj, key) => {
+            const aliasObj = currAlias[key];
+            obj[key] = aliasObj.link;
             return obj;
         }, {});
     }
@@ -344,17 +369,9 @@ class MicroAppConfig {
             Object.keys(currShared).forEach(k => {
                 const p = currShared[k];
                 const aliasKey = `${aliasName}/${k}`;
-                if (!alias[aliasKey]) {
-                    if (typeof p === 'string') {
-                        const filePath = path.resolve(this.root, p);
-                        alias[aliasKey] = filePath;
-                    } else if (_.isPlainObject(p)) {
-                        const link = p.link;
-                        if (link && typeof link === 'string') {
-                            const filePath = path.resolve(this.root, link);
-                            alias[aliasKey] = filePath;
-                        }
-                    }
+                if (!alias[aliasKey] && typeof p === 'string') {
+                    const filePath = path.resolve(this.root, p);
+                    alias[aliasKey] = filePath;
                 }
             });
         }
@@ -362,14 +379,16 @@ class MicroAppConfig {
     }
 
     // 前端共享
-    get alias() {
+    get _alias() {
         const config = this.config;
         const currAlias = config.alias || {};
         return Object.keys(currAlias).reduce((obj, key) => {
             const aliasObj = currAlias[key];
             if (aliasObj && typeof aliasObj === 'string') {
-                obj[key] = aliasObj;
-            } else if (aliasObj && typeof aliasObj === 'object') {
+                obj[key] = {
+                    link: aliasObj,
+                };
+            } else if (aliasObj && _.isPlainObject(aliasObj)) {
                 if (aliasObj.server === true || typeof aliasObj.type === 'string' && aliasObj.type.toUpperCase() === 'SERVER') {
                     // server ?
                     return obj;
@@ -383,6 +402,15 @@ class MicroAppConfig {
         }, {});
     }
 
+    get alias() {
+        const currAlias = this._alias || {};
+        return Object.keys(currAlias).reduce((obj, key) => {
+            const aliasObj = currAlias[key];
+            obj[key] = aliasObj.link;
+            return obj;
+        }, {});
+    }
+
     get resolveAlias() {
         const alias = {};
         const aliasName = this.aliasName;
@@ -391,17 +419,9 @@ class MicroAppConfig {
             Object.keys(currAlias).forEach(key => {
                 const p = currAlias[key];
                 const aliasKey = `${aliasName}/${key}`;
-                if (!alias[aliasKey]) {
-                    if (typeof p === 'string') {
-                        const filePath = path.resolve(this.root, p);
-                        alias[aliasKey] = filePath;
-                    } else if (_.isPlainObject(p)) {
-                        const link = p.link;
-                        if (link && typeof link === 'string') {
-                            const filePath = path.resolve(this.root, link);
-                            alias[aliasKey] = filePath;
-                        }
-                    }
+                if (!alias[aliasKey] && typeof p === 'string') {
+                    const filePath = path.resolve(this.root, p);
+                    alias[aliasKey] = filePath;
                 }
             });
         }
@@ -514,8 +534,10 @@ class MicroAppConfig {
             htmls: this.htmls,
             dlls: this.dlls,
             alias: this.alias,
+            aliasObj: this._alias,
             resolveAlias: this.resolveAlias,
             shared: this.shared,
+            sharedObj: this._shared,
             resolveShared: this.resolveShared,
             staticPaths: this.staticPaths,
         };
@@ -537,6 +559,7 @@ class MicroAppConfig {
             options,
             info: this.toJSON(),
             shared: this.shared,
+            sharedObj: this._shared,
             resolveShared: this.resolveShared,
             contentBase: this.contentBase,
             port: this.port,

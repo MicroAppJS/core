@@ -79,6 +79,7 @@ class Service {
     }
 
     initDotEnv() {
+        const env = process.env.NODE_ENV;
         const dotenv = tryRequire('dotenv');
         if (dotenv) {
             const result = dotenv.config();
@@ -94,6 +95,10 @@ class Service {
             }
         } else {
             logger.warn('not found "dotenv"');
+        }
+        if (env === 'production') { // fixed
+            this.env.NODE_ENV = env;
+            process.env.NODE_ENV = env;
         }
     }
 
@@ -236,10 +241,10 @@ e.g.
                     if (prop === 'micros') {
                         return [ ...this[prop] ];
                     }
-                    return this[prop] && Object.freeze(this[prop]);
+                    return this[prop];
                 }
                 if (prop === 'service') {
-                    return target[prop] && Object.freeze(target[prop]);
+                    return target[prop];
                 }
                 return target[prop];
             },

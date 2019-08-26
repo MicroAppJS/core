@@ -14,13 +14,13 @@ npm install -D @micro-app/cli
 
 ## Usage
 
-1. 在项目 `根目录` 初始化创建一个 `micro-app.config.js` 文件
+### 在项目 `根目录` 初始化创建一个 `micro-app.config.js` 文件
 
 ```sh
 npx micro-app init
 ```
 
-2. 对 `micro-app.config.js` 配置文件进行编辑
+### 对 `micro-app.config.js` 配置文件进行编辑
 
 ```js
 module.exports = {
@@ -104,7 +104,7 @@ module.exports = {
 };
 ```
 
-3. 在 `package.json` 中加载其他模块, 例如:
+### 在 `package.json` 中加载其他模块, 例如:
 
 ```json
     "dependencies": {
@@ -112,22 +112,40 @@ module.exports = {
     },
 ```
 
-4. 开发模式
+### 开发模式
 
 ```sh
 npx micro-app serve
 ```
 
-5. Build
+or
+
+```sh
+npx micro-app-dev
+```
+
+### Build
 
 ```sh
 npx micro-app build
 ```
 
-6. 运行
+or
+
+```sh
+npx micro-app-build
+```
+
+### 运行
 
 ```sh
 npx micro-app start
+```
+
+or
+
+```sh
+npx micro-app-start
 ```
 
 ## 项目中使用共享接口
