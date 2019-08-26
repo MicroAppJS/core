@@ -1,32 +1,36 @@
 'use strict';
 
-const requireMicro = require('./requireMicro');
 const tryRequire = require('try-require');
 const path = require('path');
 
-module.exports = function serverMerge(...names) {
-    if (!names || names.length <= 0) {
+function adapter(microConfig) {
+    const microServers = [];
+    const root = microConfig.root;
+    const { entry, options = {}, info } = microConfig;
+    if (entry) {
+        const entryFile = path.resolve(root, entry);
+        const entryCallback = tryRequire.resolve(entryFile);
+        if (entryCallback && typeof entryCallback === 'string') {
+            microServers.push({
+                link: entryCallback,
+                options,
+                info,
+            });
+        }
+    }
+    return microServers;
+}
+
+function serverMerge(...microConfigs) {
+    if (!microConfigs || microConfigs.length <= 0) {
         return [];
     }
     const microServers = [];
-    names.forEach(key => {
-        const microConfig = requireMicro(key);
-        if (microConfig) {
-            const root = microConfig.root;
-            const _serverConfig = microConfig.server;
-            const { entry, options = {} } = _serverConfig;
-            if (entry) {
-                const entryFile = path.resolve(root, entry);
-                const entryCallback = tryRequire(entryFile);
-                if (entryCallback && typeof entryCallback === 'function') {
-                    microServers.push({
-                        entry: entryCallback,
-                        options,
-                        info: microConfig.toJSON(true),
-                    });
-                }
-            }
-        }
+    microConfigs.forEach(microConfig => {
+        microServers.push(...adapter(microConfig));
     });
     return microServers;
-};
+}
+
+serverMerge.adapter = adapter;
+module.exports = serverMerge;

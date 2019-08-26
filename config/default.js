@@ -7,6 +7,26 @@ module.exports = {
     type: '', // types 类型
     strict: true, // 是否为严格模式? 默认为 true - 强依赖
 
+    entry: { // 入口
+    },
+
+    htmls: [
+        // {
+        //     template: '',
+        // },
+    ], // 模版
+
+    staticPath: [], // String | Array
+
+    dlls: [
+        // { // dll 基本配置, [ 只支持子模块中使用 ]
+        //     disabled: false,
+        //     context: '',
+        //     manifest: '',
+        //     filepath: '',
+        // },
+    ],
+
     webpack: { // webpack 配置信息
     },
 
@@ -18,7 +38,9 @@ module.exports = {
         // },
     },
 
-    micros: [ 'test' ], // 需要注入的子模块
+    micros: [ // 需要注入的子模块
+        // 'test'
+    ],
     // micros$$test: { // 单独配置
     //     disabled: true, // 禁用入口
     //     lnk: '‘, // 软链接, 用于本地调试
@@ -30,7 +52,7 @@ module.exports = {
         // entry: '', // 服务端入口
         // host: ‘’, // 服务 IP
         // port: 8888, // 服务端口号
-        // staticBase: '', // 服务端静态文件目录
+        // contentBase: '', // 服务端静态文件目录
         // options: { }, // 服务端注入附加参数
         // proxyGlobal: false, // 全局无服务, 只走代理
         // proxy: { // 服务代理
@@ -65,10 +87,9 @@ module.exports = {
         // },
     },
 
-    // dll: { // dll 基本配置, [ 只支持子模块中使用 ]
-    //     disabled: false,
-    //     context: '',
-    //     manifest: '',
-    //     filepath: '',
-    // },
+    plugins: [ // 插件集
+        // [
+        //     '', {},
+        // ],
+    ],
 };

@@ -50,12 +50,21 @@ module.exports = async function injectHtml(ctx) {
             }
         }
     }
-    return function(key, value) {
-        if (ok) {
+    if (!ok) return false;
+    function func(key, value) {
+        if (ok && key) {
             const $ = cheerio.load(ctx.body);
             const { INJECT_ID } = CONSTANTS;
             $(`body>#${INJECT_ID}`).append(`<textarea id="${INJECT_ID}_${key}" style="display: none;">${encodeURIComponent(JSON.stringify(value))}</textarea>`);
             ctx.body = $.html();
         }
+    }
+    func.callback = callback => {
+        if (ok && callback && typeof callback === 'function') {
+            const $ = cheerio.load(ctx.body);
+            callback($);
+            ctx.body = $.html();
+        }
     };
+    return func;
 };

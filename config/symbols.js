@@ -1,6 +1,7 @@
 'use strict';
 
 module.exports = {
-    path: Symbol('#symbols#path'),
-    root: Symbol('#symbols#root'),
+    PATH: Symbol('@MicroAppConfig#PATH'),
+    ROOT: Symbol('@MicroAppConfig#ROOT'),
+    ORIGINAL_ROOT: Symbol('@MicroAppConfig#ORIGINAL_ROOT'),
 };

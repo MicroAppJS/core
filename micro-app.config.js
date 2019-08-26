@@ -6,27 +6,44 @@ module.exports = {
     version: '0.0.1',
     type: '', // types 类型
     webpack: { // webpack 配置
-        entry: {
-
-        },
         // output: {
         //     path: path.resolve(__dirname, 'public'),
         //     publicPath: '/public/',
         // },
-        resolve: {
-            alias: {},
-            // modules: [],
+    },
+
+    entry: {
+        main: './test/index.js',
+    },
+
+    htmls: [
+        {
+            template: './test/index.js',
         },
-        plugins: [],
-    },
+    ],
+
+    // staticPath: '',
+
+    // dlls: [
+    //     {
+    //         context: __dirname,
+    //     },
+    // ],
+
     alias: { // 前端
-        api: '',
+        api: 'abc',
+        config: {
+            link: 'abc',
+            description: '配置',
+        },
+        service: {
+            link: 'abc',
+            description: '接口',
+            type: 'server',
+        },
     },
-    shared: { // 后端
-        config: '',
-        // middleware: '', // koa-middleware
-        // router: '', // koa-router
-    },
+
+    strict: true,
 
     micros: [ 'test' ], // 被注册的容器
     // micros$$test: { // 单独配置
@@ -38,9 +55,29 @@ module.exports = {
     server: {
         entry: '', // 服务端入口
         port: 8088, // 服务端口号
-        staticBase: 'public', // 静态文件地址
+        contentBase: 'public', // 静态文件地址
         options: {
             // 服务端回调参数
         },
     },
+
+    plugins: [
+        [{
+            id: 'test',
+            description: '这是test',
+            link: __dirname + '/test/testPlugin',
+        }, {
+            a: 1,
+        }],
+    ],
+
+    // deploy: {
+    //     git: 'git+ssh://git@xxxxx.git',
+    //     branch: 'test',
+    //     // branch: {
+    //     //     name: 'develop',
+    //     //     extends: true,
+    //     // },
+    //     message: '', // 提交 message 中增加内容
+    // },
 };

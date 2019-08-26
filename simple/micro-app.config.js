@@ -1,7 +1,6 @@
 'use strict';
 
 const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
     name: '@micro-app/demo',
@@ -9,33 +8,29 @@ module.exports = {
     version: '0.0.1',
     type: '', // types 类型
     webpack: { // webpack 配置
-        entry: {
-            main: './client/main.js',
-        },
         output: {
             path: path.resolve(__dirname, 'public'),
             publicPath: '/public/',
         },
-        resolve: {
-            alias: {},
-            // modules: [],
-        },
-        plugins: [
-            new HtmlWebpackPlugin({
-                filename: 'index.html',
-                hash: true,
-                chunks: [ 'common', 'main' ],
-                template: './client/index.html',
-            }),
-        ],
     },
+    entry: {
+        main: './client/main.js',
+    },
+
+    htmls: [
+        {
+            filename: 'index.html',
+            hash: true,
+            chunks: [ 'common', 'main' ],
+            template: './client/index.html',
+        },
+    ],
     alias: { // 前端共享
         api: './client/api.js',
-    },
-    shared: { // 后端共享
-        config: './server/config.js',
-        // middleware: '', // koa-middleware
-        // router: '', // koa-router
+        config: {
+            type: 'server', // 后端共享
+            link: './server/config.js',
+        },
     },
 
     micros: [ 'test' ],
@@ -47,7 +42,7 @@ module.exports = {
     server: {
         entry: './server/entry.js', // path
         port: 8088,
-        staticBase: 'public', // path
+        contentBase: 'public', // path
         options: { },
     },
 };
