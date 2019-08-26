@@ -73,10 +73,18 @@ Examples:
                 }, {}));
             case 'alias':
                 api.logger.logo(`${chalk.green('Alias List')}:`);
-                return showAliasList(alias);
+                return showAliasList(Object.keys(alias).reduce((obj, key) => {
+                    const item = alias[key];
+                    obj[key] = { description: item.description, link: args.link && item.link };
+                    return obj;
+                }, {}));
             case 'shared':
                 api.logger.logo(`${chalk.green('Shared List')}:`);
-                return showAliasList(shared);
+                return showAliasList(Object.keys(shared).reduce((obj, key) => {
+                    const item = shared[key];
+                    obj[key] = { description: item.description, link: args.link && item.link };
+                    return obj;
+                }, {}));
             case 'methods':
                 api.logger.logo(`${chalk.green('Plugin Methods')}:`);
                 return showAliasList(pluginMethods);

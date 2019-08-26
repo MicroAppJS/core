@@ -324,12 +324,12 @@ class MicroAppConfig {
         const currAlias = config.alias || {};
         return Object.keys(currAlias).reduce((obj, key) => {
             const aliasObj = currAlias[key];
-            if (typeof aliasObj === 'string') {
+            if (aliasObj && typeof aliasObj === 'string') {
                 obj[key] = aliasObj;
-            } else if (typeof aliasObj === 'object') {
+            } else if (aliasObj && typeof aliasObj === 'object') {
                 const link = aliasObj.link;
                 if (link && typeof link === 'string') {
-                    obj[key] = link;
+                    obj[key] = aliasObj;
                 }
             }
             return obj;
@@ -344,9 +344,17 @@ class MicroAppConfig {
             Object.keys(currShared).forEach(k => {
                 const p = currShared[k];
                 const aliasKey = `${aliasName}/${k}`;
-                if (p && typeof p === 'string' && !alias[aliasKey]) {
-                    const filePath = path.resolve(this.root, p);
-                    alias[aliasKey] = filePath;
+                if (!alias[aliasKey]) {
+                    if (typeof p === 'string') {
+                        const filePath = path.resolve(this.root, p);
+                        alias[aliasKey] = filePath;
+                    } else if (_.isPlainObject(p)) {
+                        const link = p.link;
+                        if (link && typeof link === 'string') {
+                            const filePath = path.resolve(this.root, link);
+                            alias[aliasKey] = filePath;
+                        }
+                    }
                 }
             });
         }
@@ -359,16 +367,16 @@ class MicroAppConfig {
         const currAlias = config.alias || {};
         return Object.keys(currAlias).reduce((obj, key) => {
             const aliasObj = currAlias[key];
-            if (typeof aliasObj === 'string') {
+            if (aliasObj && typeof aliasObj === 'string') {
                 obj[key] = aliasObj;
-            } else if (typeof aliasObj === 'object') {
+            } else if (aliasObj && typeof aliasObj === 'object') {
                 if (aliasObj.server === true || typeof aliasObj.type === 'string' && aliasObj.type.toUpperCase() === 'SERVER') {
                     // server ?
                     return obj;
                 }
                 const link = aliasObj.link;
                 if (link && typeof link === 'string') {
-                    obj[key] = link;
+                    obj[key] = aliasObj;
                 }
             }
             return obj;
@@ -383,9 +391,17 @@ class MicroAppConfig {
             Object.keys(currAlias).forEach(key => {
                 const p = currAlias[key];
                 const aliasKey = `${aliasName}/${key}`;
-                if (p && typeof p === 'string' && !alias[aliasKey]) {
-                    const filePath = path.resolve(this.root, p);
-                    alias[aliasKey] = filePath;
+                if (!alias[aliasKey]) {
+                    if (typeof p === 'string') {
+                        const filePath = path.resolve(this.root, p);
+                        alias[aliasKey] = filePath;
+                    } else if (_.isPlainObject(p)) {
+                        const link = p.link;
+                        if (link && typeof link === 'string') {
+                            const filePath = path.resolve(this.root, link);
+                            alias[aliasKey] = filePath;
+                        }
+                    }
                 }
             });
         }

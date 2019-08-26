@@ -29,13 +29,13 @@ module.exports = {
     // ],
 
     alias: { // 前端
-        api: '',
+        api: 'abc',
         config: {
-            link: '',
+            link: 'abc',
             description: '配置',
         },
         service: {
-            link: '',
+            link: 'abc',
             description: '接口',
             type: 'server',
         },
@@ -60,13 +60,13 @@ module.exports = {
     },
 
     plugins: [
-        // [{
-        //     id: 'test',
-        //     description: '这是test',
-        //     link: __dirname + '/test/testPlugin',
-        // }, {
-        //     a: 1,
-        // }],
+        [{
+            id: 'test',
+            description: '这是test',
+            link: __dirname + '/test/testPlugin',
+        }, {
+            a: 1,
+        }],
     ],
 
     // deploy: {
