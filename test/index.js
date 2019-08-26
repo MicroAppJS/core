@@ -53,12 +53,18 @@ logger.success('abc');
 logger.logo('abc');
 logger.warn('abc');
 logger.debug('abc');
+const spinner = logger.spinner('abc');
+spinner.start();
+setTimeout(() => {
+    spinner.fail('cc');
+}, 3000);
 
-const _ = require('lodash');
-const wmerge = require('webpack-merge');
 
-const a = { a: 1, b: { c: { d: 2 } }, z: [ '12' ] };
-const b = { a: { aa: 2 }, b: { c: { vv: 2 } }, c: { c: '33' }, z: [ '45' ] };
-const c = _.merge({}, a, b);
-logger.debug(c);
-logger.warn(wmerge.smart(a, b));
+// const _ = require('lodash');
+// const wmerge = require('webpack-merge');
+
+// const a = { a: 1, b: { c: { d: 2 } }, z: [ '12' ] };
+// const b = { a: { aa: 2 }, b: { c: { vv: 2 } }, c: { c: '33' }, z: [ '45' ] };
+// const c = _.merge({}, a, b);
+// logger.debug(c);
+// logger.warn(wmerge.smart(a, b));

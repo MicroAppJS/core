@@ -2,6 +2,7 @@
 
 const chalk = require('chalk').default;
 const utils = require('util');
+const ora = require('ora');
 
 const CONSTANTS = require('../config/constants');
 
@@ -52,6 +53,14 @@ module.exports = {
     },
     logo() {
         return process.stdout.write(toString.logo.call(toString, ...arguments));
+    },
+    spinner(message) {
+        const defulatOpts = {
+            text: message,
+            color: 'yellow',
+            prefixText: `${chalk.bgHex('#EE6B2C')(' PENDING ')} `,
+        };
+        return ora(typeof message === 'string' ? defulatOpts : Object.assign({}, defulatOpts, message));
     },
     toString,
 };

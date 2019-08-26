@@ -7,20 +7,39 @@ const _ = require('lodash');
 
 const symbols = require('../config/symbols');
 const CONSTANTS = require('../config/constants');
+const logger = require('../utils/logger');
+const getPadLength = require('../utils/getPadLength');
 
 // 默认配置
 const DEFAULT_CONFIG = require('../config/default');
+
 const INIT = Symbol('@MicroAppConfig#INIT');
 const ORIGNAL_CONFIG = Symbol('@MicroAppConfig#ORIGNAL_CONFIG');
 
+const validate = require('./schema');
+const SCHEMA = require('./schema/microAppConfigSchema.json');
 
 class MicroAppConfig {
 
     constructor(config /* , opts = {} */) {
+        // 校验 config
+        this._validateSchema(config);
         this[INIT](config);
         this[ORIGNAL_CONFIG] = config || DEFAULT_CONFIG;
-        // 校验 config
         this.webpack = config.webpack || {};
+    }
+
+    _validateSchema(config) {
+        const result = validate(SCHEMA, config);
+        const padLength = getPadLength(result.map(item => {
+            return { name: item.keyword };
+        }));
+        result.forEach(item => {
+            logger.error(`[${_.padStart(item.keyword, padLength)}] ${item.dataPath} ${item.message}`);
+        });
+        if (result.length > 0) {
+            throw new Error('illegal configuration !!!');
+        }
     }
 
     [INIT](config) {
@@ -34,6 +53,7 @@ class MicroAppConfig {
             } catch (error) {
                 this._packagePath = '';
                 this._package = {};
+                logger.warn('Not Fount "package.json" !');
             }
         }
     }
@@ -47,9 +67,9 @@ class MicroAppConfig {
         return config[symbols.ROOT] || '';
     }
 
-    get orignalRoot() {
+    get originalRoot() {
         const config = this.config;
-        return config[symbols.ORIGINAL_ROOT] || '';
+        return config[symbols.ORIGINAL_ROOT] || this.root || '';
     }
 
     get isOpenSoftLink() {
@@ -108,7 +128,10 @@ class MicroAppConfig {
     }
 
     get aliasName() {
-        const aliasName = this.name;
+        let aliasName = this.name || '';
+        if (!aliasName.startsWith(CONSTANTS.SCOPE_NAME)) {
+            aliasName = `${CONSTANTS.SCOPE_NAME}/${aliasName}`;
+        }
         return aliasName[0] !== '@' ? `@${aliasName}` : aliasName;
     }
 
@@ -279,7 +302,7 @@ class MicroAppConfig {
                 link: false,
             });
 
-            // 全局配置
+            // 附加内容需要参考全局配置
             if (!MicroAppConfig.OPEN_SOFT_LINK) { // 强制禁止使用 软链接
                 result[micro].link = false;
             }
@@ -459,6 +482,7 @@ class MicroAppConfig {
             description: this.description,
             root: this.root,
             nodeModules: this.nodeModules,
+            originalRoot: this.originalRoot,
         };
         if (notSimple) {
             json.micros = this.micros;
@@ -491,6 +515,7 @@ class MicroAppConfig {
         const _serverConfig = this.server;
         const { entry, options = {}, hooks } = _serverConfig;
         const json = {
+            ...this.toJSON(), //  不能去除. 外部有引用
             entry,
             hooks,
             options,

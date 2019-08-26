@@ -1,6 +1,6 @@
 {
     "name": "@micro-app/core",
-    "version": "0.1.0-beta.24",
+    "version": "0.1.0-beta.26",
     "description": "micro app core",
     "main": "src/index.js",
     "scripts": {
@@ -34,12 +34,15 @@
         "yargs-parser": "^13.1.1"
     },
     "dependencies": {
+        "ajv": "^6.10.2",
+        "ajv-keywords": "^3.4.1",
         "assert": "^2.0.0",
         "chalk": "^2.4.2",
         "cheerio": "^1.0.0-rc.3",
         "dotenv": "^8.1.0",
         "lodash": "^4.17.15",
         "module-alias": "^2.2.1",
+        "ora": "^3.4.0",
         "semver": "^6.3.0",
         "stream-to-string": "^1.2.0",
         "try-require": "^1.2.1",
