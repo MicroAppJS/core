@@ -34,7 +34,7 @@ Examples:
         const pluginMethods = api.service.pluginMethods;
         const plugins = api.service.plugins;
         const info = api.self.toJSON(true);
-        const env = api.self.env || {};
+        const env = api.service.env || {};
         const micros = api.micros;
         const selfConfig = api.selfConfig;
         const microsConfig = api.microsConfig;
@@ -45,7 +45,7 @@ Examples:
             padAlias: true,
         });
         const shared = aliasMerge(selfConfig, {
-            type: 'aliasObj',
+            type: 'sharedObj',
             micros,
             microsConfig,
             padAlias: true,

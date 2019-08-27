@@ -3,7 +3,6 @@
 const { padEnd } = require('lodash');
 const chalk = require('chalk');
 const _ = require('lodash');
-const semver = require('semver');
 const getPadLength = require('../../utils/getPadLength');
 
 module.exports = function(api) {
@@ -14,8 +13,8 @@ Examples:
   `.trim();
 
     api.registerCommand('check', {
-        description: 'show alias & shared list, etc.',
-        usage: 'micro-app show [options]',
+        description: 'check all dependencies.',
+        usage: 'micro-app check [options]',
         options: {
             deps: 'check all dependencies to compare.',
             dependencies: 'check all dependencies to compare.',
@@ -66,7 +65,14 @@ Examples:
                 _names.forEach(_name => {
                     const _microName = chalk.blue(padEnd(_name, padLength - 2));
                     const _microVersion = microsDeps[_name][key];
-                    const _warpperMicroVersion = chalk[semver.neq(_version.replace(/[\^|\~]/g, ''), _microVersion.replace(/[\^|\~]/g, '')) ? 'red' : 'gray'](`[ ${_microVersion} ]`);
+                    let color = 'gray';
+                    try {
+                        const isNotEq = _version !== _microVersion;
+                        color = isNotEq ? 'red' : 'gray';
+                    } catch (error) {
+                        color = 'yellow';
+                    }
+                    const _warpperMicroVersion = chalk[color](`[ ${_microVersion} ]`);
                     textStrs.push(`\n${' '.repeat(15) + chalk.gray('|--')} ${_microName} ${_warpperMicroVersion}`);
                 });
             }
