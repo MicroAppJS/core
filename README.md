@@ -293,7 +293,7 @@ Examples:
         return updateMicro(api, name);
     });
 
-    // 对外抛出已注册的方法.
+    // 对外触发已注册的方法.
     api.applyPluginHooks('beforeCommandUpdate', { name, logger, microsConfig });
 
 ```
