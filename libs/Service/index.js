@@ -5,6 +5,8 @@ const assert = require('assert');
 const merge = require('webpack-merge');
 const _ = require('lodash');
 
+const CONSTANTS = require('../../config/constants');
+
 const requireMicro = require('../../utils/requireMicro');
 const logger = require('../../utils/logger');
 
@@ -38,6 +40,10 @@ class Service {
         this.state = GLOBAL_STATE; // 状态集
 
         this.plugins = PreLoadPlugins.map(this.resolvePlugin).filter(item => !!item);
+    }
+
+    get version() {
+        return CONSTANTS.VERSION;
     }
 
     get self() {
@@ -176,7 +182,7 @@ class Service {
     }
 
     getPlugins() {
-        const micros = _.cloneDeep([ ...this.micros ]);
+        const micros = Array.from(this.micros);
         const plugins = this.selfConfig.plugins || [];
         const allplugins = micros.map(key => {
             return this.microsConfig[key].plugins || [];
@@ -291,7 +297,7 @@ e.g.
 
     mergeConfig() {
         const selfConfig = this.selfConfig;
-        const micros = _.cloneDeep([ ...this.micros ]);
+        const micros = Array.from(this.micros);
         const microsConfig = this.microsConfig;
         const finalConfig = merge.smart({}, ...micros.map(key => {
             if (!microsConfig[key]) return {};
@@ -336,7 +342,10 @@ e.g.
 
         // 注入全局的别名
         injectAliasModule(this.config.resolveShared);
-        injectAliasModulePath(Object.values(this.microsConfig).filter(item => item.isOpenSoftLink).map(item => item.nodeModules));
+        injectAliasModulePath(Array.from(this.micros)
+            .map(key => this.microsConfig[key])
+            .filter(item => item.isOpenSoftLink)
+            .map(item => item.nodeModules));
 
         // merge server
         this.applyPluginHooks('beforeMergeServerConfig', this.serverConfig);

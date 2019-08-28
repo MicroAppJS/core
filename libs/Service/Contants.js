@@ -19,6 +19,7 @@ module.exports = {
     SharedProps: [
         'id',
         'env',
+        'version',
         'applyPluginHooks',
         'applyPluginHooksAsync',
         'resolvePlugin',

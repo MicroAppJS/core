@@ -116,7 +116,8 @@ class MicroAppConfig {
     }
 
     get key() {
-        return this.name.replace(`${CONSTANTS.SCOPE_NAME}/`, '');
+        const config = this.config;
+        return config[symbols.KEY] || '';
     }
 
     get name() {
@@ -514,6 +515,7 @@ class MicroAppConfig {
         const json = {
             key: this.key,
             name: this.name,
+            packageName: this.packageName,
             version: this.version,
             type: this.type,
             description: this.description,

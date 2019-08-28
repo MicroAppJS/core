@@ -1,6 +1,6 @@
 {
     "name": "@micro-app/core",
-    "version": "0.1.0-beta-test.1",
+    "version": "0.1.1-rc.2",
     "description": "micro app core",
     "main": "src/index.js",
     "scripts": {
@@ -55,6 +55,6 @@
         "stream-to-string": "^1.2.0",
         "try-require": "^1.2.1",
         "webpack-chain": "^6.0.0",
-        "webpack-merge": "^4.2.1"
+        "webpack-merge": "^4.2.2"
     }
 }
