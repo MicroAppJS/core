@@ -109,17 +109,10 @@ class PluginAPI extends BaseAPI {
         return this.service.registerCommand(name, opts, fn);
     }
 
-    // onDevCompileDone(listener) {
-    //     addListener('onDevCompileDone', listener);
-    // }
-
-    // onBuildSuccess(listener) {
-    //     addListener('onBuildSuccess', listener);
-    // }
-
-    // onBuildFail(listener) {
-    //     addListener('onBuildFail', listener);
-    // }
+    hasPlugin(id) {
+        assert(id, 'id must supplied');
+        return this.service.plugins.some(p => id === p.id);
+    }
 }
 
 module.exports = PluginAPI;

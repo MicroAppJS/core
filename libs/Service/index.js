@@ -10,7 +10,7 @@ const logger = require('../../utils/logger');
 
 const serverMerge = require('../../utils/merge-server');
 const serverHooksMerge = require('../../utils/merge-server-hooks');
-const injectAliasModule = require('../../utils/injectAliasModule');
+const { injectAliasModule, injectAliasModulePath } = require('../../utils/injectAliasModule');
 
 const PluginAPI = require('./PluginAPI');
 
@@ -68,13 +68,13 @@ class Service {
         micros.forEach(key => {
             const microConfig = requireMicro(key);
             if (microConfig) {
-                config[key] = microConfig.toServerConfig();
+                config[key] = microConfig.toServerConfig(true);
             } else {
                 this.micros.delete(key);
                 logger.error(`not found micros: "${key}"`);
             }
         });
-        config[this.self.key] = this.selfServerConfig || this.self.toServerConfig();
+        config[this.self.key] = this.selfServerConfig || this.self.toServerConfig(true);
         return config;
     }
 
@@ -336,6 +336,7 @@ e.g.
 
         // 注入全局的别名
         injectAliasModule(this.config.resolveShared);
+        injectAliasModulePath(Object.values(this.microsConfig).filter(item => item.isOpenSoftLink).map(item => item.nodeModules));
 
         // merge server
         this.applyPluginHooks('beforeMergeServerConfig', this.serverConfig);

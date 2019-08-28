@@ -73,7 +73,8 @@ class MicroAppConfig {
     }
 
     get isOpenSoftLink() {
-        return this.root !== this.orignalRoot;
+        const MicroAppConfig = this.globalMicroAppConfig;
+        return MicroAppConfig.OPEN_SOFT_LINK && this.root !== this.originalRoot;
     }
 
     get path() {
@@ -111,7 +112,7 @@ class MicroAppConfig {
     }
 
     get package() {
-        return Object.freeze(this._package || {});
+        return Object.freeze(JSON.parse(JSON.stringify(this._package || {})));
     }
 
     get key() {
@@ -519,6 +520,7 @@ class MicroAppConfig {
             root: this.root,
             nodeModules: this.nodeModules,
             originalRoot: this.originalRoot,
+            isOpenSoftLink: this.isOpenSoftLink,
         };
         if (notSimple) {
             json.micros = this.micros;
@@ -553,7 +555,6 @@ class MicroAppConfig {
         const _serverConfig = this.server;
         const { entry, options = {}, hooks } = _serverConfig;
         const json = {
-            ...this.toJSON(), //  不能去除. 外部有引用
             entry,
             hooks,
             options,
@@ -567,7 +568,7 @@ class MicroAppConfig {
             proxy: this.proxy,
         };
         if (notSimple) {
-            Object.assign(json, this.toJSON());
+            Object.assign(json, this.toJSON()); //  不能去除. 外部有引用
         }
         return json;
     }
