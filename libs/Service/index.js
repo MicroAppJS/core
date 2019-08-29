@@ -16,7 +16,7 @@ const { injectAliasModule, injectAliasModulePath } = require('../../utils/inject
 
 const PluginAPI = require('./PluginAPI');
 
-const { PreLoadPlugins, SharedProps } = require('./Contants');
+const { PreLoadPlugins, SharedProps, ServiceSharedProps } = require('./Contants');
 
 // 全局状态集
 const GLOBAL_STATE = {};
@@ -254,6 +254,16 @@ e.g.
                             if (typeof _prop === 'string' && /^_/i.test(_prop)) {
                                 return; // ban private
                             }
+                            if (ServiceSharedProps.includes(_prop)) {
+                                if (typeof _target[_prop] === 'function') {
+                                    return _target[_prop].bind(_target);
+                                }
+                                if (_prop === 'micros') {
+                                    return [ ..._target[_prop] ];
+                                }
+                                return _target[_prop];
+                            }
+                            return {}[prop];
                         },
                     });
                 }

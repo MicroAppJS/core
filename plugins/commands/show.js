@@ -34,7 +34,7 @@ Examples:
         const pluginMethods = api.service.pluginMethods;
         const plugins = api.service.plugins;
         const info = api.self.toJSON(true);
-        const env = api.service.env || {};
+        const env = api.env || {};
         const micros = api.micros;
         const selfConfig = api.selfConfig;
         const microsConfig = api.microsConfig;
