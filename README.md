@@ -4,6 +4,7 @@ Pluggable application framework.
 
 基于webpack多入口的多仓库业务模块开发的插件应用框架核心库.
 
+[![Coverage Status](https://coveralls.io/repos/github/zyao89/MicroApp-Core/badge.svg?branch=master)](https://coveralls.io/github/zyao89/MicroApp-Core?branch=master)
 [![CircleCI][CircleCI-img]][CircleCI-url]
 [![NPM Version][npm-img]][npm-url]
 [![NPM Download][download-img]][download-url]
