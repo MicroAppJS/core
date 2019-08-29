@@ -1,6 +1,6 @@
 # Micro APP Core
 
-Pluggable application framework.
+Pluggable micro application framework.
 
 基于webpack多入口的多仓库业务模块开发的插件应用框架核心库.
 
@@ -19,13 +19,13 @@ Pluggable application framework.
 ## Install
 
 ```sh
-yarn add @micro-app/cli
+yarn add @micro-app/core
 ```
 
 or
 
 ```sh
-npm install -D @micro-app/cli
+npm install -D @micro-app/core
 ```
 
 ## Usage
