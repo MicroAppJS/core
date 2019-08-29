@@ -1,6 +1,6 @@
 version: 2
 jobs:
-    jest-test:
+    build:
         docker:
             # specify the version you desire here
             - image: circleci/node:latest-browsers
@@ -11,20 +11,16 @@ jobs:
         branches:
             ignore:
                 - docs
-                - gh-pages # list of branches to ignore
-                - /release\/.*/ # or ignore regexes
+                - gh-pages
+
         steps:
             - checkout
             - restore_cache:
                   key: micro-app-core-{{ .Branch }}-{{ checksum "yarn.lock" }}
             - run: yarn --network-timeout 600000
-            - run: yarn run test --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
             - save_cache:
                 key: micro-app-core-{{ .Branch }}-{{ checksum "yarn.lock" }}
                 paths:
                     - ./node_modules
-workflows:
-  version: 2
-  all:
-    jobs:
-    - jest-test
+            - run: yarn run test --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
+
