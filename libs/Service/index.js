@@ -16,7 +16,7 @@ const { injectAliasModule, injectAliasModulePath } = require('../../utils/inject
 
 const PluginAPI = require('./PluginAPI');
 
-const { PreLoadPlugins, SharedProps } = require('./Contants');
+const { PreLoadPlugins, SharedProps } = require('./Constants');
 
 // 全局状态集
 const GLOBAL_STATE = {};
@@ -390,6 +390,16 @@ e.g.
         });
 
         return fn(args);
+    }
+
+    hasPlugin(id) {
+        assert(id, 'id must supplied');
+        return this.plugins.some(p => id === p.id);
+    }
+
+    findPlugin(id) {
+        assert(id, 'id must supplied');
+        return this.plugins.find(p => id === p.id);
     }
 }
 

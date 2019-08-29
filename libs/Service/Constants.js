@@ -34,6 +34,8 @@ const contants = {
         'microsServerConfig',
         'changePluginOption',
         'runCommand',
+        'hasPlugin',
+        'findPlugin',
     ],
 };
 

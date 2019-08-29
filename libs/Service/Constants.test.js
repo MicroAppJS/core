@@ -2,9 +2,9 @@
 
 /* global expect */
 
-const { PreLoadPlugins, SharedProps } = require('./Contants');
+const { PreLoadPlugins, SharedProps } = require('./Constants');
 
-describe('Contants', () => {
+describe('Constants', () => {
 
     it('check PreLoadPlugins', () => {
         PreLoadPlugins.forEach(item => {
