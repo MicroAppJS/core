@@ -1,6 +1,6 @@
 version: 2
 jobs:
-    build:
+    test:
         docker:
             # specify the version you desire here
             - image: circleci/node:latest-browsers
@@ -8,19 +8,17 @@ jobs:
             NPM_CONFIG_LOGLEVEL: error
             JOBS: max # https://gist.github.com/ralphtheninja/f7c45bdee00784b41fed
         branches:
-            ignore:
-                - gh-pages # list of branches to ignore
-                - /release\/.*/ # or ignore regexes
-
-        working_directory: ~/
-
+            only:
+                - master
+                - develop
+        working_directory: ~/micro-app
         steps:
             - checkout
             - restore_cache:
-                  key: micro-app-core-{{ .Branch }}-{{ checksum "yarn.lock" }}
+                  key: micro-app-core-{{ CIRCLE_BRANCH }}-{{ checksum "yarn.lock" }}
             - run: yarn --network-timeout 600000
             - run: yarn run coveralls
             - save_cache:
-                key: micro-app-core-{{ .Branch }}-{{ checksum "yarn.lock" }}
+                key: micro-app-core-{{ CIRCLE_BRANCH }}-{{ checksum "yarn.lock" }}
                 paths:
                     - ./node_modules
