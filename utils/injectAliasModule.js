@@ -1,25 +1,27 @@
 'use strict';
 
 const tryRequire = require('try-require');
-const logger = require('./logger');
-
-function loadAliasModule() {
-    const moduleAlias = tryRequire('module-alias');
-    if (moduleAlias) {
-        return moduleAlias;
-    }
-    logger.warn('maybe not install module-alias');
-    return null;
-}
+const moduleAlias = tryRequire('module-alias');
 
 function injectAliasModule(alias) {
     if (alias && JSON.stringify(alias) !== '{}') {
-        const moduleAlias = loadAliasModule();
-        if (moduleAlias) {
-            // inject shared
-            moduleAlias.addAliases(alias);
-        }
+        // inject shared
+        moduleAlias.addAliases(alias);
     }
 }
 
-module.exports = injectAliasModule;
+function injectAliasModulePath(paths) {
+    if (Array.isArray(paths)) {
+        paths = Array.from(new Set(paths));
+        paths.forEach(item => {
+            moduleAlias.addPath(item);
+        });
+    } else if (paths && typeof paths === 'string') {
+        moduleAlias.addPath(paths);
+    }
+}
+
+module.exports = {
+    injectAliasModule,
+    injectAliasModulePath,
+};

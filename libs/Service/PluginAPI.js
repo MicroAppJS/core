@@ -65,6 +65,8 @@ class PluginAPI extends BaseAPI {
     }
 
     registerMethod(name, opts) {
+        assert(typeof name === 'string', 'name must be string.');
+        assert(name || /^_/i.test(name), `${name} cannot begin with '_'.`);
         assert(!this[name] || !this.service.pluginMethods[name], `api.${name} exists.`);
         assert(opts, 'opts must supplied');
         const { type, apply } = opts;
@@ -109,17 +111,10 @@ class PluginAPI extends BaseAPI {
         return this.service.registerCommand(name, opts, fn);
     }
 
-    // onDevCompileDone(listener) {
-    //     addListener('onDevCompileDone', listener);
-    // }
-
-    // onBuildSuccess(listener) {
-    //     addListener('onBuildSuccess', listener);
-    // }
-
-    // onBuildFail(listener) {
-    //     addListener('onBuildFail', listener);
-    // }
+    hasPlugin(id) {
+        assert(id, 'id must supplied');
+        return this.service.plugins.some(p => id === p.id);
+    }
 }
 
 module.exports = PluginAPI;

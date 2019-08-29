@@ -3,10 +3,11 @@
 const path = require('path');
 const commands = require('../../plugins/commands');
 
-module.exports = {
+const contants = {
     PreLoadPlugins: [
-        '../../plugins/webpack-adapter',
         ...commands.map(p => path.join('../../plugins/commands', p)),
+        '../../plugins/webpack-adapter',
+        '../../plugins/vue-cli-adapter',
     ].map(p => {
         return {
             id: 'built-in:' + p.replace('../../', '').replace(/\//ig, '-').replace(/\.js/ig, '')
@@ -18,6 +19,8 @@ module.exports = {
 
     SharedProps: [
         'id',
+        'env',
+        'version',
         'applyPluginHooks',
         'applyPluginHooksAsync',
         'resolvePlugin',
@@ -32,4 +35,13 @@ module.exports = {
         'changePluginOption',
         'runCommand',
     ],
+
+    ServiceSharedProps: [
+        'commands',
+        'plugins',
+        'pluginHooks',
+        'pluginMethods',
+    ],
 };
+
+module.exports = contants;

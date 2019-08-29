@@ -27,7 +27,7 @@ module.exports = {
         // },
     ],
 
-    webpack: { // webpack 配置信息
+    webpack: { // webpack 配置信息 (只有自己为主容器时,才会使用)
     },
 
     alias: { // 共享别名

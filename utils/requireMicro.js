@@ -25,6 +25,14 @@ const self = function() {
     return null;
 };
 
+const isExists = function(p) {
+    try {
+        return fs.existsSync(p) && fs.statSync(p).isDirectory();
+    } catch (error) {
+        return false;
+    }
+};
+
 // 开发模式软链接
 const fixedDevLink = function(id, micPath) {
     const _selfConfig = self();
@@ -44,22 +52,25 @@ const requireMicro = function(id) {
     if (configCache[name]) {
         return configCache[name];
     }
-    let originalMicPath = path.join(ROOT, NODE_MODULES_NAME, name);
-    if (originalMicPath) {
+    // 兼容 id
+    let originalMicPath = path.join(ROOT, NODE_MODULES_NAME, id);
+    if (isExists(originalMicPath)) {
         const micPath = fixedDevLink(id, originalMicPath);
         const microConfig = loadFile(micPath, CONFIG_NAME);
         if (microConfig) {
+            microConfig[symbols.KEY] = id;
             microConfig[symbols.ORIGINAL_ROOT] = originalMicPath;
             const _microAppConfig = new MicroAppConfig(microConfig);
             configCache[name] = _microAppConfig;
             return _microAppConfig;
         }
-        // 兼容 id
-        originalMicPath = path.join(ROOT, NODE_MODULES_NAME, id);
+    } else {
+        originalMicPath = path.join(ROOT, NODE_MODULES_NAME, name);
         if (originalMicPath) {
             const micPath = fixedDevLink(id, originalMicPath);
             const microConfig = loadFile(micPath, CONFIG_NAME);
             if (microConfig) {
+                microConfig[symbols.KEY] = id;
                 microConfig[symbols.ORIGINAL_ROOT] = originalMicPath;
                 const _microAppConfig = new MicroAppConfig(microConfig);
                 configCache[name] = _microAppConfig;

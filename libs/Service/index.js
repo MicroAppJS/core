@@ -5,16 +5,18 @@ const assert = require('assert');
 const merge = require('webpack-merge');
 const _ = require('lodash');
 
+const CONSTANTS = require('../../config/constants');
+
 const requireMicro = require('../../utils/requireMicro');
 const logger = require('../../utils/logger');
 
 const serverMerge = require('../../utils/merge-server');
 const serverHooksMerge = require('../../utils/merge-server-hooks');
-const injectAliasModule = require('../../utils/injectAliasModule');
+const { injectAliasModule, injectAliasModulePath } = require('../../utils/injectAliasModule');
 
 const PluginAPI = require('./PluginAPI');
 
-const { PreLoadPlugins, SharedProps } = require('./Contants');
+const { PreLoadPlugins, SharedProps, ServiceSharedProps } = require('./Contants');
 
 // 全局状态集
 const GLOBAL_STATE = {};
@@ -38,6 +40,10 @@ class Service {
         this.state = GLOBAL_STATE; // 状态集
 
         this.plugins = PreLoadPlugins.map(this.resolvePlugin).filter(item => !!item);
+    }
+
+    get version() {
+        return CONSTANTS.VERSION;
     }
 
     get self() {
@@ -68,13 +74,13 @@ class Service {
         micros.forEach(key => {
             const microConfig = requireMicro(key);
             if (microConfig) {
-                config[key] = microConfig.toServerConfig();
+                config[key] = microConfig.toServerConfig(true);
             } else {
                 this.micros.delete(key);
                 logger.error(`not found micros: "${key}"`);
             }
         });
-        config[this.self.key] = this.selfServerConfig || this.self.toServerConfig();
+        config[this.self.key] = this.selfServerConfig || this.self.toServerConfig(true);
         return config;
     }
 
@@ -176,7 +182,7 @@ class Service {
     }
 
     getPlugins() {
-        const micros = _.cloneDeep([ ...this.micros ]);
+        const micros = Array.from(this.micros);
         const plugins = this.selfConfig.plugins || [];
         const allplugins = micros.map(key => {
             return this.microsConfig[key].plugins || [];
@@ -225,8 +231,7 @@ e.g.
         // Implement functions via api
     }`.trim())
         );
-        const _api = new PluginAPI(id, this);
-        const api = new Proxy(_api, {
+        const api = new Proxy(new PluginAPI(id, this), {
             get: (target, prop) => {
                 if (typeof prop === 'string' && /^_/i.test(prop)) {
                     return; // ban private
@@ -244,7 +249,23 @@ e.g.
                     return this[prop];
                 }
                 if (prop === 'service') {
-                    return target[prop];
+                    return new Proxy(target[prop], {
+                        get: (_target, _prop) => {
+                            if (typeof _prop === 'string' && /^_/i.test(_prop)) {
+                                return; // ban private
+                            }
+                            if (ServiceSharedProps.includes(_prop)) {
+                                if (typeof _target[_prop] === 'function') {
+                                    return _target[_prop].bind(_target);
+                                }
+                                if (_prop === 'micros') {
+                                    return [ ..._target[_prop] ];
+                                }
+                                return _target[_prop];
+                            }
+                            return {}[prop];
+                        },
+                    });
                 }
                 return target[prop];
             },
@@ -291,7 +312,7 @@ e.g.
 
     mergeConfig() {
         const selfConfig = this.selfConfig;
-        const micros = _.cloneDeep([ ...this.micros ]);
+        const micros = Array.from(this.micros);
         const microsConfig = this.microsConfig;
         const finalConfig = merge.smart({}, ...micros.map(key => {
             if (!microsConfig[key]) return {};
@@ -336,6 +357,10 @@ e.g.
 
         // 注入全局的别名
         injectAliasModule(this.config.resolveShared);
+        injectAliasModulePath(Array.from(this.micros)
+            .map(key => this.microsConfig[key])
+            .filter(item => item.isOpenSoftLink)
+            .map(item => item.nodeModules));
 
         // merge server
         this.applyPluginHooks('beforeMergeServerConfig', this.serverConfig);
