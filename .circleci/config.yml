@@ -1,6 +1,6 @@
 version: 2
 jobs:
-    test:
+    one:
         docker:
             # specify the version you desire here
             - image: circleci/node:latest-browsers
@@ -26,4 +26,4 @@ workflows:
   version: 2
   all:
     jobs:
-    - test
+    - one
