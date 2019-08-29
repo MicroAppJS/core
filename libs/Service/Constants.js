@@ -34,13 +34,8 @@ const contants = {
         'microsServerConfig',
         'changePluginOption',
         'runCommand',
-    ],
-
-    ServiceSharedProps: [
-        'commands',
-        'plugins',
-        'pluginHooks',
-        'pluginMethods',
+        'hasPlugin',
+        'findPlugin',
     ],
 };
 
