@@ -16,7 +16,7 @@ const { injectAliasModule, injectAliasModulePath } = require('../../utils/inject
 
 const PluginAPI = require('./PluginAPI');
 
-const { PreLoadPlugins, SharedProps, ServiceSharedProps } = require('./Contants');
+const { PreLoadPlugins, SharedProps } = require('./Contants');
 
 // 全局状态集
 const GLOBAL_STATE = {};
@@ -31,8 +31,8 @@ class Service {
         this.selfConfig = this.self.toConfig(true);
         this.selfServerConfig = this.self.toServerConfig(true);
         this.micros = new Set((this.self.micros || []));
-        this.microsConfig = this.initMicrosConfig();
-        this.microsServerConfig = this.initMicrosServerConfig();
+        this.microsConfig = this._initMicrosConfig();
+        this.microsServerConfig = this._initMicrosServerConfig();
 
         this.env = {}; // 环境变量
         this.config = {};
@@ -52,7 +52,7 @@ class Service {
         return _self;
     }
 
-    initMicrosConfig() {
+    _initMicrosConfig() {
         const config = {};
         const micros = _.cloneDeep([ ...this.micros ]);
         micros.forEach(key => {
@@ -68,7 +68,7 @@ class Service {
         return config;
     }
 
-    initMicrosServerConfig() {
+    _initMicrosServerConfig() {
         const config = {};
         const micros = _.cloneDeep([ ...this.micros ]);
         micros.forEach(key => {
@@ -84,7 +84,7 @@ class Service {
         return config;
     }
 
-    initDotEnv() {
+    _initDotEnv() {
         const env = process.env.NODE_ENV;
         const dotenv = tryRequire('dotenv');
         if (dotenv) {
@@ -181,7 +181,7 @@ class Service {
         return last;
     }
 
-    getPlugins() {
+    _getPlugins() {
         const micros = Array.from(this.micros);
         const plugins = this.selfConfig.plugins || [];
         const allplugins = micros.map(key => {
@@ -198,11 +198,11 @@ class Service {
         return pluginsObj;
     }
 
-    initPlugins() {
-        this.plugins.push(...this.getPlugins());
+    _initPlugins() {
+        this.plugins.push(...this._getPlugins());
 
         this.plugins.forEach(plugin => {
-            this.initPlugin(plugin);
+            this._initPlugin(plugin);
         });
 
         // Throw error for methods that can't be called after plugins is initialized
@@ -218,10 +218,10 @@ class Service {
             });
         });
 
-        logger.debug('[Plugin] initPlugins() End!');
+        logger.debug('[Plugin] _initPlugins() End!');
     }
 
-    initPlugin(plugin) {
+    _initPlugin(plugin) {
         const { id, apply, opts = {} } = plugin;
         assert(typeof apply === 'function',
             logger.toString.error('\n' + `
@@ -254,16 +254,7 @@ e.g.
                             if (typeof _prop === 'string' && /^_/i.test(_prop)) {
                                 return; // ban private
                             }
-                            if (ServiceSharedProps.includes(_prop)) {
-                                if (typeof _target[_prop] === 'function') {
-                                    return _target[_prop].bind(_target);
-                                }
-                                if (_prop === 'micros') {
-                                    return [ ..._target[_prop] ];
-                                }
-                                return _target[_prop];
-                            }
-                            return {}[prop];
+                            return _target[_prop];
                         },
                     });
                 }
@@ -310,7 +301,7 @@ e.g.
         logger.debug(`[Plugin] registerCommand( ${name} ); Success!`);
     }
 
-    mergeConfig() {
+    _mergeConfig() {
         const selfConfig = this.selfConfig;
         const micros = Array.from(this.micros);
         const microsConfig = this.microsConfig;
@@ -330,7 +321,7 @@ e.g.
         Object.assign(this.config, _.cloneDeep(finalConfig));
     }
 
-    mergeServerConfig() {
+    _mergeServerConfig() {
         const selfServerConfig = this.selfServerConfig;
         const microsServerConfig = this.microsServerConfig;
         const serverEntrys = serverMerge(...Object.values(microsServerConfig), selfServerConfig);
@@ -347,12 +338,12 @@ e.g.
     }
 
     init() {
-        this.initDotEnv();
-        this.initPlugins();
+        this._initDotEnv();
+        this._initPlugins();
         this.applyPluginHooks('onPluginInitDone');
         // merge config
         this.applyPluginHooks('beforeMergeConfig', this.config);
-        this.mergeConfig();
+        this._mergeConfig();
         this.applyPluginHooks('afterMergeConfig', this.config);
 
         // 注入全局的别名
@@ -364,7 +355,7 @@ e.g.
 
         // merge server
         this.applyPluginHooks('beforeMergeServerConfig', this.serverConfig);
-        this.mergeServerConfig();
+        this._mergeServerConfig();
         this.applyPluginHooks('afterMergeServerConfig', this.serverConfig);
 
         this.applyPluginHooks('onInitWillDone');

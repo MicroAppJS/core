@@ -2,7 +2,7 @@
 
 /* global expect */
 
-const { PreLoadPlugins, SharedProps, ServiceSharedProps } = require('./Contants');
+const { PreLoadPlugins, SharedProps } = require('./Contants');
 
 describe('Contants', () => {
 
@@ -20,10 +20,8 @@ describe('Contants', () => {
         });
     });
 
-    it('check SharedProps & ServiceSharedProps', () => {
+    it('check SharedProps', () => {
         expect(Array.from(new Set(SharedProps)).length).toEqual(SharedProps.length);
-        expect(Array.from(new Set(ServiceSharedProps)).length).toEqual(ServiceSharedProps.length);
-        expect(SharedProps.some(key => ServiceSharedProps.includes(key))).toEqual(false);
     });
 
 });

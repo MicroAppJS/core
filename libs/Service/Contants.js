@@ -35,13 +35,6 @@ const contants = {
         'changePluginOption',
         'runCommand',
     ],
-
-    ServiceSharedProps: [
-        'commands',
-        'plugins',
-        'pluginHooks',
-        'pluginMethods',
-    ],
 };
 
 module.exports = contants;
