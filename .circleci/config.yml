@@ -17,14 +17,13 @@ jobs:
             - restore_cache:
                   key: micro-app-core-{{ CIRCLE_BRANCH }}-{{ checksum "yarn.lock" }}
             - run: yarn --network-timeout 600000
-            - run: yarn run coveralls
+            - run: yarn run test --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
             - save_cache:
                 key: micro-app-core-{{ CIRCLE_BRANCH }}-{{ checksum "yarn.lock" }}
                 paths:
                     - ./node_modules
-
 workflows:
   version: 2
-  workflow:
+  all:
     jobs:
     - test
