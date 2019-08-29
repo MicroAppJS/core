@@ -22,3 +22,9 @@ jobs:
                 key: micro-app-core-{{ CIRCLE_BRANCH }}-{{ checksum "yarn.lock" }}
                 paths:
                     - ./node_modules
+
+workflows:
+  version: 2
+  workflow:
+    jobs:
+    - test
