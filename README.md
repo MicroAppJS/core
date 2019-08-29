@@ -1,9 +1,11 @@
 # Micro APP Core
 
-[![CircleCI](https://circleci.com/gh/zyao89/MicroApp-Core/tree/master.svg?style=svg)](https://circleci.com/gh/zyao89/MicroApp-Core/tree/master)
+[![CircleCI][CircleCI-img]][CircleCI-url]
 [![NPM Version][npm-img]][npm-url]
 [![NPM Download][download-img]][download-url]
 
+[CircleCI-img]: https://circleci.com/gh/zyao89/MicroApp-Core/tree/master.svg?style=svg
+[CircleCI-url]: https://circleci.com/gh/zyao89/MicroApp-Core/tree/master
 [npm-img]: https://img.shields.io/npm/v/@micro-app/core.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/@micro-app/core
 [download-img]: https://img.shields.io/npm/dm/@micro-app/core.svg?style=flat-square

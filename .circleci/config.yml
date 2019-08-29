@@ -7,7 +7,7 @@ jobs:
         environment:
             NPM_CONFIG_LOGLEVEL: error
             JOBS: max # https://gist.github.com/ralphtheninja/f7c45bdee00784b41fed
-        working_directory: ~/micro-app
+        working_directory: ~/micro-app-core
         branches:
             ignore:
                 - docs
