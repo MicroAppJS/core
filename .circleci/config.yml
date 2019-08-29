@@ -9,9 +9,10 @@ jobs:
             JOBS: max # https://gist.github.com/ralphtheninja/f7c45bdee00784b41fed
         working_directory: ~/micro-app
         branches:
-            only:
-                - master
-                - develop
+            ignore:
+                - docs
+                - gh-pages # list of branches to ignore
+                - /release\/.*/ # or ignore regexes
         steps:
             - checkout
             - restore_cache:
