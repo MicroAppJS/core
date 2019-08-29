@@ -1,4 +1,4 @@
-version: 2.1
+version: 2
 jobs:
     build:
         docker:
@@ -12,16 +12,15 @@ jobs:
                 - gh-pages # list of branches to ignore
                 - /release\/.*/ # or ignore regexes
 
-        # working_directory: ~/
+        working_directory: ~/
 
         steps:
             - checkout
             - restore_cache:
-                  key: node-modules-{{ checksum "package.json" }}
-            - run: sudo npm install -g cnpm
-            - run: cnpm install --registry=https://registry.npmjs.org
-            - run: cnpm run coveralls
+                  key: micro-app-core-{{ .Branch }}-{{ checksum "yarn.lock" }}
+            - run: yarn --network-timeout 600000
+            - run: yarn run coveralls
             - save_cache:
-                key: node-modules-{{ checksum "package.json" }}
+                key: micro-app-core-{{ .Branch }}-{{ checksum "yarn.lock" }}
                 paths:
                     - ./node_modules
