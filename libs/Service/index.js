@@ -231,8 +231,7 @@ e.g.
         // Implement functions via api
     }`.trim())
         );
-        const _api = new PluginAPI(id, this);
-        const api = new Proxy(_api, {
+        const api = new Proxy(new PluginAPI(id, this), {
             get: (target, prop) => {
                 if (typeof prop === 'string' && /^_/i.test(prop)) {
                     return; // ban private
@@ -250,7 +249,13 @@ e.g.
                     return this[prop];
                 }
                 if (prop === 'service') {
-                    return target[prop];
+                    return new Proxy(target[prop], {
+                        get: (_target, _prop) => {
+                            if (typeof _prop === 'string' && /^_/i.test(_prop)) {
+                                return; // ban private
+                            }
+                        },
+                    });
                 }
                 return target[prop];
             },

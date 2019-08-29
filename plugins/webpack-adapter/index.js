@@ -7,40 +7,17 @@ const CONSTANTS = require('../../config/constants');
 
 module.exports = function WebpackAdapter(api, opts) {
 
-    api.registerMethod('beforeMergeWebpackConfig', {
-        type: api.API_TYPE.EVENT,
-        description: '合并 webpack 配置之前事件',
-    });
-    api.registerMethod('afterMergeWebpackConfig', {
-        type: api.API_TYPE.EVENT,
-        description: '合并 webpack 配置之后事件',
-    });
-    api.registerMethod('modifyChainWebpcakConfig', {
-        type: api.API_TYPE.MODIFY,
-        description: '合并之后提供 webpack-chain 进行再次修改事件',
-    });
-    api.registerMethod('onChainWebpcakConfig', {
-        type: api.API_TYPE.EVENT,
-        description: '修改之后提供 webpack-chain 进行查看事件',
-    });
+    let initialized = false;
+    let originalWebpackConfig = {};
 
-    api.onInitWillDone(() => {
-        const webpackConfig = api.config.webpack || {};
-        delete webpackConfig.plugins; // 不接受 plugins
-
-        api.applyPluginHooks('beforeMergeWebpackConfig', webpackConfig);
-
-        const afterWebpackConfig = webpackMerge(webpackConfig, {
-            microsExtral: api.self.microsExtral || {},
-            micros: api.micros,
-            config: api.selfConfig,
-            microsConfig: api.microsConfig,
-        });
-
-        api.applyPluginHooks('afterMergeWebpackConfig', afterWebpackConfig);
+    api.resolveChainableWebpackConfig = () => {
+        if (!initialized) {
+            api.logger.error('please call after "onInitWillDone" !');
+            process.exit(1);
+        }
 
         const webpackChainConfig = new Config();
-        webpackChainConfig.merge(afterWebpackConfig);
+        webpackChainConfig.merge(originalWebpackConfig);
 
         const selfConfig = api.self;
         if (selfConfig.strict === false && process.env.NODE_ENV === 'development') {
@@ -57,6 +34,56 @@ module.exports = function WebpackAdapter(api, opts) {
         api.applyPluginHooks('onChainWebpcakConfig', finalWebpackChainConfig);
 
         api.setState('webpackChainConfig', finalWebpackChainConfig);
-        api.setState('webpackConfig', finalWebpackChainConfig.toConfig());
+        return finalWebpackChainConfig;
+    };
+
+    api.resolveWebpackConfig = () => {
+        const finalWebpackChainConfig = api.resolveChainableWebpackConfig();
+        const webpackConfig = api.applyPluginHooks('modifyWebpcakConfig', finalWebpackChainConfig.toConfig());
+
+        api.setState('webpackConfig', webpackConfig);
+        return webpackConfig;
+    };
+
+    api.registerMethod('beforeMergeWebpackConfig', {
+        type: api.API_TYPE.EVENT,
+        description: '合并原生初始 webpack 配置之前事件',
+    });
+    api.registerMethod('afterMergeWebpackConfig', {
+        type: api.API_TYPE.EVENT,
+        description: '合并原生初始 webpack 配置之后事件',
+    });
+    api.registerMethod('modifyChainWebpcakConfig', {
+        type: api.API_TYPE.MODIFY,
+        description: '合并之后提供 webpack-chain 进行再次修改事件',
+    });
+    api.registerMethod('onChainWebpcakConfig', {
+        type: api.API_TYPE.EVENT,
+        description: '修改之后提供 webpack-chain 进行查看事件',
+    });
+    api.registerMethod('modifyWebpcakConfig', {
+        type: api.API_TYPE.MODIFY,
+        description: '合并之后提供 webpack config 进行再次修改事件',
+    });
+
+    api.onInitWillDone(() => {
+        const webpackConfig = api.config.webpack || {};
+        delete webpackConfig.plugins; // 不接受 plugins
+
+        api.applyPluginHooks('beforeMergeWebpackConfig', webpackConfig);
+
+        originalWebpackConfig = webpackMerge(webpackConfig, {
+            microsExtral: api.self.microsExtral || {},
+            micros: api.micros,
+            config: api.selfConfig,
+            microsConfig: api.microsConfig,
+        });
+
+        api.applyPluginHooks('afterMergeWebpackConfig', originalWebpackConfig);
+
+        initialized = true;
+
+        // 强制初始化一次, 兼容
+        api.resolveWebpackConfig();
     });
 };

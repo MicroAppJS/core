@@ -65,6 +65,8 @@ class PluginAPI extends BaseAPI {
     }
 
     registerMethod(name, opts) {
+        assert(typeof name === 'string', 'name must be string.');
+        assert(name || /^_/i.test(name), `${name} cannot begin with '_'.`);
         assert(!this[name] || !this.service.pluginMethods[name], `api.${name} exists.`);
         assert(opts, 'opts must supplied');
         const { type, apply } = opts;

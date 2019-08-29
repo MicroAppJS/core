@@ -1,5 +1,6 @@
 # Micro APP Core
 
+[![CircleCI](https://circleci.com/gh/zyao89/MicroApp-Core.svg?style=svg)](https://circleci.com/gh/zyao89/MicroApp-Core)
 [![NPM Version][npm-img]][npm-url]
 [![NPM Download][download-img]][download-url]
 

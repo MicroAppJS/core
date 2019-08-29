@@ -4,7 +4,8 @@
     "description": "micro app core",
     "main": "src/index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "coveralls": "jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
+        "test": "jest"
     },
     "homepage": "https://github.com/zyao89/MicroApp-Core",
     "repository": {
@@ -34,10 +35,13 @@
     },
     "license": "MIT",
     "devDependencies": {
+        "@types/jest": "^24.0.18",
         "babel-eslint": "^10.0.2",
+        "coveralls": "^3.0.6",
         "eslint": "^5.16.0",
         "eslint-config-2o3t": "^1.1.17",
         "html-webpack-plugin": "^3.2.0",
+        "jest": "^24.9.0",
         "webpack": "^4.39.2",
         "yargs-parser": "^13.1.1"
     },
