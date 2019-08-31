@@ -117,7 +117,7 @@ class MicroAppConfig {
 
     get key() {
         const config = this.config;
-        return config[symbols.KEY] || '';
+        return config[symbols.KEY] || this.packageName.replace(new RegExp(`^${CONSTANTS.SCOPE_NAME}`, 'ig'), '') || '';
     }
 
     get name() {

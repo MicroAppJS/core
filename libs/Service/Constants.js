@@ -19,6 +19,7 @@ const contants = {
 
     SharedProps: [
         'id',
+        'mode',
         'env',
         'version',
         'applyPluginHooks',

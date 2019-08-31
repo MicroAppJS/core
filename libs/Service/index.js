@@ -46,6 +46,10 @@ class Service {
         return CONSTANTS.VERSION;
     }
 
+    get mode() {
+        return CONSTANTS.NODE_ENV || 'production';
+    }
+
     get self() {
         const _self = requireMicro.self();
         assert(_self, logger.toString.error('not found "micro-app.config.js"'));
@@ -323,9 +327,10 @@ e.g.
 
     _mergeServerConfig() {
         const selfServerConfig = this.selfServerConfig;
+        const micros = Array.from(this.micros);
         const microsServerConfig = this.microsServerConfig;
-        const serverEntrys = serverMerge(...Object.values(microsServerConfig), selfServerConfig);
-        const serverHooks = serverHooksMerge(...Object.values(microsServerConfig), selfServerConfig);
+        const serverEntrys = serverMerge(...micros.map(key => microsServerConfig[key]), selfServerConfig);
+        const serverHooks = serverHooksMerge(...micros.map(key => microsServerConfig[key]), selfServerConfig);
         Object.assign(this.serverConfig, {
             ..._.pick(selfServerConfig, [
                 'host',
