@@ -68,7 +68,7 @@ class PluginAPI extends BaseAPI {
     registerMethod(name, opts) {
         assert(typeof name === 'string', 'name must be string.');
         assert(name || /^_/i.test(name), `${name} cannot begin with '_'.`);
-        assert(!this[name] || !this.service.pluginMethods[name] || !SharedProps.includes(name), `api.${name} exists.`);
+        assert(!this[name] || !this.service.extendMethods[name] || !this.service.pluginMethods[name] || !SharedProps.includes(name), `api.${name} exists.`);
         assert(opts, 'opts must supplied');
         const { type, apply } = opts;
         assert(!(type && apply), 'Only be one for type and apply.');
@@ -110,6 +110,10 @@ class PluginAPI extends BaseAPI {
 
     registerCommand(name, opts, fn) {
         return this.service.registerCommand(name, opts, fn);
+    }
+
+    extendMethod(name, fn) {
+        return this.service.extendMethod(name, fn);
     }
 }
 

@@ -7,7 +7,6 @@ const contants = {
     PreLoadPlugins: [
         ...commands.map(p => path.join('../../plugins/commands', p)),
         '../../plugins/webpack-adapter',
-        '../../plugins/vue-cli-adapter',
     ].map(p => {
         return {
             id: 'built-in:' + p.replace('../../', '').replace(/\//ig, '-').replace(/\.js/ig, '')
@@ -18,7 +17,7 @@ const contants = {
     }),
 
     SharedProps: [
-        'id',
+        'root',
         'mode',
         'env',
         'version',
