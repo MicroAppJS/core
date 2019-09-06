@@ -94,6 +94,9 @@
                     },
                     {
                         "type": "object"
+                    },
+                    {
+                        "type": "string"
                     }
                 ]
             },
