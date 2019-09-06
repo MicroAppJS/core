@@ -24,6 +24,7 @@ const GLOBAL_STATE = {};
 class Service {
     constructor() {
         // 当前服务
+        this.extendMethods = {};
         this.pluginHooks = {};
         this.pluginMethods = {};
         this.commands = {};
@@ -40,6 +41,10 @@ class Service {
         this.state = GLOBAL_STATE; // 状态集
 
         this.plugins = PreLoadPlugins.map(this.resolvePlugin).filter(item => !!item);
+    }
+
+    get root() {
+        return CONSTANTS.ROOT;
     }
 
     get version() {
@@ -110,6 +115,14 @@ class Service {
             this.env.NODE_ENV = env;
             process.env.NODE_ENV = env;
         }
+    }
+
+    extendMethod(name, fn) {
+        assert(typeof name === 'string', 'name must be string.');
+        assert(name || /^_/i.test(name), `${name} cannot begin with '_'.`);
+        assert(!this[name] || !this.extendMethods[name] || !this.pluginMethods[name] || !SharedProps.includes(name), `api.${name} exists.`);
+        assert(typeof fn === 'function', 'opts must be function.');
+        this.extendMethods[name] = fn;
     }
 
     registerPlugin(opts) {
@@ -239,6 +252,9 @@ e.g.
             get: (target, prop) => {
                 if (typeof prop === 'string' && /^_/i.test(prop)) {
                     return; // ban private
+                }
+                if (this.extendMethods[prop]) {
+                    return this.extendMethods[prop];
                 }
                 if (this.pluginMethods[prop]) {
                     return this.pluginMethods[prop].fn;

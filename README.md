@@ -4,13 +4,15 @@ Pluggable micro application framework.
 
 基于webpack多入口的多仓库业务模块开发的插件应用框架核心库.
 
-[![Coverage Status](https://coveralls.io/repos/github/zyao89/MicroApp-Core/badge.svg?branch=master)](https://coveralls.io/github/zyao89/MicroApp-Core?branch=master)
+[![Coverage Status][Coverage-img]][Coverage-url]
 [![CircleCI][CircleCI-img]][CircleCI-url]
 [![NPM Version][npm-img]][npm-url]
 [![NPM Download][download-img]][download-url]
 
-[CircleCI-img]: https://circleci.com/gh/zyao89/MicroApp-Core/tree/master.svg?style=svg
-[CircleCI-url]: https://circleci.com/gh/zyao89/MicroApp-Core/tree/master
+[Coverage-img]: https://coveralls.io/repos/github/MicrosApp/MicroApp-Core/badge.svg?branch=master
+[Coverage-url]: https://coveralls.io/github/MicrosApp/MicroApp-Core?branch=master
+[CircleCI-img]: https://circleci.com/gh/MicrosApp/MicroApp-Core/tree/master.svg?style=svg
+[CircleCI-url]: https://circleci.com/gh/MicrosApp/MicroApp-Core/tree/master
 [npm-img]: https://img.shields.io/npm/v/@micro-app/core.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/@micro-app/core
 [download-img]: https://img.shields.io/npm/dm/@micro-app/core.svg?style=flat-square
@@ -251,7 +253,7 @@ npx micro-app show methods
      * onServerRunFail             ( 服务运行启动失败时事件 )
      * beforeServerEntry           ( 服务进入业务逻辑前事件 )
      * afterServerEntry            ( 服务从业务逻辑出来后事件 )
-     * modifyWebpackCompiler       ( 对服务启动前对 webpack compiler 进行修改, 需要返回所有参数 )
+     * modifyWebpackConfig         ( 对服务启动前对 webpack config 进行修改, 需要返回所有参数 )
      * beforeDevServer             ( 开发服务创建前事件 )
      * afterDevServer              ( 开发服务创建后事件 )
      * onBuildSuccess              ( 构建成功时事件 )

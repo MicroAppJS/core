@@ -10,7 +10,8 @@ module.exports = function WebpackAdapter(api, opts) {
     let initialized = false;
     let originalWebpackConfig = {};
 
-    api.resolveChainableWebpackConfig = () => {
+
+    api.extendMethod('resolveChainableWebpackConfig', () => {
         if (!initialized) {
             api.logger.error('please call after "onInitWillDone" !');
             process.exit(1);
@@ -35,15 +36,15 @@ module.exports = function WebpackAdapter(api, opts) {
 
         api.setState('webpackChainConfig', finalWebpackChainConfig);
         return finalWebpackChainConfig;
-    };
+    });
 
-    api.resolveWebpackConfig = () => {
+    api.extendMethod('resolveWebpackConfig', () => {
         const finalWebpackChainConfig = api.resolveChainableWebpackConfig();
         const webpackConfig = api.applyPluginHooks('modifyWebpcakConfig', finalWebpackChainConfig.toConfig());
 
         api.setState('webpackConfig', webpackConfig);
         return webpackConfig;
-    };
+    });
 
     api.registerMethod('beforeMergeWebpackConfig', {
         type: api.API_TYPE.EVENT,

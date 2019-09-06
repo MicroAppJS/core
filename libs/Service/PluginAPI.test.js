@@ -46,4 +46,17 @@ describe('PluginAPI', () => {
         expect(service.commands.a.opts).toEqual(opts);
     });
 
+    it('test extendMethod', () => {
+        const service = new Service();
+        const api = new PluginAPI('abc', service);
+
+        const fn = args => {
+            console.log(args);
+        };
+        api.extendMethod('a', fn);
+        expect(service.extendMethods.a).not.toBeUndefined();
+        expect(service.extendMethods.a).not.toBeNull();
+        expect(service.extendMethods.a).toEqual(fn);
+    });
+
 });
