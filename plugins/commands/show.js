@@ -1,11 +1,12 @@
 'use strict';
 
-const { padEnd } = require('lodash');
-const chalk = require('chalk');
-const getPadLength = require('../../utils/getPadLength');
-const aliasMerge = require('../../utils/merge-alias');
-
 module.exports = function(api) {
+
+    const { padEnd } = require('lodash');
+    const chalk = require('chalk');
+    const getPadLength = require('../../utils/getPadLength');
+    const aliasMerge = require('../../utils/merge-alias');
+
     const details = `
 Examples:
   ${chalk.gray('# info')}

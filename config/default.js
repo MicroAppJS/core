@@ -52,9 +52,9 @@ module.exports = {
         // entry: '', // 服务端入口
         // host: ‘’, // 服务 IP
         // port: 8888, // 服务端口号
-        // contentBase: '', // 服务端静态文件目录
         // options: { }, // 服务端注入附加参数
-        // proxyGlobal: false, // 全局无服务, 只走代理
+        // contentBase: '', // 服务端静态文件目录
+
         // proxy: { // 服务代理
         //     '/api': {
         //         target: 'http://127.0.0.1', // target host
@@ -70,22 +70,22 @@ module.exports = {
         // branch: 'develop',
     },
 
-    // 一些插件配置项
-    plugin: {
-        // ReplaceFileNotExists: {
-        //     debug: false, // 开启log
-        //     warnHint: 'Not Found',
-        //     loader: '', // 路径
-        //     resource: '', // 路径
-        //     test: /^@micros\//i, // 匹配规则
-        // },
-        // SpeedMeasurePlugin: {
-        //     disabled: true,
-        // },
-        // HappyPack: {
-        //     disabled: true,
-        // },
-    },
+    // 一些插件配置项 (弃用)
+    // plugin: {
+    //     ReplaceFileNotExists: {
+    //         debug: false, // 开启log
+    //         warnHint: 'Not Found',
+    //         loader: '', // 路径
+    //         resource: '', // 路径
+    //         test: /^@micros\//i, // 匹配规则
+    //     },
+    //     SpeedMeasurePlugin: {
+    //         disabled: true,
+    //     },
+    //     HappyPack: {
+    //         disabled: true,
+    //     },
+    // },
 
     plugins: [ // 插件集
         // [

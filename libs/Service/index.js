@@ -127,8 +127,6 @@ class Service {
 
     registerPlugin(opts) {
         assert(_.isPlainObject(opts), `opts should be plain object, but got ${opts}`);
-        assert(opts.link, 'link must supplied');
-        assert(typeof opts.link === 'string', 'link must be string');
         opts = this.resolvePlugin(opts);
         const { id, apply } = opts;
         assert(id && apply, 'id and apply must supplied');
@@ -143,14 +141,28 @@ class Service {
     }
 
     resolvePlugin(item) {
-        const { id, link, opts = {} } = item;
-        const apply = tryRequire(link);
-        if (apply) {
+        const { id, opts = {} } = item;
+        assert(id, 'id must supplied');
+        assert(typeof id === 'string', 'id must be string');
+        if (item.apply && _.isFunction(item.apply)) {
             return {
                 ...item,
-                apply: apply.default || apply,
                 opts,
             };
+        }
+        let link = item.link;
+        if (!link) {
+            link = tryRequire.resolve(id);
+        }
+        if (link) {
+            const apply = tryRequire(link);
+            if (apply) {
+                return {
+                    ...item,
+                    apply: apply.default || apply,
+                    opts,
+                };
+            }
         }
         logger.warn(`[Plugin] not found plugin: "${id || item}"\n   --> link: "${link}"`);
         return false;

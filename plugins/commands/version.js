@@ -1,10 +1,11 @@
 'use strict';
 
-const { padEnd } = require('lodash');
-const chalk = require('chalk');
-const getPadLength = require('../../utils/getPadLength');
-
 module.exports = function(api) {
+
+    const { padEnd } = require('lodash');
+    const chalk = require('chalk');
+    const getPadLength = require('../../utils/getPadLength');
+
     api.registerCommand('version', {
         description: 'show version',
         usage: 'micro-app version',

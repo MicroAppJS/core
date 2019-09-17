@@ -1,11 +1,12 @@
 'use strict';
 
-const { padEnd } = require('lodash');
-const chalk = require('chalk');
-const _ = require('lodash');
-const getPadLength = require('../../utils/getPadLength');
-
 module.exports = function(api) {
+
+    const { padEnd } = require('lodash');
+    const chalk = require('chalk');
+    const _ = require('lodash');
+    const getPadLength = require('../../utils/getPadLength');
+
     const details = `
 Examples:
   ${chalk.gray('# dependencies to compare')}

@@ -467,16 +467,6 @@ class MicroAppConfig {
         return server.proxy || {};
     }
 
-    get proxyGlobal() {
-        const server = this.server;
-        return server.proxyGlobal || false;
-    }
-
-    get plugin() { // 弃用
-        const config = this.config;
-        return config.plugin || {};
-    }
-
     get plugins() {
         const config = this.config;
         const _plugins = config.plugins || [];
