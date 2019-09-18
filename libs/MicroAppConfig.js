@@ -293,6 +293,7 @@ class MicroAppConfig {
         return {};
     }
 
+    // TODO 拆离
     get microsExtral() {
         const config = this.config;
         const result = {};
@@ -430,6 +431,7 @@ class MicroAppConfig {
         return alias;
     }
 
+    // TODO 拆离
     get deploy() {
         const config = this.config;
         return config.deploy;

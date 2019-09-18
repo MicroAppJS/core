@@ -17,6 +17,8 @@ module.exports = {
         main: './client/main.js',
     },
 
+    // staticPath: '',
+
     htmls: [
         {
             filename: 'index.html',

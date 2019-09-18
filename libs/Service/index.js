@@ -5,9 +5,8 @@ const assert = require('assert');
 const merge = require('webpack-merge');
 const _ = require('lodash');
 
-const CONSTANTS = require('../../config/constants');
+const BaseService = require('./Base');
 
-const requireMicro = require('../../utils/requireMicro');
 const logger = require('../../utils/logger');
 
 const serverMerge = require('../../utils/merge-server');
@@ -18,116 +17,163 @@ const PluginAPI = require('./PluginAPI');
 
 const { PreLoadPlugins, SharedProps } = require('./Constants');
 
-// 全局状态集
-const GLOBAL_STATE = {};
-
-class Service {
+class Service extends BaseService {
     constructor() {
-        // 当前服务
-        this.extendMethods = {};
-        this.pluginHooks = {};
-        this.pluginMethods = {};
-        this.commands = {};
-
-        this.selfConfig = this.self.toConfig(true);
-        this.selfServerConfig = this.self.toServerConfig(true);
-        this.micros = new Set((this.self.micros || []));
-        this.microsConfig = this._initMicrosConfig();
-        this.microsServerConfig = this._initMicrosServerConfig();
-
-        this.env = {}; // 环境变量
-        this.config = {};
-        this.serverConfig = {};
-        this.state = GLOBAL_STATE; // 状态集
+        super();
 
         this.plugins = PreLoadPlugins.map(this.resolvePlugin).filter(item => !!item);
+        this.extraPlugins = []; // 临时存储扩展模块
     }
 
-    get root() {
-        return CONSTANTS.ROOT;
-    }
-
-    get version() {
-        return CONSTANTS.VERSION;
-    }
-
-    get mode() {
-        return CONSTANTS.NODE_ENV || 'production';
-    }
-
-    get self() {
-        const _self = requireMicro.self();
-        assert(_self, logger.toString.error('not found "micro-app.config.js"'));
-        return _self;
-    }
-
-    _initMicrosConfig() {
-        const config = {};
-        const micros = _.cloneDeep([ ...this.micros ]);
-        micros.forEach(key => {
-            const microConfig = requireMicro(key);
-            if (microConfig) {
-                config[key] = microConfig.toConfig(true);
-            } else {
-                this.micros.delete(key);
-                logger.error(`not found micros: "${key}"`);
+    _getPlugins() {
+        const micros = Array.from(this.micros);
+        const plugins = this.selfConfig.plugins || [];
+        const allplugins = micros.map(key => {
+            return this.microsConfig[key].plugins || [];
+        }).concat(plugins);
+        const pluginsObj = allplugins.reduce((arr, item) => {
+            if (Array.isArray(item)) {
+                return arr.concat(item.map(_item => {
+                    return this.resolvePlugin(_item);
+                }));
             }
-        });
-        config[this.self.key] = this.selfConfig || this.self.toConfig(true);
-        return config;
+            return arr.concat(this.resolvePlugin(item));
+        }, []).filter(item => !!item);
+        return pluginsObj;
     }
 
-    _initMicrosServerConfig() {
-        const config = {};
-        const micros = _.cloneDeep([ ...this.micros ]);
-        micros.forEach(key => {
-            const microConfig = requireMicro(key);
-            if (microConfig) {
-                config[key] = microConfig.toServerConfig(true);
-            } else {
-                this.micros.delete(key);
-                logger.error(`not found micros: "${key}"`);
-            }
-        });
-        config[this.self.key] = this.selfServerConfig || this.self.toServerConfig(true);
-        return config;
-    }
+    _initPlugins() {
+        this.plugins.push(...this._getPlugins());
 
-    _initDotEnv() {
-        const env = process.env.NODE_ENV;
-        const dotenv = tryRequire('dotenv');
-        if (dotenv) {
-            const result = dotenv.config();
-            if (result.error) {
-                logger.error(result.error);
-            } else if (result.parsed) {
-                const config = result.parsed;
-                if (config.HOSTNAME) { // fixed
-                    process.env.HOSTNAME = config.HOSTNAME;
+        this.plugins.forEach(plugin => {
+            this._initPlugin(plugin);
+        });
+
+        let count = 0;
+        while (this.extraPlugins.length) {
+            const extraPlugins = _.cloneDeep(this.extraPlugins);
+            this.extraPlugins = [];
+            extraPlugins.forEach(plugin => {
+                this._initPlugin(plugin);
+                this.plugins.push(plugin);
+            });
+            count += 1;
+            assert(count <= 10, '插件注册死循环？');
+        }
+
+        // Throw error for methods that can't be called after plugins is initialized
+        this.plugins.forEach(plugin => {
+            Object.keys(plugin._api).forEach(method => {
+                if (/^register/i.test(method) || [
+                    'onOptionChange',
+                ].includes(method)) {
+                    plugin._api[method] = () => {
+                        throw logger.toString.error(`api.${method}() should not be called after plugin is initialized.`);
+                    };
                 }
-                Object.assign(this.env, config);
-                logger.debug('dotenv parsed envs:\n', JSON.stringify(this.env, null, 4));
-            }
-        } else {
-            logger.warn('not found "dotenv"');
-        }
-        if (env === 'production') { // fixed
-            this.env.NODE_ENV = env;
-            process.env.NODE_ENV = env;
-        }
+            });
+        });
+
+        logger.debug('[Plugin] _initPlugins() End!');
     }
 
-    extendMethod(name, fn) {
-        assert(typeof name === 'string', 'name must be string.');
-        assert(name || /^_/i.test(name), `${name} cannot begin with '_'.`);
-        assert(!this[name] || !this.extendMethods[name] || !this.pluginMethods[name] || !SharedProps.includes(name), `api.${name} exists.`);
-        assert(typeof fn === 'function', 'opts must be function.');
-        this.extendMethods[name] = fn;
+    _initPlugin(plugin) {
+        const { id, apply, opts = {} } = plugin;
+        assert(typeof apply === 'function',
+            logger.toString.error('\n' + `
+plugin "${id}" must export a function,
+e.g.
+    export default function(api) {
+        // Implement functions via api
+    }`.trim())
+        );
+        const api = new Proxy(new PluginAPI(id, this), {
+            get: (target, prop) => {
+                if (typeof prop === 'string' && /^_/i.test(prop)) {
+                    return; // ban private
+                }
+                if (this.extendMethods[prop]) {
+                    return this.extendMethods[prop];
+                }
+                if (this.pluginMethods[prop]) {
+                    return this.pluginMethods[prop].fn;
+                }
+                if (SharedProps.includes(prop)) {
+                    if (typeof this[prop] === 'function') {
+                        return this[prop].bind(this);
+                    }
+                    if (prop === 'micros') {
+                        return [ ...this[prop] ];
+                    }
+                    return this[prop];
+                }
+                if (prop === 'service') {
+                    return new Proxy(target[prop], {
+                        get: (_target, _prop) => {
+                            if (typeof _prop === 'string' && /^_/i.test(_prop)) {
+                                return; // ban private
+                            }
+                            return _target[_prop];
+                        },
+                    });
+                }
+                return target[prop];
+            },
+        });
+        api.onOptionChange = fn => {
+            logger.info('onOptionChange...');
+            assert(
+                typeof fn === 'function',
+                `The first argument for api.onOptionChange should be function in ${id}.`
+            );
+            plugin._onOptionChange = fn;
+        };
+
+        apply(api, opts);
+        plugin._api = api;
+    }
+
+    _mergeConfig() {
+        const selfConfig = this.selfConfig;
+        const micros = Array.from(this.micros);
+        const microsConfig = this.microsConfig;
+        const finalConfig = merge.smart({}, ...micros.map(key => {
+            if (!microsConfig[key]) return {};
+            return _.pick(microsConfig[key], [
+                'entry',
+                'htmls',
+                'dlls',
+                'alias',
+                'resolveAlias',
+                'shared',
+                'resolveShared',
+                'staticPaths',
+            ]);
+        }), selfConfig);
+        Object.assign(this.config, _.cloneDeep(finalConfig));
+    }
+
+    _mergeServerConfig() {
+        const selfServerConfig = this.selfServerConfig;
+        const micros = Array.from(this.micros);
+        const microsServerConfig = this.microsServerConfig;
+        const serverEntrys = serverMerge(...micros.map(key => microsServerConfig[key]), selfServerConfig);
+        const serverHooks = serverHooksMerge(...micros.map(key => microsServerConfig[key]), selfServerConfig);
+        Object.assign(this.serverConfig, {
+            ..._.pick(selfServerConfig, [
+                'host',
+                'port',
+            ]),
+            contentBase: selfServerConfig.contentBase || selfServerConfig.staticBase,
+            entrys: serverEntrys,
+            hooks: serverHooks,
+        });
     }
 
     registerPlugin(opts) {
         assert(_.isPlainObject(opts), `opts should be plain object, but got ${opts}`);
         opts = this.resolvePlugin(opts);
+        if (!opts) return; // error
         const { id, apply } = opts;
         assert(id && apply, 'id and apply must supplied');
         assert(typeof id === 'string', 'id must be string');
@@ -135,6 +181,10 @@ class Service {
         assert(
             id.indexOf('built-in:') !== 0,
             'service.registerPlugin() should not register plugin prefixed with "built-in:"'
+        );
+        assert(
+            [ 'id', 'apply', 'opts' ].every(key => Object.keys(opts).includes(key)),
+            'Only id, apply and opts is valid plugin properties'
         );
         this.plugins.push(opts);
         logger.debug(`[Plugin] registerPlugin( ${id} ); Success!`);
@@ -210,102 +260,6 @@ class Service {
         return last;
     }
 
-    _getPlugins() {
-        const micros = Array.from(this.micros);
-        const plugins = this.selfConfig.plugins || [];
-        const allplugins = micros.map(key => {
-            return this.microsConfig[key].plugins || [];
-        }).concat(plugins);
-        const pluginsObj = allplugins.reduce((arr, item) => {
-            if (Array.isArray(item)) {
-                return arr.concat(item.map(_item => {
-                    return this.resolvePlugin(_item);
-                }));
-            }
-            return arr.concat(this.resolvePlugin(item));
-        }, []).filter(item => !!item);
-        return pluginsObj;
-    }
-
-    _initPlugins() {
-        this.plugins.push(...this._getPlugins());
-
-        this.plugins.forEach(plugin => {
-            this._initPlugin(plugin);
-        });
-
-        // Throw error for methods that can't be called after plugins is initialized
-        this.plugins.forEach(plugin => {
-            Object.keys(plugin._api).forEach(method => {
-                if (/^register/i.test(method) || [
-                    'onOptionChange',
-                ].includes(method)) {
-                    plugin._api[method] = () => {
-                        throw logger.toString.error(`api.${method}() should not be called after plugin is initialized.`);
-                    };
-                }
-            });
-        });
-
-        logger.debug('[Plugin] _initPlugins() End!');
-    }
-
-    _initPlugin(plugin) {
-        const { id, apply, opts = {} } = plugin;
-        assert(typeof apply === 'function',
-            logger.toString.error('\n' + `
-plugin "${id}" must export a function,
-e.g.
-    export default function(api) {
-        // Implement functions via api
-    }`.trim())
-        );
-        const api = new Proxy(new PluginAPI(id, this), {
-            get: (target, prop) => {
-                if (typeof prop === 'string' && /^_/i.test(prop)) {
-                    return; // ban private
-                }
-                if (this.extendMethods[prop]) {
-                    return this.extendMethods[prop];
-                }
-                if (this.pluginMethods[prop]) {
-                    return this.pluginMethods[prop].fn;
-                }
-                if (SharedProps.includes(prop)) {
-                    if (typeof this[prop] === 'function') {
-                        return this[prop].bind(this);
-                    }
-                    if (prop === 'micros') {
-                        return [ ...this[prop] ];
-                    }
-                    return this[prop];
-                }
-                if (prop === 'service') {
-                    return new Proxy(target[prop], {
-                        get: (_target, _prop) => {
-                            if (typeof _prop === 'string' && /^_/i.test(_prop)) {
-                                return; // ban private
-                            }
-                            return _target[_prop];
-                        },
-                    });
-                }
-                return target[prop];
-            },
-        });
-        api.onOptionChange = fn => {
-            logger.info('onOptionChange...');
-            assert(
-                typeof fn === 'function',
-                `The first argument for api.onOptionChange should be function in ${id}.`
-            );
-            plugin._onOptionChange = fn;
-        };
-
-        apply(api, opts);
-        plugin._api = api;
-    }
-
     changePluginOption(id, newOpts = {}) {
         assert(id, 'id must supplied');
         const plugins = this.plugins.filter(p => p.id === id);
@@ -320,54 +274,6 @@ e.g.
             }
         });
         logger.debug(`[Plugin] changePluginOption( ${id}, ${JSON.stringify(newOpts)} ); Success!`);
-    }
-
-    registerCommand(name, opts, fn) {
-        assert(!this.commands[name], `Command ${name} exists, please select another one.`);
-        if (typeof opts === 'function') {
-            fn = opts;
-            opts = null;
-        }
-        opts = opts || {};
-        this.commands[name] = { fn, opts };
-        logger.debug(`[Plugin] registerCommand( ${name} ); Success!`);
-    }
-
-    _mergeConfig() {
-        const selfConfig = this.selfConfig;
-        const micros = Array.from(this.micros);
-        const microsConfig = this.microsConfig;
-        const finalConfig = merge.smart({}, ...micros.map(key => {
-            if (!microsConfig[key]) return {};
-            return _.pick(microsConfig[key], [
-                'entry',
-                'htmls',
-                'dlls',
-                'alias',
-                'resolveAlias',
-                'shared',
-                'resolveShared',
-                'staticPaths',
-            ]);
-        }), selfConfig);
-        Object.assign(this.config, _.cloneDeep(finalConfig));
-    }
-
-    _mergeServerConfig() {
-        const selfServerConfig = this.selfServerConfig;
-        const micros = Array.from(this.micros);
-        const microsServerConfig = this.microsServerConfig;
-        const serverEntrys = serverMerge(...micros.map(key => microsServerConfig[key]), selfServerConfig);
-        const serverHooks = serverHooksMerge(...micros.map(key => microsServerConfig[key]), selfServerConfig);
-        Object.assign(this.serverConfig, {
-            ..._.pick(selfServerConfig, [
-                'host',
-                'port',
-            ]),
-            contentBase: selfServerConfig.contentBase || selfServerConfig.staticBase,
-            entrys: serverEntrys,
-            hooks: serverHooks,
-        });
     }
 
     init() {
