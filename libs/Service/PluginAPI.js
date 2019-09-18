@@ -1,9 +1,12 @@
 'use strict';
 
 const assert = require('assert');
+const _ = require('lodash');
 const BaseAPI = require('./BaseAPI');
 const DEFAULT_METHODS = require('./methods');
 const { SharedProps } = require('./Constants');
+
+const logger = require('../../utils/logger');
 
 class PluginAPI extends BaseAPI {
 
@@ -114,6 +117,26 @@ class PluginAPI extends BaseAPI {
 
     extendMethod(name, fn) {
         return this.service.extendMethod(name, fn);
+    }
+
+    registerPlugin(opts) {
+        assert(_.isPlainObject(opts), `opts should be plain object, but got ${opts}`);
+        opts = this.service.resolvePlugin(opts);
+        if (!opts) return; // error
+        const { id, apply } = opts;
+        assert(id && apply, 'id and apply must supplied');
+        assert(typeof id === 'string', 'id must be string');
+        assert(typeof apply === 'function', 'apply must be function');
+        assert(
+            id.indexOf('built-in:') !== 0,
+            'api.registerPlugin() should not register plugin prefixed with built-in:'
+        );
+        assert(
+            [ 'id', 'apply', 'opts' ].every(key => Object.keys(opts).includes(key)),
+            'Only id, apply and opts is valid plugin properties'
+        );
+        this.service.extraPlugins.push(opts);
+        logger.debug(`[Plugin] registerPlugin( ${id} ); Success!`);
     }
 }
 

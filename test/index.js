@@ -5,10 +5,6 @@
 
 // const obj = loadFile(process.cwd(), 'micro-app.config.js');
 
-// const merge = require('../utils/merge-webpack');
-// const config = merge({}, require('../webpack.config'));
-// console.log(config);
-
 // const c = requireMicro('test');
 
 

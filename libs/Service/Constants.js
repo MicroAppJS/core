@@ -6,7 +6,7 @@ const commands = require('../../plugins/commands');
 const contants = {
     PreLoadPlugins: [
         ...commands.map(p => path.join('../../plugins/commands', p)),
-        '../../plugins/webpack-adapter',
+        // '../../plugins/abc',
     ].map(p => {
         return {
             id: 'built-in:' + p.replace('../../', '').replace(/\//ig, '-').replace(/\.js/ig, '')

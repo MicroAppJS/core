@@ -293,6 +293,7 @@ class MicroAppConfig {
         return {};
     }
 
+    // TODO 拆离
     get microsExtral() {
         const config = this.config;
         const result = {};
@@ -430,6 +431,7 @@ class MicroAppConfig {
         return alias;
     }
 
+    // TODO 拆离
     get deploy() {
         const config = this.config;
         return config.deploy;
@@ -465,16 +467,6 @@ class MicroAppConfig {
     get proxy() {
         const server = this.server;
         return server.proxy || {};
-    }
-
-    get proxyGlobal() {
-        const server = this.server;
-        return server.proxyGlobal || false;
-    }
-
-    get plugin() { // 弃用
-        const config = this.config;
-        return config.plugin || {};
     }
 
     get plugins() {

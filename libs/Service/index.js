@@ -5,9 +5,8 @@ const assert = require('assert');
 const merge = require('webpack-merge');
 const _ = require('lodash');
 
-const CONSTANTS = require('../../config/constants');
+const BaseService = require('./Base');
 
-const requireMicro = require('../../utils/requireMicro');
 const logger = require('../../utils/logger');
 
 const serverMerge = require('../../utils/merge-server');
@@ -18,184 +17,12 @@ const PluginAPI = require('./PluginAPI');
 
 const { PreLoadPlugins, SharedProps } = require('./Constants');
 
-// 全局状态集
-const GLOBAL_STATE = {};
-
-class Service {
+class Service extends BaseService {
     constructor() {
-        // 当前服务
-        this.extendMethods = {};
-        this.pluginHooks = {};
-        this.pluginMethods = {};
-        this.commands = {};
-
-        this.selfConfig = this.self.toConfig(true);
-        this.selfServerConfig = this.self.toServerConfig(true);
-        this.micros = new Set((this.self.micros || []));
-        this.microsConfig = this._initMicrosConfig();
-        this.microsServerConfig = this._initMicrosServerConfig();
-
-        this.env = {}; // 环境变量
-        this.config = {};
-        this.serverConfig = {};
-        this.state = GLOBAL_STATE; // 状态集
+        super();
 
         this.plugins = PreLoadPlugins.map(this.resolvePlugin).filter(item => !!item);
-    }
-
-    get root() {
-        return CONSTANTS.ROOT;
-    }
-
-    get version() {
-        return CONSTANTS.VERSION;
-    }
-
-    get mode() {
-        return CONSTANTS.NODE_ENV || 'production';
-    }
-
-    get self() {
-        const _self = requireMicro.self();
-        assert(_self, logger.toString.error('not found "micro-app.config.js"'));
-        return _self;
-    }
-
-    _initMicrosConfig() {
-        const config = {};
-        const micros = _.cloneDeep([ ...this.micros ]);
-        micros.forEach(key => {
-            const microConfig = requireMicro(key);
-            if (microConfig) {
-                config[key] = microConfig.toConfig(true);
-            } else {
-                this.micros.delete(key);
-                logger.error(`not found micros: "${key}"`);
-            }
-        });
-        config[this.self.key] = this.selfConfig || this.self.toConfig(true);
-        return config;
-    }
-
-    _initMicrosServerConfig() {
-        const config = {};
-        const micros = _.cloneDeep([ ...this.micros ]);
-        micros.forEach(key => {
-            const microConfig = requireMicro(key);
-            if (microConfig) {
-                config[key] = microConfig.toServerConfig(true);
-            } else {
-                this.micros.delete(key);
-                logger.error(`not found micros: "${key}"`);
-            }
-        });
-        config[this.self.key] = this.selfServerConfig || this.self.toServerConfig(true);
-        return config;
-    }
-
-    _initDotEnv() {
-        const env = process.env.NODE_ENV;
-        const dotenv = tryRequire('dotenv');
-        if (dotenv) {
-            const result = dotenv.config();
-            if (result.error) {
-                logger.error(result.error);
-            } else if (result.parsed) {
-                const config = result.parsed;
-                if (config.HOSTNAME) { // fixed
-                    process.env.HOSTNAME = config.HOSTNAME;
-                }
-                Object.assign(this.env, config);
-                logger.debug('dotenv parsed envs:\n', JSON.stringify(this.env, null, 4));
-            }
-        } else {
-            logger.warn('not found "dotenv"');
-        }
-        if (env === 'production') { // fixed
-            this.env.NODE_ENV = env;
-            process.env.NODE_ENV = env;
-        }
-    }
-
-    extendMethod(name, fn) {
-        assert(typeof name === 'string', 'name must be string.');
-        assert(name || /^_/i.test(name), `${name} cannot begin with '_'.`);
-        assert(!this[name] || !this.extendMethods[name] || !this.pluginMethods[name] || !SharedProps.includes(name), `api.${name} exists.`);
-        assert(typeof fn === 'function', 'opts must be function.');
-        this.extendMethods[name] = fn;
-    }
-
-    registerPlugin(opts) {
-        assert(_.isPlainObject(opts), `opts should be plain object, but got ${opts}`);
-        assert(opts.link, 'link must supplied');
-        assert(typeof opts.link === 'string', 'link must be string');
-        opts = this.resolvePlugin(opts);
-        const { id, apply } = opts;
-        assert(id && apply, 'id and apply must supplied');
-        assert(typeof id === 'string', 'id must be string');
-        assert(typeof apply === 'function', 'apply must be function');
-        assert(
-            id.indexOf('built-in:') !== 0,
-            'service.registerPlugin() should not register plugin prefixed with "built-in:"'
-        );
-        this.plugins.push(opts);
-        logger.debug(`[Plugin] registerPlugin( ${id} ); Success!`);
-    }
-
-    resolvePlugin(item) {
-        const { id, link, opts = {} } = item;
-        const apply = tryRequire(link);
-        if (apply) {
-            return {
-                ...item,
-                apply: apply.default || apply,
-                opts,
-            };
-        }
-        logger.warn(`[Plugin] not found plugin: "${id || item}"\n   --> link: "${link}"`);
-        return false;
-    }
-
-    applyPluginHooks(key, opts = {}) {
-        logger.debug(`[Plugin] applyPluginHooks( ${key} )`);
-        let defaultOpts = opts;
-        try {
-            defaultOpts = _.cloneDeep(opts);
-        } catch (error) {
-            logger.debug(`[Plugin] Plugin: ${key}, _.cloneDeep() error`);
-        }
-        return (this.pluginHooks[key] || []).reduce((last, { fn }) => {
-            try {
-                return fn({
-                    last,
-                    args: defaultOpts,
-                });
-            } catch (e) {
-                logger.error(`[Plugin] Plugin apply failed: ${e.message}`);
-                throw e;
-            }
-        }, opts);
-    }
-
-    async applyPluginHooksAsync(key, opts = {}) {
-        logger.debug(`[Plugin] applyPluginHooksAsync( ${key} )`);
-        let defaultOpts = opts;
-        try {
-            defaultOpts = _.cloneDeep(opts);
-        } catch (error) {
-            logger.debug(`[Plugin] Plugin: ${key}, _.cloneDeep() error`);
-        }
-        const hooks = this.pluginHooks[key] || [];
-        let last = opts;
-        for (const hook of hooks) {
-            const { fn } = hook;
-            // eslint-disable-next-line no-await-in-loop
-            last = await fn({
-                last,
-                args: defaultOpts,
-            });
-        }
-        return last;
+        this.extraPlugins = []; // 临时存储扩展模块
     }
 
     _getPlugins() {
@@ -221,6 +48,18 @@ class Service {
         this.plugins.forEach(plugin => {
             this._initPlugin(plugin);
         });
+
+        let count = 0;
+        while (this.extraPlugins.length) {
+            const extraPlugins = _.cloneDeep(this.extraPlugins);
+            this.extraPlugins = [];
+            extraPlugins.forEach(plugin => {
+                this._initPlugin(plugin);
+                this.plugins.push(plugin);
+            });
+            count += 1;
+            assert(count <= 10, '插件注册死循环？');
+        }
 
         // Throw error for methods that can't be called after plugins is initialized
         this.plugins.forEach(plugin => {
@@ -294,33 +133,6 @@ e.g.
         plugin._api = api;
     }
 
-    changePluginOption(id, newOpts = {}) {
-        assert(id, 'id must supplied');
-        const plugins = this.plugins.filter(p => p.id === id);
-        assert(plugins.length > 0, `plugin ${id} not found`);
-        plugins.forEach(plugin => {
-            const oldOpts = plugin.opts;
-            plugin.opts = newOpts;
-            if (plugin._onOptionChange) {
-                plugin._onOptionChange(newOpts, oldOpts);
-            } else {
-                logger.warn(`plugin ${id}'s option changed, \n      nV: ${JSON.stringify(newOpts)}, \n      oV: ${JSON.stringify(oldOpts)}`);
-            }
-        });
-        logger.debug(`[Plugin] changePluginOption( ${id}, ${JSON.stringify(newOpts)} ); Success!`);
-    }
-
-    registerCommand(name, opts, fn) {
-        assert(!this.commands[name], `Command ${name} exists, please select another one.`);
-        if (typeof opts === 'function') {
-            fn = opts;
-            opts = null;
-        }
-        opts = opts || {};
-        this.commands[name] = { fn, opts };
-        logger.debug(`[Plugin] registerCommand( ${name} ); Success!`);
-    }
-
     _mergeConfig() {
         const selfConfig = this.selfConfig;
         const micros = Array.from(this.micros);
@@ -356,6 +168,112 @@ e.g.
             entrys: serverEntrys,
             hooks: serverHooks,
         });
+    }
+
+    registerPlugin(opts) {
+        assert(_.isPlainObject(opts), `opts should be plain object, but got ${opts}`);
+        opts = this.resolvePlugin(opts);
+        if (!opts) return; // error
+        const { id, apply } = opts;
+        assert(id && apply, 'id and apply must supplied');
+        assert(typeof id === 'string', 'id must be string');
+        assert(typeof apply === 'function', 'apply must be function');
+        assert(
+            id.indexOf('built-in:') !== 0,
+            'service.registerPlugin() should not register plugin prefixed with "built-in:"'
+        );
+        assert(
+            [ 'id', 'apply', 'opts' ].every(key => Object.keys(opts).includes(key)),
+            'Only id, apply and opts is valid plugin properties'
+        );
+        this.plugins.push(opts);
+        logger.debug(`[Plugin] registerPlugin( ${id} ); Success!`);
+    }
+
+    resolvePlugin(item) {
+        const { id, opts = {} } = item;
+        assert(id, 'id must supplied');
+        assert(typeof id === 'string', 'id must be string');
+        if (item.apply && _.isFunction(item.apply)) {
+            return {
+                ...item,
+                opts,
+            };
+        }
+        let link = item.link;
+        if (!link) {
+            link = tryRequire.resolve(id);
+        }
+        if (link) {
+            const apply = tryRequire(link);
+            if (apply) {
+                return {
+                    ...item,
+                    apply: apply.default || apply,
+                    opts,
+                };
+            }
+        }
+        logger.warn(`[Plugin] not found plugin: "${id || item}"\n   --> link: "${link}"`);
+        return false;
+    }
+
+    applyPluginHooks(key, opts = {}) {
+        logger.debug(`[Plugin] applyPluginHooks( ${key} )`);
+        let defaultOpts = opts;
+        try {
+            defaultOpts = _.cloneDeep(opts);
+        } catch (error) {
+            logger.debug(`[Plugin] Plugin: ${key}, _.cloneDeep() error`);
+        }
+        return (this.pluginHooks[key] || []).reduce((last, { fn }) => {
+            try {
+                return fn({
+                    last,
+                    args: defaultOpts,
+                });
+            } catch (e) {
+                logger.error(`[Plugin] Plugin apply failed: ${e.message}`);
+                throw e;
+            }
+        }, opts);
+    }
+
+    async applyPluginHooksAsync(key, opts = {}) {
+        logger.debug(`[Plugin] applyPluginHooksAsync( ${key} )`);
+        let defaultOpts = opts;
+        try {
+            defaultOpts = _.cloneDeep(opts);
+        } catch (error) {
+            logger.debug(`[Plugin] Plugin: ${key}, _.cloneDeep() error`);
+        }
+        const hooks = this.pluginHooks[key] || [];
+        let last = opts;
+        for (const hook of hooks) {
+            const { fn } = hook;
+            // eslint-disable-next-line no-await-in-loop
+            last = await fn({
+                last,
+                args: defaultOpts,
+            });
+        }
+        return last;
+    }
+
+    changePluginOption(id, newOpts = {}) {
+        assert(id, 'id must supplied');
+        const plugins = this.plugins.filter(p => p.id === id);
+        assert(plugins.length > 0, `plugin ${id} not found`);
+        plugins.forEach(plugin => {
+            const oldOpts = plugin.opts;
+            plugin.opts = newOpts;
+            if (plugin._onOptionChange) {
+                plugin._onOptionChange(newOpts, oldOpts);
+            } else {
+                logger.warn(`plugin ${id}'s option changed, \n      nV: ${JSON.stringify(newOpts)}, \n      oV: ${JSON.stringify(oldOpts)}`);
+            }
+        });
+        logger.debug(`[Plugin] changePluginOption( ${id}, ${JSON.stringify(newOpts)} ); Success!`);
     }
 
     init() {
