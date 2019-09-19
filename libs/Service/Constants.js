@@ -19,8 +19,11 @@ const contants = {
     SharedProps: [
         'root',
         'mode',
+        'strictMode',
         'env',
         'version',
+        'pkg',
+        'microsExtralConfig',
         'applyPluginHooks',
         'applyPluginHooksAsync',
         'resolvePlugin',

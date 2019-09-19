@@ -2,6 +2,8 @@
 
 const assert = require('assert');
 const _ = require('lodash');
+const semver = require('semver');
+
 const BaseAPI = require('./BaseAPI');
 const DEFAULT_METHODS = require('./methods');
 const { SharedProps } = require('./Constants');
@@ -42,6 +44,25 @@ class PluginAPI extends BaseAPI {
                 this.registerMethod(method, { type, description: 'System Build-in' });
             }
         });
+    }
+
+    assertVersion(range) {
+        const version = this.service.version;
+        if (typeof range === 'number') {
+            if (!Number.isInteger(range)) {
+                throw new Error('Expected string or integer value.');
+            }
+            range = `^${range}.0.0-0`;
+        }
+        if (typeof range !== 'string') {
+            throw new Error('Expected string or integer value.');
+        }
+
+        if (semver.satisfies(version, range)) return;
+
+        throw new Error(
+            `Require @micro-app/core "${range}", but was loaded with "${version}".`
+        );
     }
 
     setState(key, value) {

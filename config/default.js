@@ -53,7 +53,6 @@ module.exports = {
         // host: ‘’, // 服务 IP
         // port: 8888, // 服务端口号
         // options: { }, // 服务端注入附加参数
-        // contentBase: '', // 服务端静态文件目录
 
         // proxy: { // 服务代理
         //     '/api': {

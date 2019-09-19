@@ -20,6 +20,7 @@ const { PreLoadPlugins, SharedProps } = require('./Constants');
 class Service extends BaseService {
     constructor() {
         super();
+        this.initialized = false;
 
         this.plugins = PreLoadPlugins.map(this.resolvePlugin).filter(item => !!item);
         this.extraPlugins = []; // 临时存储扩展模块
@@ -207,11 +208,12 @@ e.g.
         if (link) {
             const apply = tryRequire(link);
             if (apply) {
-                return {
+                const defaultConfig = apply.configuration || {};
+                return Object.assign({}, defaultConfig, {
                     ...item,
                     apply: apply.default || apply,
                     opts,
-                };
+                });
             }
         }
         logger.warn(`[Plugin] not found plugin: "${id || item}"\n   --> link: "${link}"`);
@@ -277,6 +279,11 @@ e.g.
     }
 
     init() {
+        if (this.initialized) {
+            return;
+        }
+        this.initialized = true;
+
         this._initDotEnv();
         this._initPlugins();
         this.applyPluginHooks('onPluginInitDone');
@@ -284,6 +291,7 @@ e.g.
         this.applyPluginHooks('beforeMergeConfig', this.config);
         this._mergeConfig();
         this.applyPluginHooks('afterMergeConfig', this.config);
+        this.config = this.applyPluginHooks('modifyDefaultConfig', this.config);
 
         // 注入全局的别名
         injectAliasModule(this.config.resolveShared);
@@ -296,6 +304,7 @@ e.g.
         this.applyPluginHooks('beforeMergeServerConfig', this.serverConfig);
         this._mergeServerConfig();
         this.applyPluginHooks('afterMergeServerConfig', this.serverConfig);
+        this.serverConfig = this.applyPluginHooks('modifyDefaultServerConfig', this.serverConfig);
 
         this.applyPluginHooks('onInitWillDone');
         this.applyPluginHooks('onInitDone');

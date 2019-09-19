@@ -73,8 +73,7 @@ class MicroAppConfig {
     }
 
     get isOpenSoftLink() {
-        const MicroAppConfig = this.globalMicroAppConfig;
-        return MicroAppConfig.OPEN_SOFT_LINK && this.root !== this.originalRoot;
+        return this.root !== this.originalRoot;
     }
 
     get path() {
@@ -96,7 +95,7 @@ class MicroAppConfig {
     }
 
     get mode() {
-        return CONSTANTS.NODE_ENV || 'production';
+        return process.env.NODE_ENV || 'production'; // "production" | "development"
     }
 
     get isDev() {
@@ -285,38 +284,6 @@ class MicroAppConfig {
         return [];
     }
 
-    get globalMicroAppConfig() {
-        const MicroAppConfig = global.MicroAppConfig;
-        if (MicroAppConfig && _.isPlainObject(MicroAppConfig)) {
-            return _.cloneDeep(MicroAppConfig);
-        }
-        return {};
-    }
-
-    // TODO 拆离
-    get microsExtral() {
-        const config = this.config;
-        const result = {};
-        const MicroAppConfig = this.globalMicroAppConfig;
-        this.micros.forEach(micro => {
-            result[micro] = Object.assign({}, config[`micros$$${micro}`] || {
-                disabled: false, // 禁用入口
-                disable: false,
-                link: false,
-            });
-
-            // 附加内容需要参考全局配置
-            if (!MicroAppConfig.OPEN_SOFT_LINK) { // 强制禁止使用 软链接
-                result[micro].link = false;
-            }
-            if (!MicroAppConfig.OPEN_DISABLED_ENTRY) { // 强制禁止使用 开启禁用指定模块入口, 优化开发速度
-                result[micro].disabled = false;
-                result[micro].disable = false;
-            }
-        });
-        return result;
-    }
-
     // 后端共享
     get _shared() {
         const config = this.config;
@@ -429,12 +396,6 @@ class MicroAppConfig {
             });
         }
         return alias;
-    }
-
-    // TODO 拆离
-    get deploy() {
-        const config = this.config;
-        return config.deploy;
     }
 
     // server
