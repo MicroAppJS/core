@@ -62,6 +62,8 @@ class Service extends BaseService {
             assert(count <= 10, '插件注册死循环？');
         }
 
+        // TODO 排序重组, reload();
+
         // Throw error for methods that can't be called after plugins is initialized
         this.plugins.forEach(plugin => {
             Object.keys(plugin._api).forEach(method => {
@@ -69,7 +71,8 @@ class Service extends BaseService {
                     'onOptionChange',
                 ].includes(method)) {
                     plugin._api[method] = () => {
-                        throw logger.toString.error(`api.${method}() should not be called after plugin is initialized.`);
+                        logger.error(`api.${method}() should not be called after plugin is initialized.`);
+                        throw Error();
                     };
                 }
             });
@@ -79,7 +82,12 @@ class Service extends BaseService {
     }
 
     _initPlugin(plugin) {
-        const { id, apply, opts = {} } = plugin;
+        const { id, apply, opts = {}, mode } = plugin;
+        if (mode && mode !== this.mode) {
+            // 当前模式与插件不匹配
+            logger.warn(`[Plugin] _initPlugin() skip "${id}"`);
+            return;
+        }
         assert(typeof apply === 'function',
             logger.toString.error('\n' + `
 plugin "${id}" must export a function,
@@ -222,12 +230,12 @@ e.g.
 
     applyPluginHooks(key, opts = {}) {
         logger.debug(`[Plugin] applyPluginHooks( ${key} )`);
-        let defaultOpts = opts;
-        try {
-            defaultOpts = _.cloneDeep(opts);
-        } catch (error) {
-            logger.debug(`[Plugin] Plugin: ${key}, _.cloneDeep() error`);
-        }
+        const defaultOpts = opts;
+        // try {
+        //     defaultOpts = _.cloneDeep(opts);
+        // } catch (error) {
+        //     logger.debug(`[Plugin] Plugin: ${key}, _.cloneDeep() error`);
+        // }
         return (this.pluginHooks[key] || []).reduce((last, { fn }) => {
             try {
                 return fn({
@@ -243,12 +251,12 @@ e.g.
 
     async applyPluginHooksAsync(key, opts = {}) {
         logger.debug(`[Plugin] applyPluginHooksAsync( ${key} )`);
-        let defaultOpts = opts;
-        try {
-            defaultOpts = _.cloneDeep(opts);
-        } catch (error) {
-            logger.debug(`[Plugin] Plugin: ${key}, _.cloneDeep() error`);
-        }
+        const defaultOpts = opts;
+        // try {
+        //     defaultOpts = _.cloneDeep(opts);
+        // } catch (error) {
+        //     logger.debug(`[Plugin] Plugin: ${key}, _.cloneDeep() error`);
+        // }
         const hooks = this.pluginHooks[key] || [];
         let last = opts;
         for (const hook of hooks) {
