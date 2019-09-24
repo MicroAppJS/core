@@ -252,7 +252,6 @@ npx micro-app show methods
      * onServerRunFail             ( 服务运行启动失败时事件 )
      * beforeServerEntry           ( 服务进入业务逻辑前事件 )
      * afterServerEntry            ( 服务从业务逻辑出来后事件 )
-     * modifyWebpackConfig         ( 对服务启动前对 webpack config 进行修改, 需要返回所有参数 )
      * beforeDevServer             ( 开发服务创建前事件 )
      * afterDevServer              ( 开发服务创建后事件 )
      * onBuildSuccess              ( 构建成功时事件 )

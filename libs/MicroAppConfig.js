@@ -72,7 +72,7 @@ class MicroAppConfig {
         return config[symbols.ORIGINAL_ROOT] || this.root || '';
     }
 
-    get isOpenSoftLink() {
+    get hasSoftLink() {
         return this.root !== this.originalRoot;
     }
 
@@ -414,16 +414,6 @@ class MicroAppConfig {
         return server.port;
     }
 
-    get contentBase() {
-        const server = this.server;
-        if (server.contentBase) {
-            return path.resolve(this.root, server.contentBase);
-        } else if (server.staticBase) {
-            return path.resolve(this.root, server.staticBase);
-        }
-        return '.';
-    }
-
     // 服务代理
     get proxy() {
         const server = this.server;
@@ -475,7 +465,7 @@ class MicroAppConfig {
             root: this.root,
             nodeModules: this.nodeModules,
             originalRoot: this.originalRoot,
-            isOpenSoftLink: this.isOpenSoftLink,
+            hasSoftLink: this.hasSoftLink,
         };
         if (notSimple) {
             json.micros = this.micros;
@@ -517,7 +507,6 @@ class MicroAppConfig {
             shared: this.shared,
             sharedObj: this._shared,
             resolveShared: this.resolveShared,
-            contentBase: this.contentBase,
             port: this.port,
             host: this.host,
             proxy: this.proxy,

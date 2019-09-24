@@ -43,17 +43,17 @@
 // console.log(a);
 
 const logger = require('../utils/logger');
-logger.error('abc');
-logger.info('abc');
-logger.success('abc');
-logger.logo('abc');
-logger.warn('abc');
-logger.debug('abc');
-const spinner = logger.spinner('abc');
-spinner.start();
-setTimeout(() => {
-    spinner.fail('cc');
-}, 3000);
+// logger.error('abc');
+// logger.info('abc');
+// logger.success('abc');
+// logger.logo('abc');
+// logger.warn('abc');
+// logger.debug('abc');
+// const spinner = logger.spinner('abc');
+// spinner.start();
+// setTimeout(() => {
+//     spinner.fail('cc');
+// }, 3000);
 
 
 // const _ = require('lodash');
@@ -64,3 +64,6 @@ setTimeout(() => {
 // const c = _.merge({}, a, b);
 // logger.debug(c);
 // logger.warn(wmerge.smart(a, b));
+
+
+logger.throw('abc');

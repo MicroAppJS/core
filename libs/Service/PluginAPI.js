@@ -2,20 +2,15 @@
 
 const assert = require('assert');
 const _ = require('lodash');
-const semver = require('semver');
 
-const BaseAPI = require('./BaseAPI');
+const BaseAPI = require('./base/BaseAPI');
 const DEFAULT_METHODS = require('./methods');
 const { SharedProps } = require('./Constants');
-
-const logger = require('../../utils/logger');
 
 class PluginAPI extends BaseAPI {
 
     constructor(id, service) {
-        super();
-        this.id = id;
-        this.service = service;
+        super(id, service);
 
         this._addMethods();
     }
@@ -44,33 +39,6 @@ class PluginAPI extends BaseAPI {
                 this.registerMethod(method, { type, description: 'System Build-in' });
             }
         });
-    }
-
-    assertVersion(range) {
-        const version = this.service.version;
-        if (typeof range === 'number') {
-            if (!Number.isInteger(range)) {
-                throw new Error('Expected string or integer value.');
-            }
-            range = `^${range}.0.0-0`;
-        }
-        if (typeof range !== 'string') {
-            throw new Error('Expected string or integer value.');
-        }
-
-        if (semver.satisfies(version, range)) return;
-
-        throw new Error(
-            `Require @micro-app/core "${range}", but was loaded with "${version}".`
-        );
-    }
-
-    setState(key, value) {
-        this.service.state[key] = value;
-    }
-
-    getState(key, value) {
-        return this.service.state[key] || value;
     }
 
     register(hook, fn, type) {
@@ -137,8 +105,8 @@ class PluginAPI extends BaseAPI {
         return this.service.registerCommand(name, opts, fn);
     }
 
-    extendMethod(name, fn) {
-        return this.service.extendMethod(name, fn);
+    extendMethod(name, opts, fn) {
+        return this.service.extendMethod(name, opts, fn);
     }
 
     registerPlugin(opts) {
@@ -158,7 +126,7 @@ class PluginAPI extends BaseAPI {
             'Only id, apply and opts is valid plugin properties'
         );
         this.service.extraPlugins.push(opts);
-        logger.debug(`[Plugin] registerPlugin( ${id} ); Success!`);
+        this.logger.debug(`[Plugin] registerPlugin( ${id} ); Success!`);
     }
 }
 

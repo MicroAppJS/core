@@ -5,13 +5,13 @@ const assert = require('assert');
 const _ = require('lodash');
 const semverRegex = require('semver-regex');
 
-const CONSTANTS = require('../../config/constants');
+const CONSTANTS = require('../../../config/constants');
 
-const requireMicro = require('../../utils/requireMicro');
-const loadFile = require('../../utils/loadFile');
-const logger = require('../../utils/logger');
+const requireMicro = require('../../../utils/requireMicro');
+const loadFile = require('../../../utils/loadFile');
+const logger = require('../../../utils/logger');
 
-const { SharedProps } = require('./Constants');
+const { SharedProps } = require('../Constants');
 const MICROS_EXTRAL_CONFIG_KEY = Symbol('MICROS_EXTRAL_CONFIG_KEY');
 
 // 全局状态集
@@ -39,9 +39,15 @@ class BaseService {
         this.env = {}; // 环境变量
         this.config = {};
         this.serverConfig = {};
+
         this.state = GLOBAL_STATE; // 状态集
     }
 
+    /**
+     * @private
+     *
+     * @memberof BaseService
+     */
     __initDefaultEnv__() {
         const env = {
             VERSION: {
@@ -58,9 +64,21 @@ class BaseService {
         });
     }
 
+    /**
+     * @private
+     *
+     * @memberof BaseService
+     */
     __initGlobalMicroAppConfig__() {
         // 加载高级配置
-        this[MICROS_EXTRAL_CONFIG_KEY] = loadFile(this.root, CONSTANTS.EXTRAL_CONFIG_NAME);
+        const extraConfig = this[MICROS_EXTRAL_CONFIG_KEY] = loadFile(this.root, CONSTANTS.EXTRAL_CONFIG_NAME);
+
+        if (extraConfig && _.isPlainObject(extraConfig)) {
+            Object.keys(extraConfig).forEach(key => {
+                const item = extraConfig[key];
+                logger.debug(`【 Extra Config 】${key}: \n${JSON.stringify(item, false, 4)}`);
+            });
+        }
 
         // 全局指令, 不可靠配置
         if (!global.MicroAppConfig) {
@@ -100,6 +118,10 @@ class BaseService {
         return _self;
     }
 
+    get microsExtraConfig() {
+        return this.microsExtralConfig;
+    }
+
     get microsExtralConfig() {
         const microsExtral = this[MICROS_EXTRAL_CONFIG_KEY] || {};
         const result = {};
@@ -111,10 +133,10 @@ class BaseService {
             });
 
             // 附加内容需要参考全局配置
-            if (!process.env.MICRO_APP_OPEN_SOFT_LINK) { // 强制禁止使用 软链接
+            if (process.env.MICRO_APP_OPEN_SOFT_LINK !== 'true') { // 强制禁止使用 软链接
                 result[key].link = false;
             }
-            if (!process.env.MICRO_APP_OPEN_DISABLED_ENTRY) { // 强制禁止使用 开启禁用指定模块入口, 优化开发速度
+            if (process.env.MICRO_APP_OPEN_DISABLED_ENTRY !== 'true') { // 强制禁止使用 开启禁用指定模块入口, 优化开发速度
                 result[key].disabled = false;
                 result[key].disable = false;
             }
@@ -178,12 +200,22 @@ class BaseService {
         }
     }
 
-    extendMethod(name, fn) {
+    extendMethod(name, opts, fn) {
         assert(typeof name === 'string', 'name must be string.');
         assert(name || /^_/i.test(name), `${name} cannot begin with '_'.`);
         assert(!this[name] || !this.extendMethods[name] || !this.pluginMethods[name] || !SharedProps.includes(name), `api.${name} exists.`);
-        assert(typeof fn === 'function', 'opts must be function.');
-        this.extendMethods[name] = fn;
+        if (typeof opts === 'function') {
+            fn = opts;
+            opts = null;
+        }
+        assert(typeof fn === 'function', 'fn must be function.');
+        opts = opts || {};
+        assert(_.isPlainObject(opts), 'opts must be object.');
+        this.extendMethods[name] = {
+            ...opts,
+            fn,
+        };
+        logger.debug(`[Plugin] extendMethods( ${name} ); Success!`);
     }
 
     registerCommand(name, opts, fn) {

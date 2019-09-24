@@ -9,7 +9,7 @@ module.exports = {
     NODE_MODULES_NAME: 'node_modules',
     SCOPE_NAME: '@micro-app', // namespace
     CONFIG_NAME: 'micro-app.config.js',
-    EXTRAL_CONFIG_NAME: 'micro-app.extral.config.js',
+    EXTRAL_CONFIG_NAME: 'micro-app.extra.config.js',
     TYPES: [], // support types
     INJECT_ID: '_MICRO_APP_INJECT_',
     PACKAGE_JSON: 'package.json',

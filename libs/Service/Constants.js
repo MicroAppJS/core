@@ -16,6 +16,7 @@ const contants = {
         };
     }),
 
+    // service 对 pluginAPI 暴露的所有方法
     SharedProps: [
         'root',
         'mode',
@@ -23,7 +24,7 @@ const contants = {
         'env',
         'version',
         'pkg',
-        'microsExtralConfig',
+        'microsExtraConfig', 'microsExtralConfig',
         'applyPluginHooks',
         'applyPluginHooksAsync',
         'resolvePlugin',

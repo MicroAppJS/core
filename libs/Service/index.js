@@ -5,7 +5,7 @@ const assert = require('assert');
 const merge = require('webpack-merge');
 const _ = require('lodash');
 
-const BaseService = require('./Base');
+const BaseService = require('./base/BaseService');
 
 const logger = require('../../utils/logger');
 
@@ -71,8 +71,7 @@ class Service extends BaseService {
                     'onOptionChange',
                 ].includes(method)) {
                     plugin._api[method] = () => {
-                        logger.error(`api.${method}() should not be called after plugin is initialized.`);
-                        throw Error();
+                        logger.throw(`api.${method}() should not be called after plugin is initialized.`);
                     };
                 }
             });
@@ -102,7 +101,7 @@ e.g.
                     return; // ban private
                 }
                 if (this.extendMethods[prop]) {
-                    return this.extendMethods[prop];
+                    return this.extendMethods[prop].fn;
                 }
                 if (this.pluginMethods[prop]) {
                     return this.pluginMethods[prop].fn;
@@ -173,7 +172,6 @@ e.g.
                 'host',
                 'port',
             ]),
-            contentBase: selfServerConfig.contentBase || selfServerConfig.staticBase,
             entrys: serverEntrys,
             hooks: serverHooks,
         });
@@ -219,6 +217,7 @@ e.g.
                 const defaultConfig = apply.configuration || {};
                 return Object.assign({}, defaultConfig, {
                     ...item,
+                    link: require.resolve(link),
                     apply: apply.default || apply,
                     opts,
                 });
@@ -243,8 +242,7 @@ e.g.
                     args: defaultOpts,
                 });
             } catch (e) {
-                logger.error(`[Plugin] Plugin apply failed: ${e.message}`);
-                throw e;
+                logger.throw(`[Plugin] Plugin apply failed: ${e.message}`);
             }
         }, opts);
     }
@@ -290,10 +288,12 @@ e.g.
         if (this.initialized) {
             return;
         }
-        this.initialized = true;
 
         this._initDotEnv();
         this._initPlugins();
+
+        this.initialized = true; // 再此之前可重新 init
+
         this.applyPluginHooks('onPluginInitDone');
         // merge config
         this.applyPluginHooks('beforeMergeConfig', this.config);
@@ -303,9 +303,10 @@ e.g.
 
         // 注入全局的别名
         injectAliasModule(this.config.resolveShared);
+        const microsExtralConfig = this.microsExtralConfig;
         injectAliasModulePath(Array.from(this.micros)
             .map(key => this.microsConfig[key])
-            .filter(item => item.isOpenSoftLink)
+            .filter(item => item.hasSoftLink && !!microsExtralConfig[item.key].link)
             .map(item => item.nodeModules));
 
         // merge server
@@ -325,7 +326,7 @@ e.g.
         return this.runCommand(name, args);
     }
 
-    runCommand(rawName, rawArgs) {
+    runCommand(rawName, rawArgs = { _: [] }) {
         logger.debug(`[Plugin] raw command name: ${rawName}, args: `, rawArgs);
         const { name = rawName, args } = this.applyPluginHooks('modifyCommand', {
             name: rawName,
@@ -336,12 +337,13 @@ e.g.
         const command = this.commands[name];
         if (!command) {
             logger.error(`Command "${name}" does not exists`);
-            process.exit(1);
+            return this.runCommand('help', { _: [] });
         }
 
         const { fn, opts } = command;
         this.applyPluginHooks('onRunCommand', {
             name,
+            args,
             opts,
         });
 

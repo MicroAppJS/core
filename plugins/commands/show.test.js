@@ -108,6 +108,7 @@ describe('show', () => {
         });
         api.service = {
             pluginMethods: [ 'a', 'b', 'c' ],
+            extendMethods: {},
         };
         show(api);
     });

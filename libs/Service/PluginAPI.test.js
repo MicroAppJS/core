@@ -56,7 +56,25 @@ describe('PluginAPI', () => {
         api.extendMethod('a', fn);
         expect(service.extendMethods.a).not.toBeUndefined();
         expect(service.extendMethods.a).not.toBeNull();
-        expect(service.extendMethods.a).toEqual(fn);
+        expect(service.extendMethods.a).toMatchObject({});
+        expect(service.extendMethods.a.fn).toEqual(fn);
+    });
+
+    it('test extendMethod - 2', () => {
+        const service = new Service();
+        const api = new PluginAPI('abc', service);
+
+        const fn = args => {
+            console.log(args);
+        };
+        api.extendMethod('a', {
+            description: 'abc',
+        }, fn);
+        expect(service.extendMethods.a).not.toBeUndefined();
+        expect(service.extendMethods.a).not.toBeNull();
+        expect(service.extendMethods.a).toMatchObject({});
+        expect(service.extendMethods.a.fn).toEqual(fn);
+        expect(service.extendMethods.a.description).toEqual('abc');
     });
 
 });
