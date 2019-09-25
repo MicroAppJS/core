@@ -80,6 +80,10 @@ const requireMicro = function(id) {
     return null;
 };
 
-requireMicro.self = self;
 
 module.exports = requireMicro;
+
+module.exports.self = self;
+
+module.exports._cache = configCache;
+module.exports._selfKey = SELF_CONFIG;
