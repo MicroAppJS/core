@@ -141,4 +141,11 @@ describe('show', () => {
     });
 
 
+    it('process.env', () => {
+        const api = customAPI({
+            _: [ 'process.env' ],
+        });
+        show(api);
+    });
+
 });
