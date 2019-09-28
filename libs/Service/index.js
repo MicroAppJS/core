@@ -22,8 +22,21 @@ class Service extends BaseService {
         super();
         this.initialized = false;
 
+        // fixed soft link - node_modules 不统一
+        this.__initInjectAliasModule__();
+
         this.plugins = PreLoadPlugins.map(this.resolvePlugin).filter(item => !!item);
         this.extraPlugins = []; // 临时存储扩展模块
+    }
+
+    __initInjectAliasModule__() {
+        injectAliasModulePath(this.self.nodeModules);
+        // 注入 custom node_modules
+        const microsExtralConfig = this.microsExtralConfig;
+        injectAliasModulePath(Array.from(this.micros)
+            .map(key => this.microsConfig[key])
+            .filter(item => item.hasSoftLink && !!microsExtralConfig[item.key].link)
+            .map(item => item.nodeModules));
     }
 
     _getPlugins() {
@@ -297,13 +310,6 @@ e.g.
         this._initPlugins();
 
         this.initialized = true; // 再此之前可重新 init
-
-        // 注入 custom node_modules
-        const microsExtralConfig = this.microsExtralConfig;
-        injectAliasModulePath(Array.from(this.micros)
-            .map(key => this.microsConfig[key])
-            .filter(item => item.hasSoftLink && !!microsExtralConfig[item.key].link)
-            .map(item => item.nodeModules));
 
         this.applyPluginHooks('onPluginInitDone');
         // merge config

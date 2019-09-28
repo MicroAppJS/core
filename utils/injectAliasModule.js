@@ -1,6 +1,6 @@
 'use strict';
 
-const moduleAlias = require('module-alias');
+const moduleAlias = require('./module-alias');
 
 function injectAliasModule(alias) {
     if (alias && JSON.stringify(alias) !== '{}') {

@@ -1,6 +1,6 @@
 {
     "name": "@micro-app/core",
-    "version": "0.1.7",
+    "version": "0.1.8",
     "description": "[Core] Pluggable micro application framework.",
     "main": "src/index.js",
     "scripts": {
@@ -52,7 +52,6 @@
         "cheerio": "^1.0.0-rc.3",
         "dotenv": "^8.1.0",
         "lodash": "^4.17.15",
-        "module-alias": "^2.2.1",
         "ora": "^3.4.0",
         "semver": "^6.3.0",
         "semver-regex": "^3.1.0",

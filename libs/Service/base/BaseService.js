@@ -1,6 +1,5 @@
 'use strict';
 
-const tryRequire = require('try-require');
 const assert = require('assert');
 const _ = require('lodash');
 const semverRegex = require('semver-regex');
@@ -10,8 +9,6 @@ const CONSTANTS = require('../../../config/constants');
 const requireMicro = require('../../../utils/requireMicro');
 const loadFile = require('../../../utils/loadFile');
 const logger = require('../../../utils/logger');
-
-const { injectAliasModulePath } = require('../../../utils/injectAliasModule');
 
 const { SharedProps } = require('../Constants');
 const MICROS_EXTRAL_CONFIG_KEY = Symbol('MICROS_EXTRAL_CONFIG_KEY');
@@ -27,9 +24,7 @@ class BaseService {
         this.pluginMethods = {};
         this.commands = {};
 
-        // fixed soft link - node_modules 不统一
         const _self = this.self;
-        injectAliasModulePath([ _self.nodeModules ]);
 
         // 当前服务
         this.selfConfig = _self.toConfig(true);
@@ -184,22 +179,19 @@ class BaseService {
 
     _initDotEnv() {
         const env = process.env.NODE_ENV;
-        const dotenv = tryRequire('dotenv');
-        if (dotenv) {
-            const result = dotenv.config();
-            if (result.error) {
-                logger.error(result.error);
-            } else if (result.parsed) {
-                const config = result.parsed;
-                if (config.HOSTNAME) { // fixed
-                    process.env.HOSTNAME = config.HOSTNAME;
-                }
-                Object.assign(this.env, config);
-                logger.debug('dotenv parsed envs:\n', JSON.stringify(this.env, null, 4));
+        const dotenv = require('dotenv');
+        const result = dotenv.config();
+        if (result.error) {
+            logger.error(result.error);
+        } else if (result.parsed) {
+            const config = result.parsed;
+            if (config.HOSTNAME) { // fixed
+                process.env.HOSTNAME = config.HOSTNAME;
             }
-        } else {
-            logger.warn('Not Found "dotenv"');
+            Object.assign(this.env, config);
+            logger.debug('dotenv parsed envs:\n', JSON.stringify(this.env, null, 4));
         }
+
         if (env === 'production') { // fixed
             this.env.NODE_ENV = env;
             process.env.NODE_ENV = env;

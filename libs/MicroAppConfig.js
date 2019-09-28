@@ -442,7 +442,7 @@ class MicroAppConfig {
                 p = p.link;
             }
             id = id || p;
-            if (!tryRequire.resolve(p)) {
+            if (p && !tryRequire.resolve(p)) {
                 p = path.resolve(this.root, p);
             }
             return {
