@@ -108,6 +108,7 @@ describe('show', () => {
         });
         api.service = {
             pluginMethods: [ 'a', 'b', 'c' ],
+            extendMethods: {},
         };
         show(api);
     });
@@ -139,5 +140,12 @@ describe('show', () => {
         show(api);
     });
 
+
+    it('process.env', () => {
+        const api = customAPI({
+            _: [ 'process.env' ],
+        });
+        show(api);
+    });
 
 });

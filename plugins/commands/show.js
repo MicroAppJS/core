@@ -33,6 +33,7 @@ Examples:
     }, args => {
         const pluginHooks = api.service.pluginHooks;
         const pluginMethods = api.service.pluginMethods;
+        const extendMethods = api.service.extendMethods;
         const plugins = api.service.plugins;
         const info = api.self.toJSON(true);
         const env = api.env || {};
@@ -62,6 +63,14 @@ Examples:
                     };
                     return obj;
                 }, {}));
+            case 'process.env':
+                api.logger.logo(`${chalk.green('Process Env List')}:`);
+                return showAliasList(Object.keys(process.env).reduce((obj, key) => {
+                    obj[key] = {
+                        description: process.env[key],
+                    };
+                    return obj;
+                }, {}));
             case 'micros':
                 api.logger.logo(`${chalk.green('Micros List')}:`);
                 return showAliasList(micros.reduce((obj, key) => {
@@ -88,11 +97,18 @@ Examples:
                 }, {}));
             case 'methods':
                 api.logger.logo(`${chalk.green('Plugin Methods')}:`);
-                return showAliasList(pluginMethods);
+                showAliasList(pluginMethods);
+                return showAliasList(extendMethods);
             case 'plugins':
                 api.logger.logo(`${chalk.green('Plugin List')}:`);
                 return showAliasList(plugins.reduce((obj, item) => {
-                    obj[item.id] = { description: item.description, link: args.link && item.link };
+                    let key = item.id;
+                    let i = 0;
+                    while (obj[key]) {
+                        i++;
+                        key = `${key} (${i})`;
+                    }
+                    obj[key] = { description: item.description, link: args.link && item.link };
                     return obj;
                 }, {}));
             case 'hooks':

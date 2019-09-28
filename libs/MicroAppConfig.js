@@ -72,9 +72,8 @@ class MicroAppConfig {
         return config[symbols.ORIGINAL_ROOT] || this.root || '';
     }
 
-    get isOpenSoftLink() {
-        const MicroAppConfig = this.globalMicroAppConfig;
-        return MicroAppConfig.OPEN_SOFT_LINK && this.root !== this.originalRoot;
+    get hasSoftLink() {
+        return this.root !== this.originalRoot;
     }
 
     get path() {
@@ -96,7 +95,7 @@ class MicroAppConfig {
     }
 
     get mode() {
-        return CONSTANTS.NODE_ENV || 'production';
+        return process.env.NODE_ENV || 'production'; // "production" | "development"
     }
 
     get isDev() {
@@ -285,38 +284,6 @@ class MicroAppConfig {
         return [];
     }
 
-    get globalMicroAppConfig() {
-        const MicroAppConfig = global.MicroAppConfig;
-        if (MicroAppConfig && _.isPlainObject(MicroAppConfig)) {
-            return _.cloneDeep(MicroAppConfig);
-        }
-        return {};
-    }
-
-    // TODO 拆离
-    get microsExtral() {
-        const config = this.config;
-        const result = {};
-        const MicroAppConfig = this.globalMicroAppConfig;
-        this.micros.forEach(micro => {
-            result[micro] = Object.assign({}, config[`micros$$${micro}`] || {
-                disabled: false, // 禁用入口
-                disable: false,
-                link: false,
-            });
-
-            // 附加内容需要参考全局配置
-            if (!MicroAppConfig.OPEN_SOFT_LINK) { // 强制禁止使用 软链接
-                result[micro].link = false;
-            }
-            if (!MicroAppConfig.OPEN_DISABLED_ENTRY) { // 强制禁止使用 开启禁用指定模块入口, 优化开发速度
-                result[micro].disabled = false;
-                result[micro].disable = false;
-            }
-        });
-        return result;
-    }
-
     // 后端共享
     get _shared() {
         const config = this.config;
@@ -431,12 +398,6 @@ class MicroAppConfig {
         return alias;
     }
 
-    // TODO 拆离
-    get deploy() {
-        const config = this.config;
-        return config.deploy;
-    }
-
     // server
     get server() {
         const config = this.config;
@@ -451,16 +412,6 @@ class MicroAppConfig {
     get port() {
         const server = this.server;
         return server.port;
-    }
-
-    get contentBase() {
-        const server = this.server;
-        if (server.contentBase) {
-            return path.resolve(this.root, server.contentBase);
-        } else if (server.staticBase) {
-            return path.resolve(this.root, server.staticBase);
-        }
-        return '.';
     }
 
     // 服务代理
@@ -491,7 +442,7 @@ class MicroAppConfig {
                 p = p.link;
             }
             id = id || p;
-            if (!tryRequire.resolve(p)) {
+            if (p && !tryRequire.resolve(p)) {
                 p = path.resolve(this.root, p);
             }
             return {
@@ -514,7 +465,7 @@ class MicroAppConfig {
             root: this.root,
             nodeModules: this.nodeModules,
             originalRoot: this.originalRoot,
-            isOpenSoftLink: this.isOpenSoftLink,
+            hasSoftLink: this.hasSoftLink,
         };
         if (notSimple) {
             json.micros = this.micros;
@@ -556,7 +507,6 @@ class MicroAppConfig {
             shared: this.shared,
             sharedObj: this._shared,
             resolveShared: this.resolveShared,
-            contentBase: this.contentBase,
             port: this.port,
             host: this.host,
             proxy: this.proxy,

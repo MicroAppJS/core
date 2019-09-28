@@ -1,7 +1,6 @@
 'use strict';
 
-const tryRequire = require('try-require');
-const moduleAlias = tryRequire('module-alias');
+const moduleAlias = require('./module-alias');
 
 function injectAliasModule(alias) {
     if (alias && JSON.stringify(alias) !== '{}') {

@@ -33,13 +33,12 @@ const isExists = function(p) {
     }
 };
 
-// 开发模式软链接
+// @custom 开发模式软链接
+// 当 global.MicroAppConfig.microsExtralConfig 存在时, 才会开启软链功能
 const fixedDevLink = function(id, micPath) {
-    const _selfConfig = self();
-    if (!_selfConfig) throw new Error('Not Found "micro-app.config.js"');
-    // extral config
-    const microsExtral = _selfConfig.microsExtral || {};
-    const extralConfig = microsExtral[id];
+    const MicroAppConfig = global.MicroAppConfig || {};
+    const microsExtralConfig = MicroAppConfig.microsExtralConfig || {};
+    const extralConfig = microsExtralConfig[id];
     if (extralConfig && extralConfig.link && fs.existsSync(extralConfig.link)) {
         return extralConfig.link;
     }
@@ -81,6 +80,10 @@ const requireMicro = function(id) {
     return null;
 };
 
-requireMicro.self = self;
 
 module.exports = requireMicro;
+
+module.exports.self = self;
+
+module.exports._cache = configCache;
+module.exports._selfKey = SELF_CONFIG;

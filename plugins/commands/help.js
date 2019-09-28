@@ -43,7 +43,7 @@ module.exports = function(api) {
 
     function logHelpForCommand(name, command) {
         if (!command) {
-            api.logger.error(`\n  command "${name}" does not exist.`);
+            api.logger.error(`\n  Command "${name}" does not exist.`);
         } else {
             const opts = command.opts || {};
             if (opts.usage) {

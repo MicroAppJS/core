@@ -5,7 +5,7 @@ const assert = require('assert');
 const merge = require('webpack-merge');
 const _ = require('lodash');
 
-const BaseService = require('./Base');
+const BaseService = require('./base/BaseService');
 
 const logger = require('../../utils/logger');
 
@@ -20,9 +20,23 @@ const { PreLoadPlugins, SharedProps } = require('./Constants');
 class Service extends BaseService {
     constructor() {
         super();
+        this.initialized = false;
+
+        // fixed soft link - node_modules 不统一
+        this.__initInjectAliasModule__();
 
         this.plugins = PreLoadPlugins.map(this.resolvePlugin).filter(item => !!item);
         this.extraPlugins = []; // 临时存储扩展模块
+    }
+
+    __initInjectAliasModule__() {
+        injectAliasModulePath(this.self.nodeModules);
+        // 注入 custom node_modules
+        const microsExtralConfig = this.microsExtralConfig;
+        injectAliasModulePath(Array.from(this.micros)
+            .map(key => this.microsConfig[key])
+            .filter(item => item.hasSoftLink && !!microsExtralConfig[item.key].link)
+            .map(item => item.nodeModules));
     }
 
     _getPlugins() {
@@ -61,6 +75,12 @@ class Service extends BaseService {
             assert(count <= 10, '插件注册死循环？');
         }
 
+        // TODO 排序重组, reload();
+
+
+        // 过滤掉没有初始化的 plugin
+        this.plugins = this.plugins.filter(plugin => !!plugin._api);
+
         // Throw error for methods that can't be called after plugins is initialized
         this.plugins.forEach(plugin => {
             Object.keys(plugin._api).forEach(method => {
@@ -68,7 +88,7 @@ class Service extends BaseService {
                     'onOptionChange',
                 ].includes(method)) {
                     plugin._api[method] = () => {
-                        throw logger.toString.error(`api.${method}() should not be called after plugin is initialized.`);
+                        logger.throw(`api.${method}() should not be called after plugin is initialized.`);
                     };
                 }
             });
@@ -78,7 +98,24 @@ class Service extends BaseService {
     }
 
     _initPlugin(plugin) {
-        const { id, apply, opts = {} } = plugin;
+        const { id, apply, opts = {}, mode } = plugin;
+        if (mode) { // 默认为全支持
+            let _mode = mode;
+            if (_.isFunction(_mode)) { // 支持方法判断
+                _mode = _mode(this.mode);
+            }
+            if (Array.isArray(_mode)) {
+                if (!_mode.some(item => item === this.mode)) {
+                    // 当前模式与插件不匹配
+                    logger.warn(`[Plugin] { ${this.mode} } - initPlugin() skip "${id}".  support modes: { ${_mode.join(', ')} }`);
+                    return;
+                }
+            } else if (_mode !== this.mode) {
+                // 当前模式与插件不匹配
+                logger.warn(`[Plugin] { ${this.mode} } - initPlugin() skip "${id}". support mode: { ${_mode} }`);
+                return;
+            }
+        }
         assert(typeof apply === 'function',
             logger.toString.error('\n' + `
 plugin "${id}" must export a function,
@@ -93,7 +130,7 @@ e.g.
                     return; // ban private
                 }
                 if (this.extendMethods[prop]) {
-                    return this.extendMethods[prop];
+                    return this.extendMethods[prop].fn;
                 }
                 if (this.pluginMethods[prop]) {
                     return this.pluginMethods[prop].fn;
@@ -164,7 +201,6 @@ e.g.
                 'host',
                 'port',
             ]),
-            contentBase: selfServerConfig.contentBase || selfServerConfig.staticBase,
             entrys: serverEntrys,
             hooks: serverHooks,
         });
@@ -207,11 +243,13 @@ e.g.
         if (link) {
             const apply = tryRequire(link);
             if (apply) {
-                return {
+                const defaultConfig = apply.configuration || {};
+                return Object.assign({}, defaultConfig, {
                     ...item,
+                    link: require.resolve(link),
                     apply: apply.default || apply,
                     opts,
-                };
+                });
             }
         }
         logger.warn(`[Plugin] not found plugin: "${id || item}"\n   --> link: "${link}"`);
@@ -220,12 +258,12 @@ e.g.
 
     applyPluginHooks(key, opts = {}) {
         logger.debug(`[Plugin] applyPluginHooks( ${key} )`);
-        let defaultOpts = opts;
-        try {
-            defaultOpts = _.cloneDeep(opts);
-        } catch (error) {
-            logger.debug(`[Plugin] Plugin: ${key}, _.cloneDeep() error`);
-        }
+        const defaultOpts = opts;
+        // try {
+        //     defaultOpts = _.cloneDeep(opts);
+        // } catch (error) {
+        //     logger.debug(`[Plugin] Plugin: ${key}, _.cloneDeep() error`);
+        // }
         return (this.pluginHooks[key] || []).reduce((last, { fn }) => {
             try {
                 return fn({
@@ -233,20 +271,19 @@ e.g.
                     args: defaultOpts,
                 });
             } catch (e) {
-                logger.error(`[Plugin] Plugin apply failed: ${e.message}`);
-                throw e;
+                logger.throw(`[Plugin] Plugin apply failed: ${e.message}`);
             }
         }, opts);
     }
 
     async applyPluginHooksAsync(key, opts = {}) {
         logger.debug(`[Plugin] applyPluginHooksAsync( ${key} )`);
-        let defaultOpts = opts;
-        try {
-            defaultOpts = _.cloneDeep(opts);
-        } catch (error) {
-            logger.debug(`[Plugin] Plugin: ${key}, _.cloneDeep() error`);
-        }
+        const defaultOpts = opts;
+        // try {
+        //     defaultOpts = _.cloneDeep(opts);
+        // } catch (error) {
+        //     logger.debug(`[Plugin] Plugin: ${key}, _.cloneDeep() error`);
+        // }
         const hooks = this.pluginHooks[key] || [];
         let last = opts;
         for (const hook of hooks) {
@@ -277,25 +314,30 @@ e.g.
     }
 
     init() {
+        if (this.initialized) {
+            return;
+        }
+
         this._initDotEnv();
         this._initPlugins();
+
+        this.initialized = true; // 再此之前可重新 init
+
         this.applyPluginHooks('onPluginInitDone');
         // merge config
         this.applyPluginHooks('beforeMergeConfig', this.config);
         this._mergeConfig();
         this.applyPluginHooks('afterMergeConfig', this.config);
+        this.config = this.applyPluginHooks('modifyDefaultConfig', this.config);
 
         // 注入全局的别名
         injectAliasModule(this.config.resolveShared);
-        injectAliasModulePath(Array.from(this.micros)
-            .map(key => this.microsConfig[key])
-            .filter(item => item.isOpenSoftLink)
-            .map(item => item.nodeModules));
 
         // merge server
         this.applyPluginHooks('beforeMergeServerConfig', this.serverConfig);
         this._mergeServerConfig();
         this.applyPluginHooks('afterMergeServerConfig', this.serverConfig);
+        this.serverConfig = this.applyPluginHooks('modifyDefaultServerConfig', this.serverConfig);
 
         this.applyPluginHooks('onInitWillDone');
         this.applyPluginHooks('onInitDone');
@@ -308,7 +350,7 @@ e.g.
         return this.runCommand(name, args);
     }
 
-    runCommand(rawName, rawArgs) {
+    runCommand(rawName, rawArgs = { _: [] }) {
         logger.debug(`[Plugin] raw command name: ${rawName}, args: `, rawArgs);
         const { name = rawName, args } = this.applyPluginHooks('modifyCommand', {
             name: rawName,
@@ -319,12 +361,13 @@ e.g.
         const command = this.commands[name];
         if (!command) {
             logger.error(`Command "${name}" does not exists`);
-            process.exit(1);
+            return this.runCommand('help', { _: [] });
         }
 
         const { fn, opts } = command;
         this.applyPluginHooks('onRunCommand', {
             name,
+            args,
             opts,
         });
 

@@ -6,7 +6,7 @@ const path = require('path');
 const symbols = require('../config/symbols');
 
 function isSupport(filename) {
-    return [ '.js' ].some(ext => {
+    return [ '.js', '.json' ].some(ext => {
         return filename.endsWith(ext);
     });
 }

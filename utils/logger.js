@@ -9,28 +9,28 @@ const CONSTANTS = require('../config/constants');
 const toString = {
     debug() {
         const message = utils.format(...(arguments || []));
-        return `${chalk.bgMagenta(' DEBUG ')} ${message} \n`;
+        return `${chalk.bgMagenta(' DEBUG ')} ${message} \r\n`;
     },
     warn() {
         const message = utils.format(...(arguments || []));
-        return `${chalk.bgYellowBright.black(' WARN ')} ${chalk.yellowBright(message)} \n`;
+        return `${chalk.bgYellowBright.black(' WARN ')} ${chalk.yellowBright(message)} \r\n`;
     },
     error() {
         const message = utils.format(...(arguments || []));
-        return `${chalk.bgRed(' ERROR ')} ${chalk.redBright(message)} \n`;
+        return `${chalk.bgRed(' ERROR ')} ${chalk.redBright(message)} \r\n`;
     },
     info() {
         const message = utils.format(...(arguments || []));
-        return `${chalk.bgBlue(' INFO ')} ${chalk.blueBright(message)} \n`;
+        return `${chalk.bgBlue(' INFO ')} ${chalk.blueBright(message)} \r\n`;
     },
     success() {
         const message = utils.format(...(arguments || []));
-        return `${chalk.bgHex('#007007')(' SUCCESS ')} ${chalk.greenBright(message)} \n`;
+        return `${chalk.bgHex('#007007')(' SUCCESS ')} ${chalk.greenBright(message)} \r\n`;
     },
     logo() {
         const message = utils.format(...(arguments || []));
         const { NAME } = CONSTANTS;
-        return `${chalk.bgHex('#662F88')(` ${NAME} `)} ${message} \n`;
+        return `${chalk.bgHex('#662F88')(` ${NAME} `)} ${message} \r\n`;
     },
 };
 
@@ -43,7 +43,7 @@ module.exports = {
         return process.stdout.write(toString.warn.call(toString, ...arguments));
     },
     error() {
-        return process.stdout.write(toString.error.call(toString, ...arguments));
+        return process.stderr.write(toString.error.call(toString, ...arguments));
     },
     info() {
         return process.stdout.write(toString.info.call(toString, ...arguments));
@@ -63,4 +63,12 @@ module.exports = {
         return ora(typeof message === 'string' ? defulatOpts : Object.assign({}, defulatOpts, message));
     },
     toString,
+
+    throw() {
+        this.error(...arguments);
+        const error = new Error();
+        const stack = error.stack.split(/\r?\n/mg);
+        process.stderr.write(chalk.grey(stack.slice(2).join('\r\n')) + '\r\n');
+        process.exit(1);
+    },
 };

@@ -2,18 +2,15 @@
 
 const assert = require('assert');
 const _ = require('lodash');
-const BaseAPI = require('./BaseAPI');
+
+const BaseAPI = require('./base/BaseAPI');
 const DEFAULT_METHODS = require('./methods');
 const { SharedProps } = require('./Constants');
-
-const logger = require('../../utils/logger');
 
 class PluginAPI extends BaseAPI {
 
     constructor(id, service) {
-        super();
-        this.id = id;
-        this.service = service;
+        super(id, service);
 
         this._addMethods();
     }
@@ -44,15 +41,7 @@ class PluginAPI extends BaseAPI {
         });
     }
 
-    setState(key, value) {
-        this.service.state[key] = value;
-    }
-
-    getState(key, value) {
-        return this.service.state[key] || value;
-    }
-
-    register(hook, fn) {
+    register(hook, fn, type) {
         assert(
             typeof hook === 'string',
             `The first argument of api.register() must be string, but got ${hook}`
@@ -65,6 +54,7 @@ class PluginAPI extends BaseAPI {
         pluginHooks[hook] = pluginHooks[hook] || [];
         pluginHooks[hook].push({
             fn,
+            type,
         });
     }
 
@@ -88,21 +78,21 @@ class PluginAPI extends BaseAPI {
                 if (apply) {
                     this.register(name, opts => {
                         return apply(opts, ...args);
-                    });
+                    }, type);
                 } else if (type === this.API_TYPE.ADD) {
                     this.register(name, opts => {
                         return (opts.last || []).concat(
                             typeof args[0] === 'function' ? args[0](opts.last, opts.args) : args[0]
                         );
-                    });
+                    }, type);
                 } else if (type === this.API_TYPE.MODIFY) {
                     this.register(name, opts => {
                         return typeof args[0] === 'function' ? args[0](opts.last, opts.args) : args[0];
-                    });
+                    }, type);
                 } else if (type === this.API_TYPE.EVENT) {
                     this.register(name, opts => {
                         return args[0](opts.args);
-                    });
+                    }, type);
                 } else {
                     throw new Error(`unexpected api type ${type}`);
                 }
@@ -115,8 +105,8 @@ class PluginAPI extends BaseAPI {
         return this.service.registerCommand(name, opts, fn);
     }
 
-    extendMethod(name, fn) {
-        return this.service.extendMethod(name, fn);
+    extendMethod(name, opts, fn) {
+        return this.service.extendMethod(name, opts, fn);
     }
 
     registerPlugin(opts) {
@@ -136,7 +126,7 @@ class PluginAPI extends BaseAPI {
             'Only id, apply and opts is valid plugin properties'
         );
         this.service.extraPlugins.push(opts);
-        logger.debug(`[Plugin] registerPlugin( ${id} ); Success!`);
+        this.logger.debug(`[Plugin] registerPlugin( ${id} ); Success!`);
     }
 }
 

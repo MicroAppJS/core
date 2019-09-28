@@ -9,8 +9,8 @@ module.exports = {
     NODE_MODULES_NAME: 'node_modules',
     SCOPE_NAME: '@micro-app', // namespace
     CONFIG_NAME: 'micro-app.config.js',
+    EXTRAL_CONFIG_NAME: 'micro-app.extra.config.js',
     TYPES: [], // support types
     INJECT_ID: '_MICRO_APP_INJECT_',
-    NODE_ENV: process.env.NODE_ENV || 'production', // "production" | "development"
     PACKAGE_JSON: 'package.json',
 };
