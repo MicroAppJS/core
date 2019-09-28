@@ -27,9 +27,6 @@ module.exports = {
         // },
     ],
 
-    webpack: { // webpack 配置信息 (只有自己为主容器时,才会使用)
-    },
-
     alias: { // 共享别名
         // api: './client/api.js', // 默认为前后端通用
         // service: {
@@ -41,10 +38,6 @@ module.exports = {
     micros: [ // 需要注入的子模块
         // 'test'
     ],
-    // micros$$test: { // 单独配置
-    //     disabled: true, // 禁用入口
-    //     lnk: '‘, // 软链接, 用于本地调试
-    // },
 
     // 服务端配置
     server: {
@@ -61,12 +54,6 @@ module.exports = {
         //         ws: true, // proxy websockets
         //     },
         // },
-    },
-
-    // 自动向主容器同步 package.json
-    deploy: {
-        // git: 'ssh://git@....git',
-        // branch: 'develop',
     },
 
     // 一些插件配置项 (弃用)

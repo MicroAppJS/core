@@ -4,7 +4,7 @@ const semver = require('semver');
 const logger = require('../utils/logger');
 
 function assertVersion(range) {
-    const version = '0.1.4';
+    const version = require('../package.json').version;
     if (typeof range === 'number') {
         if (!Number.isInteger(range)) {
             logger.throw('Expected string or integer value.');
@@ -20,4 +20,4 @@ function assertVersion(range) {
     logger.throw(`Require @micro-app/core "${range}", but was loaded with "${version}".`);
 }
 
-assertVersion('>0.0.0');
+assertVersion('>=0.1.5');

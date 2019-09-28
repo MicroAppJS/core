@@ -64,6 +64,10 @@ class Service extends BaseService {
 
         // TODO 排序重组, reload();
 
+
+        // 过滤掉没有初始化的 plugin
+        this.plugins = this.plugins.filter(plugin => !!plugin._api);
+
         // Throw error for methods that can't be called after plugins is initialized
         this.plugins.forEach(plugin => {
             Object.keys(plugin._api).forEach(method => {
@@ -84,7 +88,7 @@ class Service extends BaseService {
         const { id, apply, opts = {}, mode } = plugin;
         if (mode && mode !== this.mode) {
             // 当前模式与插件不匹配
-            logger.warn(`[Plugin] _initPlugin() skip "${id}"`);
+            logger.warn(`[Plugin] {${this.mode}} - initPlugin() skip "${id}"`);
             return;
         }
         assert(typeof apply === 'function',
@@ -294,6 +298,13 @@ e.g.
 
         this.initialized = true; // 再此之前可重新 init
 
+        // 注入 custom node_modules
+        const microsExtralConfig = this.microsExtralConfig;
+        injectAliasModulePath(Array.from(this.micros)
+            .map(key => this.microsConfig[key])
+            .filter(item => item.hasSoftLink && !!microsExtralConfig[item.key].link)
+            .map(item => item.nodeModules));
+
         this.applyPluginHooks('onPluginInitDone');
         // merge config
         this.applyPluginHooks('beforeMergeConfig', this.config);
@@ -303,11 +314,6 @@ e.g.
 
         // 注入全局的别名
         injectAliasModule(this.config.resolveShared);
-        const microsExtralConfig = this.microsExtralConfig;
-        injectAliasModulePath(Array.from(this.micros)
-            .map(key => this.microsConfig[key])
-            .filter(item => item.hasSoftLink && !!microsExtralConfig[item.key].link)
-            .map(item => item.nodeModules));
 
         // merge server
         this.applyPluginHooks('beforeMergeServerConfig', this.serverConfig);

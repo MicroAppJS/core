@@ -11,6 +11,8 @@ const requireMicro = require('../../../utils/requireMicro');
 const loadFile = require('../../../utils/loadFile');
 const logger = require('../../../utils/logger');
 
+const { injectAliasModulePath } = require('../../../utils/injectAliasModule');
+
 const { SharedProps } = require('../Constants');
 const MICROS_EXTRAL_CONFIG_KEY = Symbol('MICROS_EXTRAL_CONFIG_KEY');
 
@@ -25,10 +27,14 @@ class BaseService {
         this.pluginMethods = {};
         this.commands = {};
 
+        // fixed soft link - node_modules 不统一
+        const _self = this.self;
+        injectAliasModulePath([ _self.nodeModules ]);
+
         // 当前服务
-        this.selfConfig = this.self.toConfig(true);
-        this.selfServerConfig = this.self.toServerConfig(true);
-        this.micros = new Set((this.self.micros || []));
+        this.selfConfig = _self.toConfig(true);
+        this.selfServerConfig = _self.toServerConfig(true);
+        this.micros = new Set((_self.micros || []));
 
         this.__initDefaultEnv__();
         this.__initGlobalMicroAppConfig__();
