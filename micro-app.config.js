@@ -45,11 +45,7 @@ module.exports = {
 
     strict: true,
 
-    // micros: [ 'test' ], // 被注册的容器
-    // micros$$test: { // 单独配置
-    //     disabled: true, // 禁用入口
-    //     link: '', // 本地路径, 进行本地开发使用的软链接.
-    // },
+    micros: [ 'test' ], // 被注册的容器
 
     // 服务配置
     server: {
@@ -60,13 +56,13 @@ module.exports = {
         },
     },
 
-    // plugins: [
-    //     [{
-    //         id: 'test',
-    //         description: '这是test',
-    //         link: __dirname + '/test/testPlugin',
-    //     }, {
-    //         a: 1,
-    //     }],
-    // ],
+    plugins: [
+        [{
+            id: 'test',
+            description: '这是test',
+            link: __dirname + '/test/testPlugin',
+        }, {
+            a: 1,
+        }],
+    ],
 };
