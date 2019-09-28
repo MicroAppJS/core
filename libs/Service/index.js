@@ -99,10 +99,22 @@ class Service extends BaseService {
 
     _initPlugin(plugin) {
         const { id, apply, opts = {}, mode } = plugin;
-        if (mode && mode !== this.mode) {
-            // 当前模式与插件不匹配
-            logger.warn(`[Plugin] {${this.mode}} - initPlugin() skip "${id}"`);
-            return;
+        if (mode) { // 默认为全支持
+            let _mode = mode;
+            if (_.isFunction(_mode)) { // 支持方法判断
+                _mode = _mode(this.mode);
+            }
+            if (Array.isArray(_mode)) {
+                if (!_mode.some(item => item === this.mode)) {
+                    // 当前模式与插件不匹配
+                    logger.warn(`[Plugin] { ${this.mode} } - initPlugin() skip "${id}".  support modes: { ${_mode.join(', ')} }`);
+                    return;
+                }
+            } else if (_mode !== this.mode) {
+                // 当前模式与插件不匹配
+                logger.warn(`[Plugin] { ${this.mode} } - initPlugin() skip "${id}". support mode: { ${_mode} }`);
+                return;
+            }
         }
         assert(typeof apply === 'function',
             logger.toString.error('\n' + `
