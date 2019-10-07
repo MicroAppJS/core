@@ -5,7 +5,7 @@ const fs = require('fs');
 
 const CONSTANTS = require('../config/constants');
 const loadFile = require('./loadFile');
-const MicroAppConfig = require('../libs/MicroAppConfig');
+const MicroAppConfig = require('../libs/Config');
 const symbols = require('../config/symbols');
 
 const SELF_CONFIG = Symbol('@MicroAppConfig#SELF_CONFIG');
