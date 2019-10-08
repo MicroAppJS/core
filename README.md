@@ -46,12 +46,6 @@ module.exports = {
     description: '',
     version: '0.0.1',
     type: '', // types 类型
-    webpack: { // webpack 配置
-        // output: {
-        //     path: path.resolve(__dirname, 'public'),
-        //     publicPath: '/public/',
-        // },
-    },
 
     staticPath: [], // String | Array
 
@@ -87,10 +81,6 @@ module.exports = {
     strict: true, // 严格强依赖模式
 
     micros: [ 'test' ], // 被注册的容器
-    // micros$$test: { // 单独配置
-    //     disabled: true, // 禁用入口
-    //     link: '', // 本地路径, 进行本地开发使用的软链接.
-    // },
 
     // 服务配置
     server: {
@@ -110,16 +100,6 @@ module.exports = {
         //     a: 1,
         // }],
     ],
-
-    // deploy: {
-    //     git: 'git+ssh://git@xxxxx.git',
-    //     branch: 'test',
-    //     // branch: {
-    //     //     name: 'develop',
-    //     //     extends: true,
-    //     // },
-    //     message: '', // 提交 message 中增加内容
-    // },
 };
 ```
 
