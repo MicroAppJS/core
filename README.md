@@ -227,6 +227,7 @@ npx micro-app show methods
      * modifyChainWebpcakConfig    ( 合并之后提供 webpack-chain 进行再次修改事件 )
      * onChainWebpcakConfig        ( 修改之后提供 webpack-chain 进行查看事件 )
      * onServerInit                ( 服务初始化时事件 )
+     * onServerInitWillDone        ( 服务初始化即将完成事件 )
      * onServerInitDone            ( 服务初始化完成事件 )
      * onServerRunSuccess          ( 服务运行启动成功时事件 )
      * onServerRunFail             ( 服务运行启动失败时事件 )

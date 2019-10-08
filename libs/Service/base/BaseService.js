@@ -213,7 +213,7 @@ class BaseService {
             ...opts,
             fn,
         };
-        logger.debug(`[Plugin] extendMethods( ${name} ); Success!`);
+        logger.debug(`[Plugin] extendMethod( ${name} ); Success!`);
     }
 
     registerCommand(name, opts, fn) {

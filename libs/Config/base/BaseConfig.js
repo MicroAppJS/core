@@ -5,19 +5,19 @@ const fs = require('fs');
 const tryRequire = require('try-require');
 const _ = require('lodash');
 
-const symbols = require('../../config/symbols');
-const CONSTANTS = require('../../config/constants');
-const logger = require('../../utils/logger');
-const getPadLength = require('../../utils/getPadLength');
+const symbols = require('../../../config/symbols');
+const CONSTANTS = require('../../../config/constants');
+const logger = require('../../../utils/logger');
+const getPadLength = require('../../../utils/getPadLength');
 
 // 默认配置
-const DEFAULT_CONFIG = require('../../config/default');
+const DEFAULT_CONFIG = require('../../../config/default');
 
-const INIT = Symbol('@MicroAppConfig#INIT');
-const ORIGNAL_CONFIG = Symbol('@MicroAppConfig#ORIGNAL_CONFIG');
+const validate = require('../schema');
+const SCHEMA = require('../schema/configSchema');
 
-const validate = require('./schema');
-const SCHEMA = require('./schema/microAppConfigSchema.json');
+const INIT = Symbol('@BaseConfig#INIT');
+const ORIGNAL_CONFIG = Symbol('@BaseConfig#ORIGNAL_CONFIG');
 
 class BaseConfig {
 
@@ -37,7 +37,7 @@ class BaseConfig {
             logger.error(`[${_.padStart(item.keyword, padLength)}] ${item.dataPath} ${item.message}`);
         });
         if (result.length > 0) {
-            throw new Error('illegal configuration !!!');
+            logger.throw('illegal configuration !!!');
         }
     }
 
@@ -158,7 +158,7 @@ class BaseConfig {
     }
 
     // 后端共享
-    get _shared() {
+    get sharedObj() {
         const config = this.config;
         const currShared = config.shared || config.share;
         if (currShared) { // 兼容旧版
@@ -196,7 +196,7 @@ class BaseConfig {
 
     // 后端共享
     get shared() {
-        const currAlias = this._shared || {};
+        const currAlias = this.sharedObj || {};
         return Object.keys(currAlias).reduce((obj, key) => {
             const aliasObj = currAlias[key];
             obj[key] = aliasObj.link;
@@ -222,7 +222,7 @@ class BaseConfig {
     }
 
     // 前端共享
-    get _alias() {
+    get aliasObj() {
         const config = this.config;
         const currAlias = config.alias || {};
         return Object.keys(currAlias).reduce((obj, key) => {
@@ -246,7 +246,7 @@ class BaseConfig {
     }
 
     get alias() {
-        const currAlias = this._alias || {};
+        const currAlias = this.aliasObj || {};
         return Object.keys(currAlias).reduce((obj, key) => {
             const aliasObj = currAlias[key];
             obj[key] = aliasObj.link;
@@ -303,6 +303,52 @@ class BaseConfig {
                 opts: opts || {},
             };
         });
+    }
+
+    inspect() {
+        return this.toConfig(true);
+    }
+
+    toJSON(notSimple = false) {
+        const json = {
+            key: this.key,
+            name: this.name,
+            packageName: this.packageName,
+            aliasName: this.aliasName,
+            version: this.version,
+            type: this.type,
+            description: this.description,
+            mode: this.mode,
+            root: this.root,
+            originalRoot: this.originalRoot,
+            hasSoftLink: this.hasSoftLink,
+            nodeModules: this.nodeModules,
+        };
+        if (notSimple) {
+            json.strict = this.strict;
+            json.path = this.path;
+            json.micros = this.micros;
+            json.packagePath = this.packagePath;
+            json.subModulesRoot = this.subModulesRoot;
+            json.package = this.package;
+        }
+        return json;
+    }
+
+    toConfig(notSimple = false) {
+        const json = {
+            ...this.toJSON(notSimple),
+            alias: this.alias,
+            aliasObj: this.aliasObj,
+            resolveAlias: this.resolveAlias,
+            shared: this.shared,
+            sharedObj: this.sharedObj,
+            resolveShared: this.resolveShared,
+        };
+        if (notSimple) {
+            json.plugins = this.plugins;
+        }
+        return json;
     }
 }
 
