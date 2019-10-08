@@ -15,7 +15,7 @@ const { injectAliasModule, injectAliasModulePath } = require('../../utils/inject
 
 const PluginAPI = require('./PluginAPI');
 
-const { PreLoadPlugins, SharedProps } = require('./Constants');
+const { PreLoadPlugins, SharedProps } = require('./constants');
 
 class Service extends BaseService {
     constructor() {
