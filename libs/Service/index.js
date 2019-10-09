@@ -273,6 +273,7 @@ e.g.
             } catch (e) {
                 logger.throw(`[Plugin] Plugin apply failed: ${e.message}`);
             }
+            return last;
         }, opts);
     }
 
