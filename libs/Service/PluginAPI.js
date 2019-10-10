@@ -5,7 +5,7 @@ const _ = require('lodash');
 
 const BaseAPI = require('./base/BaseAPI');
 const DEFAULT_METHODS = require('./methods');
-const { SharedProps } = require('./Constants');
+const { SharedProps } = require('./constants');
 
 class PluginAPI extends BaseAPI {
 
