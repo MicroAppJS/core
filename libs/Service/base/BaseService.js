@@ -10,7 +10,7 @@ const requireMicro = require('../../../utils/requireMicro');
 const loadFile = require('../../../utils/loadFile');
 const logger = require('../../../utils/logger');
 
-const { SharedProps } = require('../Constants');
+const { SharedProps } = require('../constants');
 const MICROS_EXTRAL_CONFIG_KEY = Symbol('MICROS_EXTRAL_CONFIG_KEY');
 
 // 全局状态集

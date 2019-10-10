@@ -2,7 +2,7 @@
 
 /* global expect */
 
-const { PreLoadPlugins } = require('./Constants');
+const { PreLoadPlugins } = require('./constants');
 const Service = require('./index');
 
 describe('Service', () => {
@@ -35,7 +35,7 @@ describe('Service', () => {
     });
 
     it('hasPlugin should be true', () => {
-        const Constants = require('./Constants');
+        const Constants = require('./constants');
         const service = new Service();
         expect(Constants.PreLoadPlugins[0]).not.toBeNull();
         expect(Constants.PreLoadPlugins[0]).not.toBeUndefined();
