@@ -2,7 +2,7 @@
 
 /* global expect */
 
-const check = require('./check');
+const check = require('.');
 
 const customAPI = function(args) {
     const temp = {};

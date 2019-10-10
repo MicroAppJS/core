@@ -2,7 +2,7 @@
 
 /* global expect */
 
-const show = require('./show');
+const show = require('.');
 
 const customAPI = function(args) {
     const temp = {};

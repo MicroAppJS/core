@@ -15,7 +15,7 @@ const { injectAliasModule, injectAliasModulePath } = require('../../utils/inject
 
 const PluginAPI = require('./PluginAPI');
 
-const { PreLoadPlugins, SharedProps } = require('./Constants');
+const { PreLoadPlugins, SharedProps } = require('./constants');
 
 class Service extends BaseService {
     constructor() {
@@ -25,7 +25,9 @@ class Service extends BaseService {
         // fixed soft link - node_modules 不统一
         this.__initInjectAliasModule__();
 
-        this.plugins = PreLoadPlugins.map(this.resolvePlugin).filter(item => !!item);
+        this.plugins = PreLoadPlugins.reduce((arr, item) => {
+            return arr.concat(this.resolvePlugin(item));
+        }, []).filter(item => !!item);
         this.extraPlugins = []; // 临时存储扩展模块
     }
 
@@ -47,9 +49,9 @@ class Service extends BaseService {
         }).concat(plugins);
         const pluginsObj = allplugins.reduce((arr, item) => {
             if (Array.isArray(item)) {
-                return arr.concat(item.map(_item => {
-                    return this.resolvePlugin(_item);
-                }));
+                return arr.concat(item.reduce((_arr, _item) => {
+                    return _arr.concat(this.resolvePlugin(_item));
+                }, []));
             }
             return arr.concat(this.resolvePlugin(item));
         }, []).filter(item => !!item);
@@ -210,6 +212,9 @@ e.g.
         assert(_.isPlainObject(opts), `opts should be plain object, but got ${opts}`);
         opts = this.resolvePlugin(opts);
         if (!opts) return; // error
+        if (Array.isArray(opts)) {
+            return opts.map(this.registerPlugin);
+        }
         const { id, apply } = opts;
         assert(id && apply, 'id and apply must supplied');
         assert(typeof id === 'string', 'id must be string');
@@ -226,6 +231,13 @@ e.g.
         logger.debug(`[Plugin] registerPlugin( ${id} ); Success!`);
     }
 
+    /**
+     * 分解插件参数
+     *
+     * @param {Object} item 参数
+     * @return {Boolean|Object|Array<Object>} false-失效的
+     * @memberof Service
+     */
     resolvePlugin(item) {
         const { id, opts = {} } = item;
         assert(id, 'id must supplied');
@@ -243,11 +255,26 @@ e.g.
         if (link) {
             const apply = tryRequire(link);
             if (apply) {
+                const _apply = apply.default || apply;
+                if (Array.isArray(_apply)) { // 支持数组模式
+                    return _apply.map(_applyItem => {
+                        if (_applyItem) {
+                            const defaultConfig = _applyItem.configuration || {};
+                            return Object.assign({}, defaultConfig, {
+                                ...item,
+                                link: require.resolve(link),
+                                apply: _applyItem,
+                                opts,
+                            });
+                        }
+                        return false;
+                    }).filter(_it => !!_it);
+                }
                 const defaultConfig = apply.configuration || {};
                 return Object.assign({}, defaultConfig, {
                     ...item,
                     link: require.resolve(link),
-                    apply: apply.default || apply,
+                    apply: _apply,
                     opts,
                 });
             }
@@ -273,6 +300,7 @@ e.g.
             } catch (e) {
                 logger.throw(`[Plugin] Plugin apply failed: ${e.message}`);
             }
+            return last;
         }, opts);
     }
 

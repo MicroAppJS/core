@@ -2,7 +2,7 @@
 
 /* global expect */
 
-const { PreLoadPlugins, SharedProps } = require('./Constants');
+const { PreLoadPlugins, SharedProps } = require('.');
 
 describe('Constants', () => {
 
@@ -18,6 +18,8 @@ describe('Constants', () => {
 
             expect(PreLoadPlugins.filter(_item => _item.id === item.id).length).toEqual(1);
         });
+
+        expect(Array.from(new Set(PreLoadPlugins.map(item => item.id))).length).toEqual(PreLoadPlugins.length);
     });
 
     it('check SharedProps', () => {

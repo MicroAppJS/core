@@ -40,12 +40,14 @@ describe('Service', () => {
         expect(Constants.PreLoadPlugins[0]).not.toBeNull();
         expect(Constants.PreLoadPlugins[0]).not.toBeUndefined();
         expect(service.hasPlugin(Constants.PreLoadPlugins[0].id)).toBeTruthy();
-        expect(service.findPlugin(Constants.PreLoadPlugins[0].id).link).toEqual(Constants.PreLoadPlugins[0].link);
+
+        const realLink = require.resolve(Constants.PreLoadPlugins[0].link);
+        expect(service.findPlugin(Constants.PreLoadPlugins[0].id).link).toEqual(realLink);
 
         expect(service.findPlugin(Constants.PreLoadPlugins[0].id)).toMatchObject({
             description: 'System Build-in',
             id: Constants.PreLoadPlugins[0].id,
-            link: Constants.PreLoadPlugins[0].link,
+            link: require.resolve(realLink),
         });
     });
 

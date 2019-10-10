@@ -1,10 +1,10 @@
 'use strict';
 
 const _ = require('lodash');
-const validate = require('../libs/schema');
+const validate = require('../libs/Config/schema');
 const getPadLength = require('../utils/getPadLength');
 
-const result = validate(require('../libs/schema/microAppConfigSchema.json'), require('../config/default'));
+const result = validate(require('../libs/Config/schema/configSchema'), require('../config/default'));
 const padLength = getPadLength(result.map(item => {
     return { name: item.keyword };
 }));

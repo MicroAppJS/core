@@ -4,8 +4,8 @@ module.exports = function(api) {
 
     const { padEnd } = require('lodash');
     const chalk = require('chalk');
-    const getPadLength = require('../../utils/getPadLength');
-    const aliasMerge = require('../../utils/merge-alias');
+    const getPadLength = require('../../../utils/getPadLength');
+    const aliasMerge = require('../../../utils/merge-alias');
 
     const details = `
 Examples:
@@ -102,13 +102,18 @@ Examples:
             case 'plugins':
                 api.logger.logo(`${chalk.green('Plugin List')}:`);
                 return showAliasList(plugins.reduce((obj, item) => {
-                    let key = item.id;
+                    const key = item.id;
+                    const alias = item.alias;
                     let i = 0;
-                    while (obj[key]) {
-                        i++;
-                        key = `${key} (${i})`;
+                    let _key = key;
+                    if (alias) {
+                        _key = `${key} (${alias})`;
                     }
-                    obj[key] = { description: item.description, link: args.link && item.link };
+                    while (obj[_key]) {
+                        i++;
+                        _key = `${key} (${i})`;
+                    }
+                    obj[_key] = { description: item.description, link: args.link && item.link };
                     return obj;
                 }, {}));
             case 'hooks':

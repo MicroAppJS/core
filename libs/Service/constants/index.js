@@ -1,20 +1,7 @@
 'use strict';
 
-const path = require('path');
-const commands = require('../../plugins/commands');
-
 const contants = {
-    PreLoadPlugins: [
-        ...commands.map(p => path.join('../../plugins/commands', p)),
-        // '../../plugins/abc',
-    ].map(p => {
-        return {
-            id: 'built-in:' + p.replace('../../', '').replace(/\//ig, '-').replace(/\.js/ig, '')
-                .toLowerCase(),
-            link: path.resolve(__dirname, p),
-            description: 'System Build-in',
-        };
-    }),
+    PreLoadPlugins: require('../../../plugins/register'),
 
     // service 对 pluginAPI 暴露的所有方法
     SharedProps: [

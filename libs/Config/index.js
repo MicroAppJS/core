@@ -3,13 +3,13 @@
 const path = require('path');
 const tryRequire = require('try-require');
 
-const BaseConfig = require('./Base');
+const BaseConfig = require('./base/BaseConfig');
 
 class MicroAppConfig extends BaseConfig {
 
     constructor(config /* , opts = {} */) {
         super(config);
-        this.webpack = config.webpack || {};
+        this.webpack = config.webpack || {}; // deprecated
     }
 
     get entry() {
@@ -159,49 +159,21 @@ class MicroAppConfig extends BaseConfig {
         return server.proxy || {};
     }
 
-    toJSON(notSimple = false) {
-        const json = {
-            key: this.key,
-            name: this.name,
-            packageName: this.packageName,
-            version: this.version,
-            type: this.type,
-            description: this.description,
-            root: this.root,
-            nodeModules: this.nodeModules,
-            originalRoot: this.originalRoot,
-            hasSoftLink: this.hasSoftLink,
-        };
-        if (notSimple) {
-            json.micros = this.micros;
-        }
-        return json;
-    }
-
     toConfig(notSimple = false) {
         const json = {
-            ...this.toJSON(),
-            aliasName: this.aliasName,
+            ...super.toConfig(notSimple),
             entry: this.entry,
             htmls: this.htmls,
             dlls: this.dlls,
-            alias: this.alias,
-            aliasObj: this._alias,
-            resolveAlias: this.resolveAlias,
-            shared: this.shared,
-            sharedObj: this._shared,
-            resolveShared: this.resolveShared,
             staticPaths: this.staticPaths,
         };
         if (notSimple) {
-            json.plugins = this.plugins;
             json.webpack = this.webpack; // deprecated
-            json.package = this.package;
         }
         return json;
     }
 
-    toServerConfig(notSimple) {
+    toServerConfig(notSimple = false) {
         const _serverConfig = this.server;
         const { entry, options = {}, hooks } = _serverConfig;
         const json = {
@@ -210,14 +182,14 @@ class MicroAppConfig extends BaseConfig {
             options,
             info: this.toJSON(),
             shared: this.shared,
-            sharedObj: this._shared,
+            sharedObj: this.sharedObj,
             resolveShared: this.resolveShared,
             port: this.port,
             host: this.host,
             proxy: this.proxy,
         };
         if (notSimple) {
-            Object.assign(json, this.toJSON()); //  不能去除. 外部有引用
+            Object.assign(json, this.toJSON(notSimple)); //  不能去除. 外部有引用
         }
         return json;
     }
