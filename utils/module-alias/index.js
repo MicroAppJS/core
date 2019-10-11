@@ -138,7 +138,7 @@ function reset() {
 
 /**
  * Import aliases from package.json
- * @param {object} options
+ * @param {object} options options
  */
 function init(options) {
     if (typeof options === 'string') {

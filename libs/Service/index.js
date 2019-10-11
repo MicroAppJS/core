@@ -8,6 +8,7 @@ const _ = require('lodash');
 const BaseService = require('./base/BaseService');
 
 const logger = require('../../utils/logger');
+const virtualFile = require('../../utils/virtualFile');
 
 const serverMerge = require('../../utils/merge-server');
 const serverHooksMerge = require('../../utils/merge-server-hooks');
@@ -253,7 +254,8 @@ e.g.
             link = tryRequire.resolve(id);
         }
         if (link) {
-            const apply = tryRequire(link);
+            // 先尝试从模拟缓存中找文件
+            const apply = virtualFile.require(link) || tryRequire(link);
             if (apply) {
                 const _apply = apply.default || apply;
                 if (Array.isArray(_apply)) { // 支持数组模式
