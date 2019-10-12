@@ -24,6 +24,13 @@ class BaseService {
         this.pluginMethods = {};
         this.commands = {};
 
+        this.sharedProps = SharedProps.reduce((obj, key) => {
+            obj[key] = {
+                key,
+            };
+            return obj;
+        }, {});
+
         // 当前服务
         const _self = this.self;
         this.selfConfig = _self.toConfig(true);
@@ -82,7 +89,7 @@ class BaseService {
             global.MicroAppConfig = {};
         }
         const MicroAppConfig = global.MicroAppConfig;
-        MicroAppConfig.microsExtralConfig = this.microsExtralConfig;
+        MicroAppConfig.microsExtraConfig = this.microsExtraConfig;
     }
 
     get root() {
@@ -116,10 +123,6 @@ class BaseService {
     }
 
     get microsExtraConfig() {
-        return this.microsExtralConfig;
-    }
-
-    get microsExtralConfig() {
         const microsExtral = this[MICROS_EXTRAL_CONFIG_KEY] || {};
         const result = {};
         Array.from(this.micros).forEach(key => {
@@ -181,7 +184,7 @@ class BaseService {
     assertExtendOptions(name, opts, fn) {
         assert(typeof name === 'string', 'name must be string.');
         assert(name || /^_/i.test(name), `${name} cannot begin with '_'.`);
-        assert(!this[name] || !this.extendConfigs[name] || !this.extendMethods[name] || !this.pluginMethods[name] || !SharedProps.includes(name), `api.${name} exists.`);
+        assert(!this[name] || !this.extendConfigs[name] || !this.extendMethods[name] || !this.pluginMethods[name] || !this.sharedProps[name], `api.${name} exists.`);
         if (typeof opts === 'function') {
             fn = opts;
             opts = null;

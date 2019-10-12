@@ -28,14 +28,17 @@ Examples:
             micros: 'list all micros',
             'micros --link': 'list all micros and link',
             env: 'list all envs',
+            configs: 'list all configs',
         },
         details,
     }, args => {
         const pluginHooks = api.service.pluginHooks;
         const pluginMethods = api.service.pluginMethods;
         const extendMethods = api.service.extendMethods;
+        const sharedProps = api.service.sharedProps;
+        const extendConfigs = api.service.extendConfigs;
         const plugins = api.service.plugins;
-        const info = api.self.toJSON(true);
+        const info = api.self.toJSON();
         const env = api.env || {};
         const micros = api.micros;
         const selfConfig = api.selfConfig;
@@ -99,6 +102,10 @@ Examples:
                 api.logger.logo(`${chalk.green('Plugin Methods')}:`);
                 showAliasList(pluginMethods);
                 return showAliasList(extendMethods);
+            case 'configs':
+                api.logger.logo(`${chalk.green('Plugin Configs')}:`);
+                showAliasList(sharedProps);
+                return showAliasList(extendConfigs);
             case 'plugins':
                 api.logger.logo(`${chalk.green('Plugin List')}:`);
                 return showAliasList(plugins.reduce((obj, item) => {

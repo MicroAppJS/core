@@ -14,7 +14,7 @@ const { injectAliasModule, injectAliasModulePath } = require('../../src/utils/in
 
 const PluginAPI = require('./PluginAPI');
 
-const { PreLoadPlugins, SharedProps } = require('./constants');
+const { PreLoadPlugins } = require('./constants');
 
 class Service extends BaseService {
     constructor() {
@@ -33,10 +33,10 @@ class Service extends BaseService {
     __initInjectAliasModule__() {
         injectAliasModulePath(this.self.nodeModules);
         // 注入 custom node_modules
-        const microsExtralConfig = this.microsExtralConfig;
+        const microsExtraConfig = this.microsExtraConfig;
         injectAliasModulePath(Array.from(this.micros)
             .map(key => this.microsConfig[key])
-            .filter(item => item.hasSoftLink && !!microsExtralConfig[item.key].link)
+            .filter(item => item.hasSoftLink && !!microsExtraConfig[item.key].link)
             .map(item => item.nodeModules));
     }
 
@@ -147,7 +147,7 @@ e.g.
                 if (this.pluginMethods[prop]) {
                     return this.pluginMethods[prop].fn;
                 }
-                if (SharedProps.includes(prop)) {
+                if (this.sharedProps[prop]) {
                     if (typeof this[prop] === 'function') {
                         return this[prop].bind(this);
                     }

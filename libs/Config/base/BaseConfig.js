@@ -115,7 +115,7 @@ class BaseConfig {
 
     get key() {
         const config = this.config;
-        return config[symbols.KEY] || this.packageName.replace(new RegExp(`^${CONSTANTS.SCOPE_NAME}`, 'ig'), '') || '';
+        return config[symbols.KEY] || this.packageName.replace(new RegExp(`^${CONSTANTS.SCOPE_NAME}\/?`, 'ig'), '') || '';
     }
 
     get name() {
@@ -347,6 +347,7 @@ class BaseConfig {
         };
         if (notSimple) {
             json.plugins = this.plugins;
+            json.originalConfig = this.config;
         }
         return json;
     }
