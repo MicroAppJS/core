@@ -1,12 +1,12 @@
 'use strict';
 
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs-extra');
 
-const CONSTANTS = require('../config/constants');
+const CONSTANTS = require('../../config/constants');
 const loadFile = require('./loadFile');
-const MicroAppConfig = require('../libs/Config');
-const symbols = require('../config/symbols');
+const MicroAppConfig = require('../../libs/Config');
+const symbols = require('../../config/symbols');
 
 const SELF_CONFIG = Symbol('@MicroAppConfig#SELF_CONFIG');
 const configCache = {};
@@ -33,12 +33,13 @@ const isExists = function(p) {
     }
 };
 
+// TODO global 可优化
 // @custom 开发模式软链接
-// 当 global.MicroAppConfig.microsExtralConfig 存在时, 才会开启软链功能
+// 当 global.MicroAppConfig.microsExtraConfig 存在时, 才会开启软链功能
 const fixedDevLink = function(id, micPath) {
     const MicroAppConfig = global.MicroAppConfig || {};
-    const microsExtralConfig = MicroAppConfig.microsExtralConfig || {};
-    const extralConfig = microsExtralConfig[id];
+    const microsExtraConfig = MicroAppConfig.microsExtraConfig || {};
+    const extralConfig = microsExtraConfig[id];
     if (extralConfig && extralConfig.link && fs.existsSync(extralConfig.link)) {
         return extralConfig.link;
     }

@@ -1,14 +1,14 @@
 'use strict';
 
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs-extra');
 const tryRequire = require('try-require');
 const _ = require('lodash');
 
 const symbols = require('../../../config/symbols');
 const CONSTANTS = require('../../../config/constants');
-const logger = require('../../../utils/logger');
-const getPadLength = require('../../../utils/getPadLength');
+const logger = require('../../../src/utils/logger');
+const getPadLength = require('../../../src/utils/getPadLength');
 
 // 默认配置
 const DEFAULT_CONFIG = require('../../../config/default');
@@ -115,7 +115,7 @@ class BaseConfig {
 
     get key() {
         const config = this.config;
-        return config[symbols.KEY] || this.packageName.replace(new RegExp(`^${CONSTANTS.SCOPE_NAME}`, 'ig'), '') || '';
+        return config[symbols.KEY] || this.packageName.replace(new RegExp(`^${CONSTANTS.SCOPE_NAME}\/?`, 'ig'), '') || '';
     }
 
     get name() {
@@ -347,6 +347,7 @@ class BaseConfig {
         };
         if (notSimple) {
             json.plugins = this.plugins;
+            json.originalConfig = this.config;
         }
         return json;
     }

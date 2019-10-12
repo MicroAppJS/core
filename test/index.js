@@ -1,7 +1,7 @@
 'use strict';
 
-// const loadFile = require('../utils/loadFile');
-// const requireMicro = require('../utils/requireMicro');
+// const loadFile = require('../src/utils/loadFile');
+// const requireMicro = require('../src/utils/requireMicro');
 
 // const obj = loadFile(process.cwd(), 'micro-app.config.js');
 
@@ -42,7 +42,7 @@
 // const a = tryRequire.resolve('/Users/zyao89/Code/New Direction/MicroApp/MicroApp-Core/utils/loadFile.js');
 // console.log(a);
 
-const logger = require('../utils/logger');
+// const logger = require('../src/utils/logger');
 // logger.error('abc');
 // logger.info('abc');
 // logger.success('abc');
@@ -66,4 +66,11 @@ const logger = require('../utils/logger');
 // logger.warn(wmerge.smart(a, b));
 
 
-logger.throw('abc');
+// logger.throw('abc');
+
+require('./cccc.js');
+
+console.warn(module);
+console.warn(module.exports);
+console.warn(exports);
+

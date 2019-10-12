@@ -46,6 +46,22 @@ describe('PluginAPI', () => {
         expect(service.commands.a.opts).toEqual(opts);
     });
 
+    it('test extendConfig', () => {
+        const service = new Service();
+        const api = new PluginAPI('abc', service);
+
+        const fn = args => {
+            console.log(args);
+            return 'abc';
+        };
+        api.extendConfig('getA', fn);
+        expect(service.extendConfigs.getA).not.toBeUndefined();
+        expect(service.extendConfigs.getA).not.toBeNull();
+        expect(service.extendConfigs.getA).toMatchObject({});
+        expect(service.extendConfigs.getA.fn).toEqual(fn);
+        expect(service.extendConfigs.getA.fn()).toEqual('abc');
+    });
+
     it('test extendMethod', () => {
         const service = new Service();
         const api = new PluginAPI('abc', service);

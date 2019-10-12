@@ -12,16 +12,16 @@ describe('Service', () => {
         expect(service.selfConfig).not.toBeNull();
         expect(service.selfConfig).not.toBeUndefined();
 
-        expect(service.selfServerConfig).not.toBeNull();
-        expect(service.selfServerConfig).not.toBeUndefined();
+        // 去除
+        expect(service.selfServerConfig).toBeUndefined();
 
         expect(service.micros).toBeInstanceOf(Set);
 
         expect(service.microsConfig).not.toBeNull();
         expect(service.microsConfig).not.toBeUndefined();
 
-        expect(service.microsServerConfig).not.toBeNull();
-        expect(service.microsServerConfig).not.toBeUndefined();
+        // 去除
+        expect(service.microsServerConfig).toBeUndefined();
 
         expect(service.plugins).not.toBeNull();
         expect(service.plugins).not.toBeUndefined();

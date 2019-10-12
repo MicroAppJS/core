@@ -6,9 +6,9 @@ const semverRegex = require('semver-regex');
 
 const CONSTANTS = require('../../../config/constants');
 
-const requireMicro = require('../../../utils/requireMicro');
-const loadFile = require('../../../utils/loadFile');
-const logger = require('../../../utils/logger');
+const requireMicro = require('../../../src/utils/requireMicro');
+const loadFile = require('../../../src/utils/loadFile');
+const logger = require('../../../src/utils/logger');
 
 const { SharedProps } = require('../constants');
 const MICROS_EXTRAL_CONFIG_KEY = Symbol('MICROS_EXTRAL_CONFIG_KEY');
@@ -18,28 +18,31 @@ const GLOBAL_STATE = {};
 
 class BaseService {
     constructor() {
-        // 当前服务
+        this.extendConfigs = {};
         this.extendMethods = {};
         this.pluginHooks = {};
         this.pluginMethods = {};
         this.commands = {};
 
-        const _self = this.self;
+        this.sharedProps = SharedProps.reduce((obj, key) => {
+            obj[key] = {
+                key,
+            };
+            return obj;
+        }, {});
 
         // 当前服务
+        const _self = this.self;
         this.selfConfig = _self.toConfig(true);
-        this.selfServerConfig = _self.toServerConfig(true);
         this.micros = new Set((_self.micros || []));
 
         this.__initDefaultEnv__();
         this.__initGlobalMicroAppConfig__();
 
         this.microsConfig = this._initMicrosConfig();
-        this.microsServerConfig = this._initMicrosServerConfig();
 
         this.env = {}; // 环境变量
         this.config = {};
-        this.serverConfig = {};
 
         this.state = GLOBAL_STATE; // 状态集
     }
@@ -86,7 +89,7 @@ class BaseService {
             global.MicroAppConfig = {};
         }
         const MicroAppConfig = global.MicroAppConfig;
-        MicroAppConfig.microsExtralConfig = this.microsExtralConfig;
+        MicroAppConfig.microsExtraConfig = this.microsExtraConfig;
     }
 
     get root() {
@@ -120,10 +123,6 @@ class BaseService {
     }
 
     get microsExtraConfig() {
-        return this.microsExtralConfig;
-    }
-
-    get microsExtralConfig() {
         const microsExtral = this[MICROS_EXTRAL_CONFIG_KEY] || {};
         const result = {};
         Array.from(this.micros).forEach(key => {
@@ -161,22 +160,6 @@ class BaseService {
         return config;
     }
 
-    _initMicrosServerConfig() {
-        const config = {};
-        const micros = _.cloneDeep([ ...this.micros ]);
-        micros.forEach(key => {
-            const microConfig = requireMicro(key);
-            if (microConfig) {
-                config[key] = microConfig.toServerConfig(true);
-            } else {
-                this.micros.delete(key);
-                logger.error(`Not Found micros: "${key}"`);
-            }
-        });
-        config[this.self.key] = this.selfServerConfig || this.self.toServerConfig(true);
-        return config;
-    }
-
     _initDotEnv() {
         const env = process.env.NODE_ENV;
         const dotenv = require('dotenv');
@@ -198,10 +181,10 @@ class BaseService {
         }
     }
 
-    extendMethod(name, opts, fn) {
+    assertExtendOptions(name, opts, fn) {
         assert(typeof name === 'string', 'name must be string.');
         assert(name || /^_/i.test(name), `${name} cannot begin with '_'.`);
-        assert(!this[name] || !this.extendMethods[name] || !this.pluginMethods[name] || !SharedProps.includes(name), `api.${name} exists.`);
+        assert(!this[name] || !this.extendConfigs[name] || !this.extendMethods[name] || !this.pluginMethods[name] || !this.sharedProps[name], `api.${name} exists.`);
         if (typeof opts === 'function') {
             fn = opts;
             opts = null;
@@ -209,11 +192,25 @@ class BaseService {
         assert(typeof fn === 'function', 'fn must be function.');
         opts = opts || {};
         assert(_.isPlainObject(opts), 'opts must be object.');
-        this.extendMethods[name] = {
-            ...opts,
-            fn,
+        return { name, opts, fn };
+    }
+
+    extendConfig(name, opts, fn) {
+        const extendObj = this.assertExtendOptions(name, opts, fn);
+        this.extendConfigs[extendObj.name] = {
+            ...extendObj.opts,
+            fn: extendObj.fn,
         };
-        logger.debug(`[Plugin] extendMethod( ${name} ); Success!`);
+        logger.debug(`[Plugin] extendConfig( ${extendObj.name} ); Success!`);
+    }
+
+    extendMethod(name, opts, fn) {
+        const extendObj = this.assertExtendOptions(name, opts, fn);
+        this.extendMethods[extendObj.name] = {
+            ...extendObj.opts,
+            fn: extendObj.fn,
+        };
+        logger.debug(`[Plugin] extendMethod( ${extendObj.name} ); Success!`);
     }
 
     registerCommand(name, opts, fn) {
