@@ -2,14 +2,22 @@
 
 /* global expect */
 
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 const virtualFile = require('../virtualFile');
 
 describe('virtualFile', () => {
 
     it('require', () => {
-        const file = path.resolve(__dirname, '../../test/validate.js');
+        const file = path.resolve(__dirname, '../../../test/validate.js');
+        const jsText = fs.readFileSync(file);
+        virtualFile.register(file, jsText);
+
+        virtualFile.require(file);
+    });
+
+    it('require test', () => {
+        const file = path.resolve(__dirname, '../../../test/index.js');
         const jsText = fs.readFileSync(file);
         virtualFile.register(file, jsText);
 
@@ -45,7 +53,7 @@ describe('virtualFile', () => {
         expect(cache).not.toBeUndefined();
         expect(cache).not.toBeNull();
 
-        console.warn(cache);
+        // console.warn(cache);
         expect(cache).toBeInstanceOf(Array);
     });
 

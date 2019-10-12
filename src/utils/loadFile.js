@@ -1,9 +1,9 @@
 'use strict';
 
 const tryRequire = require('try-require');
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
-const symbols = require('../config/symbols');
+const symbols = require('../../config/symbols');
 
 function isSupport(filename) {
     return [ '.js', '.json' ].some(ext => {

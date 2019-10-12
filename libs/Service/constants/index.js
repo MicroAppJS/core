@@ -4,6 +4,7 @@ const contants = {
     PreLoadPlugins: require('../../../plugins/register'),
 
     // service 对 pluginAPI 暴露的所有方法
+    // TODO 可以增加注释
     SharedProps: [
         'root',
         'mode',
@@ -16,13 +17,10 @@ const contants = {
         'applyPluginHooksAsync',
         'resolvePlugin',
         'config',
-        'serverConfig',
         'micros',
         'self',
         'selfConfig',
-        'selfServerConfig',
         'microsConfig',
-        'microsServerConfig',
         'changePluginOption',
         'runCommand',
         'hasPlugin',

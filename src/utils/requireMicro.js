@@ -1,12 +1,12 @@
 'use strict';
 
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs-extra');
 
-const CONSTANTS = require('../config/constants');
+const CONSTANTS = require('../../config/constants');
 const loadFile = require('./loadFile');
-const MicroAppConfig = require('../libs/Config');
-const symbols = require('../config/symbols');
+const MicroAppConfig = require('../../libs/Config');
+const symbols = require('../../config/symbols');
 
 const SELF_CONFIG = Symbol('@MicroAppConfig#SELF_CONFIG');
 const configCache = {};

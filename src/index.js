@@ -2,15 +2,17 @@
 
 const CONSTANTS = require('../config/constants');
 const Service = require('../libs/Service');
-const logger = require('../utils/logger');
-const requireMicro = require('../utils/requireMicro');
-const moduleAlias = require('../utils/module-alias');
-const virtualFile = require('../utils/virtualFile');
-const injectHtml = require('../utils/injectHtml');
+const logger = require('../src/utils/logger');
+const requireMicro = require('../src/utils/requireMicro');
+const moduleAlias = require('../src/utils/module-alias');
+const virtualFile = require('../src/utils/virtualFile');
+const injectHtml = require('../src/utils/injectHtml');
 
 const microApp = function() {
     return requireMicro.apply(requireMicro, arguments);
 };
+
+// TODO enhance utils (load package.json)
 
 module.exports = Object.assign(microApp, requireMicro, {
     CONSTANTS,

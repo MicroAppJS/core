@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs-extra');
 const _ = require('lodash');
 const tryRequire = require('try-require');
 
@@ -15,21 +15,41 @@ function hash(contents) {
     return hash.digest('hex');
 }
 
-function secondPlan(_cache) {
+function planA(_cache) {
+    const _filepath = _cache.filepath;
     const _dirname = _cache.dirname;
     const _filename = _cache.filename;
     const _contents = _cache.contents;
-    const _module = {};
+    const _module = {
+        id: _filepath,
+        exports: {},
+        parent: exports.parent,
+        filename: _filename,
+        loaded: false,
+        children: [],
+    };
     // eslint-disable-next-line no-new-func
-    const func = new Function('require', 'module', '__filename', '__dirname', _contents);
-    func(require, _module, _filename, _dirname);
-    if (!_.isUndefined(_module.exports)) {
-        return _module.exports;
-    }
-    if (!_.isEmpty(_module)) {
-        return _module;
-    }
-    return null;
+    const func = new Function('exports', 'require', 'module', '__filename', '__dirname', _contents);
+    func(_module.exports, function(p) {
+        const _p = tryRequire.resolve(p);
+        return require(_p || path.resolve(_dirname, p));
+    }, _module, _filename, _dirname);
+    module.loaded = true;
+    return _module.exports;
+}
+
+function planB(_cache) {
+    const _extname = _cache.extname;
+    const _basename = _cache.basename;
+    const _dirname = _cache.dirname;
+    // const _filename = _cache.filename;
+    const _contents = _cache.contents;
+    const _hash = hash(_contents);
+    const newLink = path.resolve(_dirname, `${_basename}.vfile.${_hash}${_extname}`);
+    fs.writeFileSync(newLink, _contents, 'utf8');
+    const _fileCache = require(newLink);
+    fs.unlinkSync(newLink);
+    return _fileCache;
 }
 
 
@@ -60,20 +80,11 @@ module.exports.require = function(filepath) {
     }
     const _cache = CACHE_FILES[filepath];
     if (_cache) {
-        const _extname = _cache.extname;
-        const _basename = _cache.basename;
-        const _dirname = _cache.dirname;
-        const _filename = _cache.filename;
-        const _contents = _cache.contents;
         let _fileCache;
-        if (_filename.includes('node_modules')) {
-            const _hash = hash(_contents);
-            const newLink = path.resolve(_dirname, `${_basename}.vfile.${_hash}${_extname}`);
-            fs.writeFileSync(newLink, _contents, 'utf8');
-            _fileCache = require(newLink);
-            fs.unlinkSync(newLink);
-        } else {
-            _fileCache = secondPlan(_cache);
+        try {
+            _fileCache = planA(_cache);
+        } catch (error) {
+            _fileCache = planB(_cache);
         }
         if (!_.isUndefined(_fileCache)) {
             CACHE_LOADED_FILES[filepath] = _fileCache;

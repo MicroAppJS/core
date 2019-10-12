@@ -1,7 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
-const merge = require('webpack-merge');
+const smartMerge = require('./smartMerge');
 
 function padAliasName(config, type) {
     const alias = {};
@@ -33,5 +33,5 @@ module.exports = function aliasMerge(config, opts) {
         aliasArrs.push(isPadAlias ? padAliasName(config, type) : config[type]);
     }
 
-    return _.cloneDeep(merge.smart({}, ...aliasArrs));
+    return _.cloneDeep(smartMerge({}, ...aliasArrs));
 };

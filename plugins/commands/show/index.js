@@ -4,8 +4,8 @@ module.exports = function(api) {
 
     const { padEnd } = require('lodash');
     const chalk = require('chalk');
-    const getPadLength = require('../../../utils/getPadLength');
-    const aliasMerge = require('../../../utils/merge-alias');
+    const getPadLength = require('../../../src/utils/getPadLength');
+    const aliasMerge = require('../../../src/utils/merge-alias');
 
     const details = `
 Examples:

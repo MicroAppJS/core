@@ -105,6 +105,10 @@ class PluginAPI extends BaseAPI {
         return this.service.registerCommand(name, opts, fn);
     }
 
+    extendConfig(name, opts, fn) {
+        return this.service.extendConfig(name, opts, fn);
+    }
+
     extendMethod(name, opts, fn) {
         return this.service.extendMethod(name, opts, fn);
     }

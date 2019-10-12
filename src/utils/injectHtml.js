@@ -4,7 +4,7 @@ const toString = require('stream-to-string');
 const cheerio = require('cheerio');
 const stream = require('stream');
 
-const CONSTANTS = require('../config/constants');
+const CONSTANTS = require('../../config/constants');
 
 module.exports = async function injectHtml(ctx) {
     // 处理文件注入一些信息

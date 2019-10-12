@@ -5,7 +5,7 @@ module.exports = function(api) {
     const { padEnd } = require('lodash');
     const chalk = require('chalk');
     const _ = require('lodash');
-    const getPadLength = require('../../../utils/getPadLength');
+    const getPadLength = require('../../../src/utils/getPadLength');
 
     const details = `
 Examples:

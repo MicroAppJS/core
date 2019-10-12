@@ -2,17 +2,15 @@
 
 const tryRequire = require('try-require');
 const assert = require('assert');
-const merge = require('webpack-merge');
 const _ = require('lodash');
 
 const BaseService = require('./base/BaseService');
 
-const logger = require('../../utils/logger');
-const virtualFile = require('../../utils/virtualFile');
+const logger = require('../../src/utils/logger');
+const virtualFile = require('../../src/utils/virtualFile');
+const smartMerge = require('../../src/utils/smartMerge');
 
-const serverMerge = require('../../utils/merge-server');
-const serverHooksMerge = require('../../utils/merge-server-hooks');
-const { injectAliasModule, injectAliasModulePath } = require('../../utils/injectAliasModule');
+const { injectAliasModule, injectAliasModulePath } = require('../../src/utils/injectAliasModule');
 
 const PluginAPI = require('./PluginAPI');
 
@@ -132,6 +130,17 @@ e.g.
                 if (typeof prop === 'string' && /^_/i.test(prop)) {
                     return; // ban private
                 }
+                if (this.extendConfigs[prop]) { // 立即执行, 返回结果(支持 cache 缓存).
+                    const obj = this.extendConfigs[prop];
+                    if (obj.cache === true && !_.isUndefined(obj.__cache__)) {
+                        return obj.__cache__;
+                    }
+                    const _result = obj.fn.call(this);
+                    if (obj.cache === true) {
+                        obj.__cache__ = _result;
+                    }
+                    return _result;
+                }
                 if (this.extendMethods[prop]) {
                     return this.extendMethods[prop].fn;
                 }
@@ -177,7 +186,7 @@ e.g.
         const selfConfig = this.selfConfig;
         const micros = Array.from(this.micros);
         const microsConfig = this.microsConfig;
-        const finalConfig = merge.smart({}, ...micros.map(key => {
+        const finalConfig = smartMerge({}, ...micros.map(key => {
             if (!microsConfig[key]) return {};
             return _.pick(microsConfig[key], [
                 'entry',
@@ -191,22 +200,6 @@ e.g.
             ]);
         }), selfConfig);
         Object.assign(this.config, _.cloneDeep(finalConfig));
-    }
-
-    _mergeServerConfig() {
-        const selfServerConfig = this.selfServerConfig;
-        const micros = Array.from(this.micros);
-        const microsServerConfig = this.microsServerConfig;
-        const serverEntrys = serverMerge(...micros.map(key => microsServerConfig[key]), selfServerConfig);
-        const serverHooks = serverHooksMerge(...micros.map(key => microsServerConfig[key]), selfServerConfig);
-        Object.assign(this.serverConfig, {
-            ..._.pick(selfServerConfig, [
-                'host',
-                'port',
-            ]),
-            entrys: serverEntrys,
-            hooks: serverHooks,
-        });
     }
 
     registerPlugin(opts) {
@@ -362,12 +355,6 @@ e.g.
 
         // 注入全局的别名
         injectAliasModule(this.config.resolveShared);
-
-        // merge server
-        this.applyPluginHooks('beforeMergeServerConfig', this.serverConfig);
-        this._mergeServerConfig();
-        this.applyPluginHooks('afterMergeServerConfig', this.serverConfig);
-        this.serverConfig = this.applyPluginHooks('modifyDefaultServerConfig', this.serverConfig);
 
         this.applyPluginHooks('onInitWillDone');
         this.applyPluginHooks('onInitDone');

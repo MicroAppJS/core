@@ -1,7 +1,7 @@
 'use strict';
 
 const semver = require('semver');
-const logger = require('../utils/logger');
+const logger = require('../src/utils/logger');
 
 function assertVersion(range) {
     const version = require('../package.json').version;
