@@ -1,6 +1,6 @@
 {
     "name": "@micro-app/core",
-    "version": "0.2.0-beta.4",
+    "version": "0.2.0-beta.6",
     "description": "[Core] Pluggable micro application framework.",
     "main": "src/index.js",
     "scripts": {
@@ -48,7 +48,7 @@
         "eslint": "^5.16.0",
         "eslint-config-2o3t": "^1.1.17",
         "html-webpack-plugin": "^3.2.0",
-        "husky": "^3.0.8",
+        "husky": "^3.0.9",
         "jest": "^24.9.0",
         "lint-staged": "^9.4.2",
         "webpack": "^4.39.2",

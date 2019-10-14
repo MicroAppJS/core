@@ -19,7 +19,10 @@ function planA(_cache) {
     const _filepath = _cache.filepath;
     const _dirname = _cache.dirname;
     const _filename = _cache.filename;
-    const _contents = _cache.contents;
+    // 改变 _contents 中 require 的目录结构
+    const _contents = _cache.contents.replace(/require(\.resolve)?[ ]*\(['|"](\.[\w\\\/\.]+)['|"]\)/gm, function(word, $1) {
+        return `require('${path.resolve(_dirname, $1)}')`;
+    });
     const _module = {
         id: _filepath,
         exports: {},

@@ -77,9 +77,15 @@ module.exports = {
     },
     toString,
 
-    throw() {
-        this.error(...arguments);
-        const error = new Error();
+    throw(e) {
+        let error;
+        if (e instanceof Error) {
+            error = e;
+            this.error(...Array.prototype.splice.call(arguments, 1));
+        } else {
+            error = new Error();
+            this.error(...arguments);
+        }
         const stack = error.stack.split(/\r?\n/mg);
         getStdoutMethod('error')(chalk.grey(stack.slice(2).join('\r\n')) + '\r\n');
         process.exit(1);
