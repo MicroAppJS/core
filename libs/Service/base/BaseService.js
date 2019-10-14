@@ -121,7 +121,7 @@ class BaseService {
     }
 
     get selfConfig() {
-        return this.microsConfig[this.self.key] || {};
+        return this.microsConfig[this.self.key] || this.self.toConfig(true) || {};
     }
 
     get microsExtraConfig() {

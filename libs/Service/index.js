@@ -293,7 +293,7 @@ e.g.
                     args: defaultOpts,
                 });
             } catch (e) {
-                logger.throw(`[Plugin] Plugin apply failed: ${e.message}`);
+                logger.throw(e, `[Plugin] Plugin apply ${key} failed: ${e.message}`);
             }
             return last;
         }, opts);
