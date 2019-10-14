@@ -32,9 +32,7 @@ class BaseService {
         }, {});
 
         // 当前服务
-        const _self = this.self;
-        this.selfConfig = _self.toConfig(true);
-        this.micros = new Set((_self.micros || []));
+        this.micros = new Set((this.self.micros || []));
 
         this.__initDefaultEnv__();
         this.__initGlobalMicroAppConfig__();
@@ -122,6 +120,10 @@ class BaseService {
         return _self;
     }
 
+    get selfConfig() {
+        return this.microsConfig[this.self.key] || {};
+    }
+
     get microsExtraConfig() {
         const microsExtral = this[MICROS_EXTRAL_CONFIG_KEY] || {};
         const result = {};
@@ -156,7 +158,7 @@ class BaseService {
                 logger.error(`Not Found micros: "${key}"`);
             }
         });
-        config[this.self.key] = this.selfConfig || this.self.toConfig(true);
+        config[this.self.key] = this.self.toConfig(true);
         return config;
     }
 

@@ -38,32 +38,20 @@ describe('MicroAppConfig', () => {
 
         }));
 
-        expect(config.webpack).not.toBeUndefined();
-        expect(config.webpack).not.toBeNull();
-
-        expect(config.entry).not.toBeUndefined();
-        expect(config.entry).not.toBeNull();
-
-        expect(config.htmls).not.toBeUndefined();
-        expect(config.htmls).not.toBeNull();
-
-        expect(config.dlls).not.toBeUndefined();
-        expect(config.dlls).not.toBeNull();
-
-        expect(config.staticPaths).not.toBeUndefined();
-        expect(config.staticPaths).not.toBeNull();
-
-        expect(config.server).not.toBeUndefined();
-        expect(config.server).not.toBeNull();
-
         expect(config.toJSON(true)).not.toBeUndefined();
         expect(config.toJSON(true)).not.toBeNull();
 
         expect(config.toConfig(true)).not.toBeUndefined();
         expect(config.toConfig(true)).not.toBeNull();
 
-        expect(config.toServerConfig(true)).not.toBeUndefined();
-        expect(config.toServerConfig(true)).not.toBeNull();
+        // 已迁移
+        expect(config.webpack).toBeUndefined();
+        expect(config.entry).toBeUndefined();
+        expect(config.htmls).toBeUndefined();
+        expect(config.dlls).toBeUndefined();
+        expect(config.staticPaths).toBeUndefined();
+        expect(config.server).toBeUndefined();
+        expect(config.toServerConfig).toBeUndefined();
     });
 
     it('new constructor others', () => {
@@ -83,37 +71,21 @@ describe('MicroAppConfig', () => {
             ],
         }));
 
-        expect(config.webpack).not.toBeUndefined();
-        expect(config.webpack).not.toBeNull();
-
-        expect(config.entry).not.toBeUndefined();
-        expect(config.entry).not.toBeNull();
-
-        expect(config.html).not.toBeUndefined();
-        expect(config.html).not.toBeNull();
-
-        expect(config.htmls).not.toBeUndefined();
-        expect(config.htmls).not.toBeNull();
-
-        expect(config.dll).not.toBeUndefined();
-        expect(config.dll).not.toBeNull();
-
-        expect(config.dlls).not.toBeUndefined();
-        expect(config.dlls).not.toBeNull();
-
-        expect(config.staticPaths).not.toBeUndefined();
-        expect(config.staticPaths).not.toBeNull();
-
-        expect(config.server).not.toBeUndefined();
-        expect(config.server).not.toBeNull();
-
         expect(config.toJSON(true)).not.toBeUndefined();
         expect(config.toJSON(true)).not.toBeNull();
 
         expect(config.toConfig(true)).not.toBeUndefined();
         expect(config.toConfig(true)).not.toBeNull();
 
-        expect(config.toServerConfig(true)).not.toBeUndefined();
-        expect(config.toServerConfig(true)).not.toBeNull();
+        // 已迁移
+        expect(config.webpack).toBeUndefined();
+        expect(config.entry).toBeUndefined();
+        expect(config.html).toBeUndefined();
+        expect(config.htmls).toBeUndefined();
+        expect(config.dll).toBeUndefined();
+        expect(config.dlls).toBeUndefined();
+        expect(config.staticPaths).toBeUndefined();
+        expect(config.server).toBeUndefined();
+        expect(config.toServerConfig).toBeUndefined();
     });
 });

@@ -347,11 +347,15 @@ e.g.
         this.initialized = true; // 再此之前可重新 init
 
         this.applyPluginHooks('onPluginInitDone');
+
+        // modify
+        this.microsConfig = this.applyPluginHooks('modifyMicrosConfig', this.microsConfig);
+
         // merge config
         this.applyPluginHooks('beforeMergeConfig', this.config);
         this._mergeConfig();
-        this.applyPluginHooks('afterMergeConfig', this.config);
         this.config = this.applyPluginHooks('modifyDefaultConfig', this.config);
+        this.applyPluginHooks('afterMergeConfig', this.config);
 
         // 注入全局的别名
         moduleAlias.add(this.config.resolveShared);
