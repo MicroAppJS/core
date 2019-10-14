@@ -4,7 +4,7 @@ const CONSTANTS = require('../config/constants');
 const Service = require('../libs/Service');
 const logger = require('../src/utils/logger');
 const requireMicro = require('../src/utils/requireMicro');
-const moduleAlias = require('../src/utils/module-alias');
+const moduleAlias = require('../src/utils/injectModuleAlias');
 const virtualFile = require('../src/utils/virtualFile');
 const injectHtml = require('../src/utils/injectHtml');
 

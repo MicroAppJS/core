@@ -6,6 +6,19 @@ const ora = require('ora');
 
 const CONSTANTS = require('../../config/constants');
 
+const getStdoutMethod = function(type) {
+    if (!process) {
+        if (type) {
+            return console[type].bind(console);
+        }
+        return console.log.bind(console);
+    }
+    if (type === 'error') {
+        return process.stderr.write.bind(process.stderr);
+    }
+    return process.stdout.write.bind(process.stdout);
+};
+
 const toString = {
     debug() {
         const message = utils.format(...(arguments || []));
@@ -37,22 +50,22 @@ const toString = {
 module.exports = {
     debug() {
         if (!process.env.MICRO_DEBUG_LOGGER) return; // 是否开启
-        return process.stdout.write(toString.debug.call(toString, ...arguments));
+        return getStdoutMethod('log')(toString.debug.call(toString, ...arguments));
     },
     warn() {
-        return process.stdout.write(toString.warn.call(toString, ...arguments));
+        return getStdoutMethod('warn')(toString.warn.call(toString, ...arguments));
     },
     error() {
-        return process.stderr.write(toString.error.call(toString, ...arguments));
+        return getStdoutMethod('error')(toString.error.call(toString, ...arguments));
     },
     info() {
-        return process.stdout.write(toString.info.call(toString, ...arguments));
+        return getStdoutMethod('info')(toString.info.call(toString, ...arguments));
     },
     success() {
-        return process.stdout.write(toString.success.call(toString, ...arguments));
+        return getStdoutMethod('log')(toString.success.call(toString, ...arguments));
     },
     logo() {
-        return process.stdout.write(toString.logo.call(toString, ...arguments));
+        return getStdoutMethod('log')(toString.logo.call(toString, ...arguments));
     },
     spinner(message) {
         const defulatOpts = {
@@ -68,7 +81,7 @@ module.exports = {
         this.error(...arguments);
         const error = new Error();
         const stack = error.stack.split(/\r?\n/mg);
-        process.stderr.write(chalk.grey(stack.slice(2).join('\r\n')) + '\r\n');
+        getStdoutMethod('error')(chalk.grey(stack.slice(2).join('\r\n')) + '\r\n');
         process.exit(1);
     },
 };

@@ -2,14 +2,14 @@
 
 const moduleAlias = require('./module-alias');
 
-function injectAliasModule(alias) {
+function add(alias) {
     if (alias && JSON.stringify(alias) !== '{}') {
         // inject shared
         moduleAlias.addAliases(alias);
     }
 }
 
-function injectAliasModulePath(paths) {
+function addPaths(paths) {
     if (Array.isArray(paths)) {
         paths = Array.from(new Set(paths));
         paths.forEach(item => {
@@ -21,6 +21,7 @@ function injectAliasModulePath(paths) {
 }
 
 module.exports = {
-    injectAliasModule,
-    injectAliasModulePath,
+    add,
+    addPaths,
+    addPath: addPaths,
 };
