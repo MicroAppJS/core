@@ -12,8 +12,6 @@ const microApp = function() {
     return requireMicro.apply(requireMicro, arguments);
 };
 
-// TODO enhance utils (load package.json)
-
 module.exports = Object.assign(microApp, requireMicro, {
     CONSTANTS,
     Service,
