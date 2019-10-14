@@ -10,7 +10,7 @@ const logger = require('../../src/utils/logger');
 const virtualFile = require('../../src/utils/virtualFile');
 const smartMerge = require('../../src/utils/smartMerge');
 
-const { injectAliasModule, injectAliasModulePath } = require('../../src/utils/injectAliasModule');
+const moduleAlias = require('../../src/utils/injectModuleAlias');
 
 const PluginAPI = require('./PluginAPI');
 
@@ -31,10 +31,10 @@ class Service extends BaseService {
     }
 
     __initInjectAliasModule__() {
-        injectAliasModulePath(this.self.nodeModules);
+        moduleAlias.addPath(this.self.nodeModules);
         // 注入 custom node_modules
         const microsExtraConfig = this.microsExtraConfig;
-        injectAliasModulePath(Array.from(this.micros)
+        moduleAlias.addPaths(Array.from(this.micros)
             .map(key => this.microsConfig[key])
             .filter(item => item.hasSoftLink && !!microsExtraConfig[item.key].link)
             .map(item => item.nodeModules));
@@ -354,7 +354,7 @@ e.g.
         this.config = this.applyPluginHooks('modifyDefaultConfig', this.config);
 
         // 注入全局的别名
-        injectAliasModule(this.config.resolveShared);
+        moduleAlias.add(this.config.resolveShared);
 
         this.applyPluginHooks('onInitWillDone');
         this.applyPluginHooks('onInitDone');

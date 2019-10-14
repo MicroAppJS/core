@@ -210,3 +210,12 @@ module.exports.addAlias = addAlias;
 module.exports.addAliases = addAliases;
 module.exports.isPathMatchesAlias = isPathMatchesAlias;
 module.exports.reset = reset;
+
+// test
+[ '_modulePaths', '_moduleAliases', '_moduleAliasNames' ].forEach((key, index) => {
+    Object.defineProperty(module.exports, key, {
+        get() {
+            return [ modulePaths, moduleAliases, moduleAliasNames ][index];
+        },
+    });
+});

@@ -6,18 +6,15 @@ module.exports = function(api, opts) {
     api.onInitDone(item => {
         console.log('init Done', item);
     });
+    api.beforeMergeConfig(config => {
+        console.log('beforeMergeConfig', config);
+    });
+    api.afterMergeConfig(config => {
+        console.log('afterMergeConfig', config);
+    });
     api.onPluginInitDone(item => {
         console.log('onPluginInitDone', item);
     });
-    api.beforeMergeWebpackConfig(item => {
-        console.log('beforeMergeWebpackConfig', item);
-    });
-    api.afterMergeWebpackConfig(item => {
-        console.log('afterMergeWebpackConfig', item);
-    });
-    // api.onChainWebpcakConfig(webpackChainConfig => {
-    //     console.log('onChainWebpcakConfig', webpackChainConfig);
-    // });
     api.onInitDone(() => {
         console.log('init Done2', api.getState('webpackConfig'));
     });

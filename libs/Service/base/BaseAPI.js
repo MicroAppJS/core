@@ -10,7 +10,7 @@ class BaseAPI {
         this.logger = logger;
 
         this.id = id;
-        this.service = service;
+        this.service = service || {};
 
         this.API_TYPE = {
             ADD: Symbol('add'),

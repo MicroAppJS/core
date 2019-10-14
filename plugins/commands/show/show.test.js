@@ -148,4 +148,12 @@ describe('show', () => {
         show(api);
     });
 
+
+    it('configs', () => {
+        const api = customAPI({
+            _: [ 'configs' ],
+        });
+        show(api);
+    });
+
 });

@@ -7,7 +7,7 @@ function padAliasName(config, type) {
     const alias = {};
     const aliasName = config.aliasName;
     if (aliasName) {
-        const currAlias = config[type];
+        const currAlias = config[type] || {};
         Object.keys(currAlias).forEach(key => {
             const aliasKey = `${aliasName}/${key}`;
             alias[aliasKey] = currAlias[key];
@@ -35,3 +35,5 @@ module.exports = function aliasMerge(config, opts) {
 
     return _.cloneDeep(smartMerge({}, ...aliasArrs));
 };
+
+module.exports.padAliasName = padAliasName;

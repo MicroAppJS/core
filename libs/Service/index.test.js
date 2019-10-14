@@ -51,4 +51,20 @@ describe('Service', () => {
         });
     });
 
+    it('new constructor init', () => {
+        const service = new Service();
+        service.init();
+
+        expect(service.version).not.toBeUndefined();
+        expect(service.version).not.toBeNull();
+    });
+
+    it('new constructor run', () => {
+        const service = new Service();
+        service.run();
+
+        expect(service.version).not.toBeUndefined();
+        expect(service.version).not.toBeNull();
+    });
+
 });
