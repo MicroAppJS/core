@@ -4,7 +4,7 @@ const chalk = require('chalk').default;
 const utils = require('util');
 const ora = require('ora');
 
-const CONSTANTS = require('../../config/constants');
+const CONSTANTS = require('../../libs/Constants');
 
 const getStdoutMethod = function(type) {
     if (!process) {

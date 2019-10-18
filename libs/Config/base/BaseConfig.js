@@ -5,13 +5,13 @@ const fs = require('fs-extra');
 const tryRequire = require('try-require');
 const _ = require('lodash');
 
-const symbols = require('../../../config/symbols');
-const CONSTANTS = require('../../../config/constants');
+const symbols = require('../../Constants/symbols');
+const CONSTANTS = require('../../Constants');
 const logger = require('../../../src/utils/logger');
 const getPadLength = require('../../../src/utils/getPadLength');
 
 // 默认配置
-const DEFAULT_CONFIG = require('../../../config/default');
+const DEFAULT_CONFIG = require('../../Constants/default');
 
 const validate = require('../schema');
 const SCHEMA = require('../schema/configSchema');
@@ -50,9 +50,10 @@ class BaseConfig {
                     this._package = require(packagePath);
                 }
             } catch (error) {
+                console.warn(config, error);
                 this._packagePath = '';
                 this._package = {};
-                logger.warn('Not Fount "package.json" !');
+                logger.warn(`Not Fount "${CONSTANTS.PACKAGE_JSON}" !`);
             }
         }
     }

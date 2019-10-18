@@ -37,7 +37,7 @@
     "license": "MIT",
     "lint-staged": {
         "*.js": [
-            "prettier --write",
+            "npm run lint:fix",
             "git add"
         ]
     },

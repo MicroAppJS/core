@@ -1,6 +1,6 @@
 'use strict';
 
-const CONSTANTS = require('../config/constants');
+const CONSTANTS = require('../libs/Constants');
 const Service = require('../libs/Service');
 const logger = require('../src/utils/logger');
 const requireMicro = require('../src/utils/requireMicro');
