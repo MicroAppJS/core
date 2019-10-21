@@ -5,13 +5,13 @@ const fs = require('fs-extra');
 const tryRequire = require('try-require');
 const _ = require('lodash');
 
-const symbols = require('../../Constants/symbols');
+const Symbols = require('../../Constants/symbols');
 const CONSTANTS = require('../../Constants');
 const logger = require('../../../src/utils/logger');
 const getPadLength = require('../../../src/utils/getPadLength');
 
 // 默认配置
-const DEFAULT_CONFIG = require('../../Constants/default');
+// const DEFAULT_CONFIG = require('../../Constants/default');
 
 const validate = require('../schema');
 const SCHEMA = require('../schema/configSchema');
@@ -21,11 +21,16 @@ const ORIGNAL_CONFIG = Symbol('@BaseConfig#ORIGNAL_CONFIG');
 
 class BaseConfig {
 
+    /**
+     * Creates an instance of BaseConfig.
+     * @param {DEFAULT_CONFIG} config config
+     * @memberof BaseConfig
+     */
     constructor(config /* , opts = {} */) {
         // 校验 config
         this._validateSchema(config);
-        this[INIT](config);
-        this[ORIGNAL_CONFIG] = config || DEFAULT_CONFIG;
+        this[ORIGNAL_CONFIG] = config;
+        this[INIT]();
     }
 
     _validateSchema(config) {
@@ -41,16 +46,23 @@ class BaseConfig {
         }
     }
 
-    [INIT](config) {
-        if (config) {
+    [INIT]() {
+        if (!this.config[Symbols.LOAD_SUCCESS]) {
+            // 文件未加载成功.
+            logger.error(`Not Found "${CONSTANTS.CONFIG_NAME}"`);
+        }
+        if (this.root) {
             try {
-                const packagePath = path.join(config[symbols.ROOT], CONSTANTS.PACKAGE_JSON);
+                const packagePath = path.resolve(this.root, CONSTANTS.PACKAGE_JSON);
                 if (fs.existsSync(packagePath)) {
                     this._packagePath = packagePath;
                     this._package = require(packagePath);
+                    if (!this.config[Symbols.LOAD_SUCCESS]) {
+                        // 文件未加载成功.
+                        // TODO 可以从 package.json 中查询配置文件
+                    }
                 }
             } catch (error) {
-                console.warn(config, error);
                 this._packagePath = '';
                 this._package = {};
                 logger.warn(`Not Fount "${CONSTANTS.PACKAGE_JSON}" !`);
@@ -64,12 +76,12 @@ class BaseConfig {
 
     get root() {
         const config = this.config;
-        return config[symbols.ROOT] || '';
+        return config[Symbols.ROOT] || '';
     }
 
     get originalRoot() {
         const config = this.config;
-        return config[symbols.ORIGINAL_ROOT] || this.root || '';
+        return config[Symbols.ORIGINAL_ROOT] || this.root || '';
     }
 
     get hasSoftLink() {
@@ -78,7 +90,7 @@ class BaseConfig {
 
     get path() {
         const config = this.config;
-        return config[symbols.PATH] || '';
+        return config[Symbols.PATH] || '';
     }
 
     get nodeModules() {
@@ -117,7 +129,7 @@ class BaseConfig {
     get key() {
         const config = this.config;
         const reg = new RegExp(`^${CONSTANTS.SCOPE_NAME}\/?`, 'ig');
-        return config[symbols.KEY] || this.packageName.replace(reg, '') || '';
+        return config[Symbols.KEY] || this.packageName.replace(reg, '') || '';
     }
 
     get name() {

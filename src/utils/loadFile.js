@@ -20,7 +20,11 @@ function load(root, filename) {
         return null;
     }
     const file = tryRequire(filePath);
-    return file ? extraConfig(file, root, filename) : null;
+    if (file) {
+        file[symbols.LOAD_SUCCESS] = true;
+        return extraConfig(file, root, filename);
+    }
+    return null;
 }
 
 function extraConfig(file, root, filename) {
