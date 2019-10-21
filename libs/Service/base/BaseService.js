@@ -4,7 +4,7 @@ const assert = require('assert');
 const _ = require('lodash');
 const semverRegex = require('semver-regex');
 
-const CONSTANTS = require('../../../config/constants');
+const CONSTANTS = require('../../../libs/Constants');
 
 const requireMicro = require('../../../src/utils/requireMicro');
 const loadFile = require('../../../src/utils/loadFile');

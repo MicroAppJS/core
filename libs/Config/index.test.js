@@ -3,11 +3,12 @@
 /* global expect */
 
 const MicroAppConfig = require('./index');
-const defaultConfig = require('../../micro-app.config');
+const loadFile = require('../../src/utils/loadFile');
 
 describe('MicroAppConfig', () => {
 
     it('new constructor', () => {
+        const defaultConfig = loadFile(__dirname, '../Constants/default.js');
         const config = new MicroAppConfig(Object.assign({}, defaultConfig, {
 
         }));
@@ -34,6 +35,7 @@ describe('MicroAppConfig', () => {
     });
 
     it('new constructor Config', () => {
+        const defaultConfig = loadFile(__dirname, '../Constants/default.js');
         const config = new MicroAppConfig(Object.assign({}, defaultConfig, {
 
         }));
@@ -55,6 +57,7 @@ describe('MicroAppConfig', () => {
     });
 
     it('new constructor others', () => {
+        const defaultConfig = loadFile(__dirname, '../Constants/default.js');
         const config = new MicroAppConfig(Object.assign({}, defaultConfig, {
             entry: {
                 main: [ './test/index.js' ],

@@ -130,12 +130,15 @@ Examples:
                     return obj;
                 }, {}));
             case 'info':
-            default:
                 api.logger.logo(`${chalk.green('Show Details')}:`);
                 return showAliasList(Object.keys(info).reduce((obj, key) => {
                     obj[key] = { description: JSON.stringify(info[key]) };
                     return obj;
                 }, {}));
+            default:
+                // const envinfo = require('envinfo');
+                // TODO 这里应该支持扩展.
+                return;
         }
     });
 

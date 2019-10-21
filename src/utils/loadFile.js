@@ -3,7 +3,7 @@
 const tryRequire = require('try-require');
 const fs = require('fs-extra');
 const path = require('path');
-const symbols = require('../../config/symbols');
+const symbols = require('../../libs/Constants/symbols');
 
 function isSupport(filename) {
     return [ '.js', '.json' ].some(ext => {
@@ -11,17 +11,32 @@ function isSupport(filename) {
     });
 }
 
-function load(filePath) {
-    // const str = fs.readFileSync(filePath, 'utf8');
+function load(root, filename) {
+    const filePath = path.resolve(root, filename);
+    if (!fs.existsSync(filePath)) {
+        return null;
+    }
+    if (!fs.statSync(filePath).isFile()) {
+        return null;
+    }
     const file = tryRequire(filePath);
     if (file) {
+        file[symbols.LOAD_SUCCESS] = true;
+        return extraConfig(file, root, filename);
+    }
+    return null;
+}
+
+function extraConfig(file, root, filename) {
+    if (file && root && filename) {
+        const filePath = path.resolve(root, filename);
         file[symbols.ROOT] = path.dirname(filePath);
         file[symbols.PATH] = filePath;
     }
     return file;
 }
 
-module.exports = function loadFile(root, filename) {
+function loadFile(root, filename) {
     if (!root || !filename) {
         return null;
     }
@@ -34,12 +49,8 @@ module.exports = function loadFile(root, filename) {
     if (!fs.statSync(root).isDirectory()) {
         return null;
     }
-    const filePath = path.join(root, filename);
-    if (!fs.existsSync(filePath)) {
-        return null;
-    }
-    if (!fs.statSync(filePath).isFile()) {
-        return null;
-    }
-    return load(filePath);
-};
+    return load(root, filename);
+}
+
+module.exports = loadFile;
+module.exports.extraConfig = extraConfig;
