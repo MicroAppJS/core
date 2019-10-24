@@ -45,7 +45,7 @@ module.exports = {
 
     strict: true,
 
-    micros: [ 'test' ], // 被注册的容器
+    micros: [ 'test', 'abab' ], // 被注册的容器
 
     // 服务配置
     server: {

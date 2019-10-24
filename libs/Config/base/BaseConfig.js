@@ -5,10 +5,11 @@ const fs = require('fs-extra');
 const tryRequire = require('try-require');
 const _ = require('lodash');
 
+const { getPadLength } = require('@micro-app/shared-utils');
+
 const Symbols = require('../../Constants/symbols');
 const CONSTANTS = require('../../Constants');
 const logger = require('../../../src/utils/logger');
-const getPadLength = require('../../../src/utils/getPadLength');
 
 // 默认配置
 // const DEFAULT_CONFIG = require('../../Constants/default');
@@ -17,7 +18,9 @@ const validate = require('../schema');
 const SCHEMA = require('../schema/configSchema');
 
 const INIT = Symbol('@BaseConfig#INIT');
-const ORIGNAL_CONFIG = Symbol('@BaseConfig#ORIGNAL_CONFIG');
+const KEY_ORIGNAL_CONFIG = Symbol('@BaseConfig#KEY_ORIGNAL_CONFIG');
+const KEY_PACKAGE = Symbol('@BaseConfig#KEY_PACKAGE');
+const KEY_PACKAGE_PATH = Symbol('@BaseConfig#KEY_PACKAGE_PATH');
 
 class BaseConfig {
 
@@ -29,7 +32,7 @@ class BaseConfig {
     constructor(config /* , opts = {} */) {
         // 校验 config
         this._validateSchema(config);
-        this[ORIGNAL_CONFIG] = config;
+        this[KEY_ORIGNAL_CONFIG] = config;
         this[INIT]();
     }
 
@@ -49,29 +52,32 @@ class BaseConfig {
     [INIT]() {
         if (!this.config[Symbols.LOAD_SUCCESS]) {
             // 文件未加载成功.
-            logger.error(`Not Found "${CONSTANTS.CONFIG_NAME}"`);
+            logger.warn(`Not Found "${CONSTANTS.CONFIG_NAME}"`);
+            logger.warn(`You must be to create "${CONSTANTS.CONFIG_NAME}" in "${this.root}"`);
         }
         if (this.root) {
             try {
                 const packagePath = path.resolve(this.root, CONSTANTS.PACKAGE_JSON);
                 if (fs.existsSync(packagePath)) {
-                    this._packagePath = packagePath;
-                    this._package = require(packagePath);
+                    this[KEY_PACKAGE_PATH] = packagePath;
+                    this[KEY_PACKAGE] = require(packagePath);
                     if (!this.config[Symbols.LOAD_SUCCESS]) {
-                        // 文件未加载成功.
-                        // TODO 可以从 package.json 中查询配置文件
+                        // 文件未加载成功. 可以从 package.json 中查询配置文件
+                        if (this[KEY_PACKAGE] && this[KEY_PACKAGE]['micro-app'] && _.isPlainObject(this[KEY_PACKAGE]['micro-app'])) {
+                            Object.assign(this[KEY_ORIGNAL_CONFIG], this[KEY_PACKAGE]['micro-app']);
+                        }
                     }
                 }
             } catch (error) {
-                this._packagePath = '';
-                this._package = {};
+                this[KEY_PACKAGE_PATH] = '';
+                this[KEY_PACKAGE] = {};
                 logger.warn(`Not Fount "${CONSTANTS.PACKAGE_JSON}" !`);
             }
         }
     }
 
     get config() {
-        return this[ORIGNAL_CONFIG] || {};
+        return this[KEY_ORIGNAL_CONFIG] || {};
     }
 
     get root() {
@@ -119,11 +125,11 @@ class BaseConfig {
     }
 
     get packagePath() {
-        return this._packagePath;
+        return this[KEY_PACKAGE_PATH] || '';
     }
 
     get package() {
-        return Object.freeze(JSON.parse(JSON.stringify(this._package || {})));
+        return Object.freeze(JSON.parse(JSON.stringify(this[KEY_PACKAGE] || {})));
     }
 
     get key() {
@@ -178,13 +184,13 @@ class BaseConfig {
         if (currShared) { // 兼容旧版
             return Object.keys(currShared).reduce((obj, key) => {
                 const aliasObj = currShared[key];
-                if (aliasObj && typeof aliasObj === 'string') {
+                if (aliasObj && _.isString(aliasObj)) {
                     obj[key] = {
                         link: aliasObj,
                     };
-                } else if (aliasObj && typeof aliasObj === 'object') {
+                } else if (aliasObj && _.isPlainObject(aliasObj)) {
                     const link = aliasObj.link;
-                    if (link && typeof link === 'string') {
+                    if (link && _.isString(link)) {
                         obj[key] = aliasObj;
                     }
                 }
@@ -194,13 +200,13 @@ class BaseConfig {
         const currAlias = config.alias || {};
         return Object.keys(currAlias).reduce((obj, key) => {
             const aliasObj = currAlias[key];
-            if (aliasObj && typeof aliasObj === 'string') {
+            if (aliasObj && _.isString(aliasObj)) {
                 obj[key] = {
                     link: aliasObj,
                 };
-            } else if (aliasObj && typeof aliasObj === 'object') {
+            } else if (aliasObj && _.isPlainObject(aliasObj)) {
                 const link = aliasObj.link;
-                if (link && typeof link === 'string') {
+                if (link && _.isString(link)) {
                     obj[key] = aliasObj;
                 }
             }
@@ -226,7 +232,7 @@ class BaseConfig {
             Object.keys(currShared).forEach(k => {
                 const p = currShared[k];
                 const aliasKey = `${aliasName}/${k}`;
-                if (!alias[aliasKey] && typeof p === 'string') {
+                if (!alias[aliasKey] && _.isString(p)) {
                     const filePath = path.resolve(this.root, p);
                     alias[aliasKey] = filePath;
                 }
@@ -241,17 +247,17 @@ class BaseConfig {
         const currAlias = config.alias || {};
         return Object.keys(currAlias).reduce((obj, key) => {
             const aliasObj = currAlias[key];
-            if (aliasObj && typeof aliasObj === 'string') {
+            if (aliasObj && _.isString(aliasObj)) {
                 obj[key] = {
                     link: aliasObj,
                 };
             } else if (aliasObj && _.isPlainObject(aliasObj)) {
-                if (aliasObj.server === true || typeof aliasObj.type === 'string' && aliasObj.type.toUpperCase() === 'SERVER') {
+                if (aliasObj.server === true || _.isString(aliasObj.type) && aliasObj.type.toUpperCase() === 'SERVER') {
                     // server ?
                     return obj;
                 }
                 const link = aliasObj.link;
-                if (link && typeof link === 'string') {
+                if (link && _.isString(link)) {
                     obj[key] = aliasObj;
                 }
             }
@@ -276,7 +282,7 @@ class BaseConfig {
             Object.keys(currAlias).forEach(key => {
                 const p = currAlias[key];
                 const aliasKey = `${aliasName}/${key}`;
-                if (!alias[aliasKey] && typeof p === 'string') {
+                if (!alias[aliasKey] && _.isString(p)) {
                     const filePath = path.resolve(this.root, p);
                     alias[aliasKey] = filePath;
                 }

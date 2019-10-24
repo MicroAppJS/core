@@ -2,10 +2,9 @@
 
 module.exports = function(api) {
 
-    const { padEnd } = require('lodash');
     const chalk = require('chalk');
     const _ = require('lodash');
-    const getPadLength = require('../../../src/utils/getPadLength');
+    const { getPadLength } = require('@micro-app/shared-utils');
 
     const details = `
 Examples:
@@ -60,11 +59,11 @@ Examples:
         const padLength = getPadLength(arrs.concat(micros).map(key => ({ name: key })));
         arrs.forEach(key => {
             const _version = selfDeps[key];
-            const textStrs = [ `   * ${chalk.yellow(padEnd(key, padLength))} ${chalk.gray(`[ ${_version} ]`)}` ];
+            const textStrs = [ `   * ${chalk.yellow(_.padEnd(key, padLength))} ${chalk.gray(`[ ${_version} ]`)}` ];
             const _names = dependenciesMap[key] || false;
             if (_names && Array.isArray(_names) && _names.length > 0) {
                 _names.forEach(_name => {
-                    const _microName = chalk.blue(padEnd(_name, padLength - 2));
+                    const _microName = chalk.blue(_.padEnd(_name, padLength - 2));
                     const _microVersion = microsDeps[_name][key];
                     let color = 'gray';
                     try {

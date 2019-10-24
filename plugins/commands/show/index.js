@@ -2,9 +2,9 @@
 
 module.exports = function(api) {
 
-    const { padEnd } = require('lodash');
+    const _ = require('lodash');
     const chalk = require('chalk');
-    const getPadLength = require('../../../src/utils/getPadLength');
+    const { getPadLength } = require('@micro-app/shared-utils');
     const aliasMerge = require('../../../src/utils/merge-alias');
 
     const details = `
@@ -146,7 +146,7 @@ Examples:
         const arrs = Object.keys(obj);
         const padLength = getPadLength(arrs.map(key => ({ name: key })));
         arrs.forEach(key => {
-            const textStrs = [ `   * ${chalk.yellow(padEnd(key, padLength))}` ];
+            const textStrs = [ `   * ${chalk.yellow(_.padEnd(key, padLength))}` ];
             const alias = obj[key] && obj[key].alias || false;
             if (alias && typeof alias === 'string') {
                 textStrs.push(`[ ${chalk.blue(alias)} ]`);

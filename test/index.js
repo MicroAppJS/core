@@ -68,9 +68,9 @@
 
 // logger.throw('abc');
 
-require('./cccc.js');
+const { logger } = require('@micro-app/shared-utils');
 
-console.warn(module);
-console.warn(module.exports);
-console.warn(exports);
+logger.warn(module);
+logger.warn(module.exports);
+logger.warn(exports);
 
