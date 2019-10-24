@@ -2,9 +2,9 @@
 
 module.exports = function(api) {
 
-    const { padEnd } = require('lodash');
+    const _ = require('lodash');
     const chalk = require('chalk');
-    const getPadLength = require('../../../src/utils/getPadLength');
+    const { getPadLength } = require('@micro-app/shared-utils');
 
     api.registerCommand('version', {
         description: 'show version',
@@ -26,7 +26,7 @@ module.exports = function(api) {
         const padLength = getPadLength(_pkgs);
 
         _pkgs.forEach(info => {
-            const textStrs = [ `   * ${chalk.yellow(padEnd(info.name, padLength))}` ];
+            const textStrs = [ `   * ${chalk.yellow(_.padEnd(info.name, padLength))}` ];
             const version = info.version || false;
             if (version && typeof version === 'string') {
                 textStrs.push(`[ ${chalk.blueBright(version)} ]`);

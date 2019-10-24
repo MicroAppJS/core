@@ -4,16 +4,20 @@ const CONSTANTS = require('../libs/Constants');
 const Service = require('../libs/Service');
 const logger = require('../src/utils/logger');
 const loadFile = require('../src/utils/loadFile');
-const smartMerge = require('../src/utils/smartMerge');
 const requireMicro = require('../src/utils/requireMicro');
-const moduleAlias = require('../src/utils/injectModuleAlias');
-const virtualFile = require('../src/utils/virtualFile');
-const injectHtml = require('../src/utils/injectHtml');
+
+const {
+    moduleAlias,
+    smartMerge,
+    virtualFile,
+    injectHtml,
+} = require('@micro-app/shared-utils');
 
 function microApp() {
     return requireMicro.apply(requireMicro, arguments);
 }
 
+// 核心模块不在提供工具
 const utils = {
     loadFile,
     smartMerge,

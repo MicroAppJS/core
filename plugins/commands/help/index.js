@@ -2,9 +2,9 @@
 
 module.exports = function(api) {
 
-    const { padEnd } = require('lodash');
+    const _ = require('lodash');
     const chalk = require('chalk');
-    const getPadLength = require('../../../src/utils/getPadLength');
+    const { getPadLength } = require('@micro-app/shared-utils');
 
     api.registerCommand('help', {
         hide: true,
@@ -31,7 +31,7 @@ module.exports = function(api) {
         for (const name in commands) {
             const opts = commands[name].opts || {};
             if (opts.hide !== true) {
-                api.logger.logo(`    * ${chalk.yellow(padEnd(name, padLength))}${opts.description ? ` ( ${chalk.gray(opts.description)} )` : ''}`);
+                api.logger.logo(`    * ${chalk.yellow(_.padEnd(name, padLength))}${opts.description ? ` ( ${chalk.gray(opts.description)} )` : ''}`);
             }
         }
         api.logger.logo(
@@ -54,7 +54,7 @@ module.exports = function(api) {
                 api.logger.logo(`${chalk.green('Options')}:`);
                 const padLength = getPadLength(opts.options);
                 for (const name in opts.options) {
-                    api.logger.logo(`    * ${chalk.yellow(padEnd(name, padLength))} ( ${chalk.gray(opts.options[name])} )`);
+                    api.logger.logo(`    * ${chalk.yellow(_.padEnd(name, padLength))} ( ${chalk.gray(opts.options[name])} )`);
                 }
             }
             if (opts.details) {

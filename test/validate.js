@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const validate = require('../libs/Config/schema');
-const getPadLength = require('../src/utils/getPadLength');
+const { getPadLength } = require('@micro-app/shared-utils');
 
 const result = validate(require('../libs/Config/schema/configSchema'), require('../libs/Constants/default'));
 const padLength = getPadLength(result.map(item => {

@@ -1,6 +1,6 @@
 {
     "name": "@micro-app/core",
-    "version": "0.2.0-beta.8",
+    "version": "0.2.0-beta.9",
     "description": "[Core] Pluggable micro application framework.",
     "main": "src/index.js",
     "scripts": {
@@ -17,7 +17,6 @@
         "url": "https://github.com/MicrosApp/MicroApp-Core/issues"
     },
     "files": [
-        "config",
         "libs",
         "src",
         "plugins",
@@ -42,33 +41,21 @@
         ]
     },
     "devDependencies": {
-        "@types/jest": "^24.0.18",
+        "@types/jest": "^24.0.19",
         "babel-eslint": "^10.0.3",
         "coveralls": "^3.0.7",
         "eslint": "^5.16.0",
         "eslint-config-2o3t": "^1.1.17",
-        "html-webpack-plugin": "^3.2.0",
         "husky": "^3.0.9",
         "jest": "^24.9.0",
         "lint-staged": "^9.4.2",
-        "webpack": "^4.39.2",
-        "webpack-merge": "^4.2.2",
         "yargs-parser": "^13.1.1"
     },
     "dependencies": {
+        "@micro-app/shared-utils": "^0.0.3",
         "ajv": "^6.10.2",
         "ajv-keywords": "^3.4.1",
-        "assert": "^2.0.0",
-        "chalk": "^2.4.2",
-        "cheerio": "^1.0.0-rc.3",
-        "dotenv": "^8.1.0",
-        "fs-extra": "^8.1.0",
-        "lodash": "^4.17.15",
-        "ora": "^3.4.0",
-        "semver": "^6.3.0",
-        "semver-regex": "^3.1.0",
-        "stream-to-string": "^1.2.0",
-        "try-require": "^1.2.1"
+        "dotenv": "^8.2.0"
     },
     "engines": {
         "node": ">=8"

@@ -4,16 +4,11 @@ const tryRequire = require('try-require');
 const assert = require('assert');
 const _ = require('lodash');
 
+const { moduleAlias, smartMerge, virtualFile } = require('@micro-app/shared-utils');
+
 const BaseService = require('./base/BaseService');
-
 const logger = require('../../src/utils/logger');
-const virtualFile = require('../../src/utils/virtualFile');
-const smartMerge = require('../../src/utils/smartMerge');
-
-const moduleAlias = require('../../src/utils/injectModuleAlias');
-
 const PluginAPI = require('./PluginAPI');
-
 const { PreLoadPlugins } = require('./constants');
 
 class Service extends BaseService {
@@ -373,7 +368,7 @@ e.g.
 
     runCommand(rawName, rawArgs = { _: [] }) {
         logger.debug(`[Plugin] raw command name: ${rawName}, args: `, rawArgs);
-        const { name = rawName, args } = this.applyPluginHooks('modifyCommand', {
+        const { name = rawName, args = rawArgs } = this.applyPluginHooks('modifyCommand', {
             name: rawName,
             args: rawArgs,
         });

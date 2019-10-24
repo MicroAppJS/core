@@ -5,10 +5,11 @@ const fs = require('fs-extra');
 const tryRequire = require('try-require');
 const _ = require('lodash');
 
+const { getPadLength } = require('@micro-app/shared-utils');
+
 const Symbols = require('../../Constants/symbols');
 const CONSTANTS = require('../../Constants');
 const logger = require('../../../src/utils/logger');
-const getPadLength = require('../../../src/utils/getPadLength');
 
 // 默认配置
 // const DEFAULT_CONFIG = require('../../Constants/default');
