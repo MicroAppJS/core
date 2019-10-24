@@ -12,6 +12,7 @@ const contants = {
         'env',
         'version',
         'pkg',
+        'extraConfig',
         'microsExtraConfig',
         'applyPluginHooks',
         'applyPluginHooksAsync',

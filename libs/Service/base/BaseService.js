@@ -11,7 +11,7 @@ const loadFile = require('../../../src/utils/loadFile');
 const logger = require('../../../src/utils/logger');
 
 const { SharedProps } = require('../constants');
-const MICROS_EXTRAL_CONFIG_KEY = Symbol('MICROS_EXTRAL_CONFIG_KEY');
+const MICROS_EXTRA_CONFIG_KEY = Symbol('MICROS_EXTRA_CONFIG_KEY');
 
 // 全局状态集
 const GLOBAL_STATE = {};
@@ -73,7 +73,7 @@ class BaseService {
      */
     __initGlobalMicroAppConfig__() {
         // 加载高级配置
-        const extraConfig = this[MICROS_EXTRAL_CONFIG_KEY] = loadFile(this.root, CONSTANTS.EXTRAL_CONFIG_NAME);
+        const extraConfig = this[MICROS_EXTRA_CONFIG_KEY] = loadFile(this.root, CONSTANTS.EXTRAL_CONFIG_NAME);
 
         if (extraConfig && _.isPlainObject(extraConfig)) {
             Object.keys(extraConfig).forEach(key => {
@@ -113,9 +113,7 @@ class BaseService {
     get self() {
         const _self = requireMicro.self();
         if (!_self) {
-            logger.error(`Not Found "${CONSTANTS.CONFIG_NAME}"`);
-            logger.warn(`must be to create "${CONSTANTS.CONFIG_NAME}" in "${this.root}"`);
-            process.exit(1);
+            logger.throw(`Not Found "${CONSTANTS.CONFIG_NAME}"`);
         }
         return _self;
     }
@@ -124,11 +122,17 @@ class BaseService {
         return this.microsConfig[this.self.key] || this.self.toConfig(true) || {};
     }
 
+    get extraConfig() {
+        return this[MICROS_EXTRA_CONFIG_KEY] || {};
+    }
+
     get microsExtraConfig() {
-        const microsExtral = this[MICROS_EXTRAL_CONFIG_KEY] || {};
+        const extraConfig = this.extraConfig || {};
+        // 兼容旧版本
+        const microsExtra = extraConfig.micro || extraConfig || {};
         const result = {};
         Array.from(this.micros).forEach(key => {
-            result[key] = Object.assign({}, microsExtral[key] || {
+            result[key] = Object.assign({}, microsExtra[key] || {
                 disabled: false, // 禁用入口
                 disable: false,
                 link: false,
@@ -143,7 +147,7 @@ class BaseService {
                 result[key].disable = false;
             }
         });
-        return Object.assign({}, microsExtral, result);
+        return Object.assign({}, microsExtra, result);
     }
 
     _initMicrosConfig() {

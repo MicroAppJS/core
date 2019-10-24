@@ -3,6 +3,7 @@
 const tryRequire = require('try-require');
 const fs = require('fs-extra');
 const path = require('path');
+const logger = require('./logger');
 const symbols = require('../../libs/Constants/symbols');
 
 function isSupport(filename) {
@@ -41,6 +42,7 @@ function loadFile(root, filename) {
         return null;
     }
     if (!isSupport(filename)) {
+        logger.warn(`Not Support ext "${filename}"`);
         return null;
     }
     if (!fs.existsSync(root)) {
