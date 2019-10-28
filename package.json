@@ -1,6 +1,6 @@
 {
     "name": "@micro-app/core",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "[Core] Pluggable micro application framework.",
     "main": "src/index.js",
     "scripts": {
@@ -52,10 +52,13 @@
         "yargs-parser": "^13.1.1"
     },
     "dependencies": {
-        "@micro-app/shared-utils": "^0.0.3",
+        "@micro-app/shared-utils": "^0.0.4",
         "ajv": "^6.10.2",
         "ajv-keywords": "^3.4.1",
         "dotenv": "^8.2.0"
+    },
+    "peerDependencies": {
+        "@micro-app/shared-utils": ">=0.0.4"
     },
     "engines": {
         "node": ">=8"

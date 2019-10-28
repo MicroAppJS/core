@@ -118,8 +118,12 @@ class BaseService {
         return _self;
     }
 
+    get selfKey() {
+        return this.self.key;
+    }
+
     get selfConfig() {
-        return this.microsConfig[this.self.key] || this.self.toConfig(true) || {};
+        return this.microsConfig[this.selfKey] || this.self.toConfig(true) || {};
     }
 
     get extraConfig() {
@@ -162,10 +166,11 @@ class BaseService {
                 logger.error(`Not Found micros: "${key}"`);
             }
         });
-        config[this.self.key] = this.self.toConfig(true);
+        config[this.selfKey] = this.self.toConfig(true);
         return config;
     }
 
+    // 可增加对模式的解析
     _initDotEnv() {
         const env = process.env.NODE_ENV;
         const dotenv = require('dotenv');
@@ -228,6 +233,33 @@ class BaseService {
         opts = opts || {};
         this.commands[name] = { fn, opts };
         logger.debug(`[Plugin] registerCommand( ${name} ); Success!`);
+    }
+
+    /**
+     * 解析指定key的其它name的配置信息
+     *
+     * @param {string} name config name
+     * @param {string} key micro key
+     * @return {Object} config
+     * @memberof BaseService
+     */
+    parseConfig(name, key = this.selfKey) {
+        assert(typeof name === 'string', 'name must be string.');
+        const microsConfig = this.microsConfig;
+        const microConfig = microsConfig[key];
+        if (!_.isEmpty(microConfig)) {
+            const root = microConfig.root;
+            const filename = CONSTANTS.EXTRAL_CONFIG_NAME.replace('extra', name);
+            const config = loadFile(root, filename);
+            if (!_.isEmpty(config)) {
+                return config;
+            }
+            const _originalConfig = microConfig.originalConfig || {};
+            if (!_.isEmpty(_originalConfig[name])) {
+                return _originalConfig[name];
+            }
+        }
+        return null;
     }
 }
 

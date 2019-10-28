@@ -23,4 +23,15 @@ describe('BaseService', () => {
 
     });
 
+    it('parseConfig', () => {
+        const base = new BaseService();
+
+        const config = base.parseConfig('webpack');
+        expect(config).not.toBeUndefined();
+
+        const extraConfig = base.parseConfig('extra');
+        expect(extraConfig).not.toBeUndefined();
+        expect(extraConfig).not.toBeNull();
+    });
+
 });

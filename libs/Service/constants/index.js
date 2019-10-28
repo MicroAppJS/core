@@ -14,6 +14,7 @@ const contants = {
         'pkg',
         'extraConfig',
         'microsExtraConfig',
+        'parseConfig',
         'applyPluginHooks',
         'applyPluginHooksAsync',
         'resolvePlugin',
