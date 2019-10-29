@@ -250,9 +250,13 @@ class BaseService {
         if (!_.isEmpty(microConfig)) {
             const root = microConfig.root;
             const filename = CONSTANTS.EXTRAL_CONFIG_NAME.replace('extra', name);
-            const config = loadFile(root, filename);
-            if (!_.isEmpty(config)) {
-                return config;
+            const _config = loadFile(root, filename);
+            if (!_.isEmpty(_config)) {
+                return _config;
+            }
+            const _extraConfig = this.extraConfig || {};
+            if (!_.isEmpty(_extraConfig[name])) {
+                return _extraConfig[name];
             }
             const _originalConfig = microConfig.originalConfig || {};
             if (!_.isEmpty(_originalConfig[name])) {
