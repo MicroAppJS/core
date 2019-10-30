@@ -1,6 +1,7 @@
 'use strict';
 
-const chalk = require('chalk').default;
+const os = require('os');
+const chalk = require('chalk');
 const utils = require('util');
 
 const { logger } = require('@micro-app/shared-utils');
@@ -12,7 +13,7 @@ const toString = {
     logo() {
         const message = utils.format(...(arguments || []));
         const { NAME } = CONSTANTS;
-        return `${chalk.bgHex('#662F88')(` ${NAME} `)} ${message} \r\n`;
+        return `${chalk.bgHex('#662F88')(` ${NAME} `)} ${message} ${os.EOL}`;
     },
 };
 

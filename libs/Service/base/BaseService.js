@@ -3,6 +3,7 @@
 const assert = require('assert');
 const _ = require('lodash');
 const semverRegex = require('semver-regex');
+const os = require('os');
 
 const CONSTANTS = require('../../../libs/Constants');
 
@@ -78,7 +79,7 @@ class BaseService {
         if (extraConfig && _.isPlainObject(extraConfig)) {
             Object.keys(extraConfig).forEach(key => {
                 const item = extraConfig[key];
-                logger.debug(`【 Extra Config 】${key}: \n${JSON.stringify(item, false, 4)}`);
+                logger.debug(`【 Extra Config 】${key}: ${os.EOL}${JSON.stringify(item, false, 4)}`);
             });
         }
 
@@ -183,7 +184,7 @@ class BaseService {
                 process.env.HOSTNAME = config.HOSTNAME;
             }
             Object.assign(this.env, config);
-            logger.debug('dotenv parsed envs:\n', JSON.stringify(this.env, null, 4));
+            logger.debug(`dotenv parsed envs:${os.EOL}`, JSON.stringify(this.env, null, 4));
         }
 
         if (env === 'production') { // fixed

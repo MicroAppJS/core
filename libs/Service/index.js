@@ -376,8 +376,7 @@ e.g.
 
         const command = this.commands[name];
         if (!command) {
-            logger.error(`Command "${name}" does not exists`);
-            return this.runCommand('help', { _: [] });
+            logger.throw(`Command "${name}" does not exists!`);
         }
 
         const { fn, opts } = command;

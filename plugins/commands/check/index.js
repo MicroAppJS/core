@@ -2,6 +2,7 @@
 
 module.exports = function(api) {
 
+    const os = require('os');
     const chalk = require('chalk');
     const _ = require('lodash');
     const { getPadLength } = require('@micro-app/shared-utils');
@@ -73,7 +74,7 @@ Examples:
                         color = 'yellow';
                     }
                     const _warpperMicroVersion = chalk[color](`[ ${_microVersion} ]`);
-                    textStrs.push(`\n${' '.repeat(15) + chalk.gray('|--')} ${_microName} ${_warpperMicroVersion}`);
+                    textStrs.push(`${os.EOL}${' '.repeat(15) + chalk.gray('|--')} ${_microName} ${_warpperMicroVersion}`);
                 });
             }
             api.logger.logo(textStrs.join(' '));
