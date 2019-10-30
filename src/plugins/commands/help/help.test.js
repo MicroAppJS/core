@@ -2,7 +2,7 @@
 
 /* global expect */
 
-const Service = require('../../../libs/Service');
+const Service = require('../../../core/Service');
 // const help = require('.');
 
 describe('Command help', () => {

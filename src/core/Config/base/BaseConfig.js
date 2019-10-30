@@ -9,7 +9,7 @@ const { getPadLength } = require('@micro-app/shared-utils');
 
 const Symbols = require('../../Constants/symbols');
 const CONSTANTS = require('../../Constants');
-const logger = require('../../../src/utils/logger');
+const logger = require('../../../utils/logger');
 
 // 默认配置
 // const DEFAULT_CONFIG = require('../../Constants/default');

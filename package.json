@@ -1,6 +1,7 @@
 {
     "name": "@micro-app/core",
-    "version": "0.2.2",
+    "version": "0.3.0",
+    "private": true,
     "description": "[Core] Pluggable micro application framework.",
     "main": "src/index.js",
     "scripts": {
@@ -17,9 +18,7 @@
         "url": "https://github.com/MicrosApp/MicroApp-Core/issues"
     },
     "files": [
-        "libs",
         "src",
-        "plugins",
         "micro-app.config.js"
     ],
     "keywords": [

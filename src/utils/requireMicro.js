@@ -3,9 +3,9 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-const CONSTANTS = require('../../libs/Constants');
-const MicroAppConfig = require('../../libs/Config');
-const symbols = require('../../libs/Constants/symbols');
+const CONSTANTS = require('../core/Constants');
+const MicroAppConfig = require('../core/Config');
+const symbols = require('../core/Constants/symbols');
 const loadFile = require('./loadFile');
 
 const SELF_CONFIG = Symbol('@MicroAppConfig#SELF_CONFIG');

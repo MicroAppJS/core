@@ -2,17 +2,12 @@
 
 /* global expect */
 
-const Service = require('../../../libs/Service');
-// const PluginAPI = require('../../../libs/Service/PluginAPI');
-// const versionCommand = require('./index');
+const Service = require('../../../core/Service');
 
 describe('Command version', () => {
 
     it('version', () => {
         const service = new Service();
-        // const api = new PluginAPI('version', service);
-
-        // versionCommand(api);
 
         service.run('version');
 

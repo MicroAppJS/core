@@ -1,8 +1,8 @@
 'use strict';
 
 const semver = require('semver');
-const logger = require('../../../src/utils/logger');
-const CONSTANTS = require('../../../libs/Constants');
+const logger = require('../../../utils/logger');
+const CONSTANTS = require('../../Constants');
 
 class BaseAPI {
 

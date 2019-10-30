@@ -3,7 +3,7 @@
 /* global expect */
 
 const MicroAppConfig = require('./index');
-const loadFile = require('../../src/utils/loadFile');
+const loadFile = require('../../utils/loadFile');
 
 describe('MicroAppConfig', () => {
 

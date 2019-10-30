@@ -7,7 +7,7 @@ const _ = require('lodash');
 const { moduleAlias, smartMerge, virtualFile } = require('@micro-app/shared-utils');
 
 const BaseService = require('./base/BaseService');
-const logger = require('../../src/utils/logger');
+const logger = require('../../utils/logger');
 const PluginAPI = require('./PluginAPI');
 const { PreLoadPlugins } = require('./constants');
 

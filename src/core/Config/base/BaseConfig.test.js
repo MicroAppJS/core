@@ -3,7 +3,7 @@
 /* global expect */
 
 const BaseConfig = require('./BaseConfig');
-const loadFile = require('../../../src/utils/loadFile');
+const loadFile = require('../../../utils/loadFile');
 
 const testConfig = {
     shared: {

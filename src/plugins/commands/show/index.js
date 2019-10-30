@@ -5,7 +5,7 @@ module.exports = function(api) {
     const _ = require('lodash');
     const chalk = require('chalk');
     const { getPadLength } = require('@micro-app/shared-utils');
-    const aliasMerge = require('../../../src/utils/merge-alias');
+    const aliasMerge = require('../../../utils/merge-alias');
 
     const details = `
 Examples:

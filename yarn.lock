@@ -379,10 +379,10 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^13.0.0"
 
-"@micro-app/shared-utils@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@micro-app/shared-utils/-/shared-utils-0.0.3.tgz#1f6463b2f533128ff84e10dcb2fcbea46ab487b7"
-  integrity sha512-dC4fQgNDGFA8R17DBv6jycuaQ5sZXvZZWB28DtU/pIaV31xnB6LwYkepE5OUq0B9mNjAw3IMQ/RKpa/Ajxz4dQ==
+"@micro-app/shared-utils@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@micro-app/shared-utils/-/shared-utils-0.0.4.tgz#9e89cc904b7682eeb6be9d94e17b66a719f17282"
+  integrity sha512-HnRiUhowtZWHQOio2wWyNTSQpw+xSKExALA2L9dMl5ISdvLoPVAlSqs9DTxxH7ynDoEwJZo6WKElwhJqocJazw==
   dependencies:
     assert "^2.0.0"
     chalk "^2.4.2"

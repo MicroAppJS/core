@@ -5,7 +5,7 @@ const path = require('path');
 const { loadFile } = require('@micro-app/shared-utils');
 
 const logger = require('./logger');
-const symbols = require('../../libs/Constants/symbols');
+const symbols = require('../core/Constants/symbols');
 
 function isSupport(filename) {
     return [ '.js', '.json' ].some(ext => {

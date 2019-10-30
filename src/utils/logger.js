@@ -6,7 +6,7 @@ const utils = require('util');
 
 const { logger } = require('@micro-app/shared-utils');
 
-const CONSTANTS = require('../../libs/Constants');
+const CONSTANTS = require('../core/Constants');
 
 const toString = {
     ...logger.toString,

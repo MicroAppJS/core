@@ -10,7 +10,7 @@ module.exports = function(api) {
         description: 'show version',
         usage: 'micro-app version',
     }, () => {
-        const pkg = require('../../../package.json');
+        const pkg = require('../../../../package.json');
 
         const packages = api.applyPluginHooks('addCommandVersion', [ pkg ]);
 

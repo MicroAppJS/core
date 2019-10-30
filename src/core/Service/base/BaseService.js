@@ -5,11 +5,11 @@ const _ = require('lodash');
 const semverRegex = require('semver-regex');
 const os = require('os');
 
-const CONSTANTS = require('../../../libs/Constants');
+const CONSTANTS = require('../../Constants');
 
-const requireMicro = require('../../../src/utils/requireMicro');
-const loadFile = require('../../../src/utils/loadFile');
-const logger = require('../../../src/utils/logger');
+const requireMicro = require('../../../utils/requireMicro');
+const loadFile = require('../../../utils/loadFile');
+const logger = require('../../../utils/logger');
 
 const { SharedProps } = require('../constants');
 const MICROS_EXTRA_CONFIG_KEY = Symbol('MICROS_EXTRA_CONFIG_KEY');
