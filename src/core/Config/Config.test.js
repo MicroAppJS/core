@@ -43,8 +43,8 @@ describe('MicroAppConfig', () => {
         expect(config.toJSON(true)).not.toBeUndefined();
         expect(config.toJSON(true)).not.toBeNull();
 
-        expect(config.toConfig(true)).not.toBeUndefined();
-        expect(config.toConfig(true)).not.toBeNull();
+        expect(config).not.toBeUndefined();
+        expect(config).not.toBeNull();
 
         // 已迁移
         expect(config.webpack).toBeUndefined();
@@ -77,8 +77,8 @@ describe('MicroAppConfig', () => {
         expect(config.toJSON(true)).not.toBeUndefined();
         expect(config.toJSON(true)).not.toBeNull();
 
-        expect(config.toConfig(true)).not.toBeUndefined();
-        expect(config.toConfig(true)).not.toBeNull();
+        expect(config).not.toBeUndefined();
+        expect(config).not.toBeNull();
 
         // 已迁移
         expect(config.webpack).toBeUndefined();
@@ -90,5 +90,25 @@ describe('MicroAppConfig', () => {
         expect(config.staticPaths).toBeUndefined();
         expect(config.server).toBeUndefined();
         expect(config.toServerConfig).toBeUndefined();
+    });
+
+    it('manifest', () => {
+        const defaultConfig = loadFile(process.cwd(), 'micro-app.config.js');
+        const config = new MicroAppConfig(Object.assign({}, defaultConfig, {
+
+        }));
+
+        expect(config.manifest).not.toBeUndefined();
+        expect(config.manifest).not.toBeNull();
+    });
+
+    it('licensePath', () => {
+        const defaultConfig = loadFile(process.cwd(), 'micro-app.config.js');
+        const config = new MicroAppConfig(Object.assign({}, defaultConfig, {
+
+        }));
+
+        expect(config.licensePath).not.toBeUndefined();
+        expect(config.licensePath).not.toBeNull();
     });
 });

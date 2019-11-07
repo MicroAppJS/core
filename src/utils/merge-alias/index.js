@@ -1,7 +1,6 @@
 'use strict';
 
-const _ = require('lodash');
-const { smartMerge } = require('@micro-app/shared-utils');
+const { smartMerge, _ } = require('@micro-app/shared-utils');
 
 function padAliasName(config, type) {
     const alias = {};

@@ -1,6 +1,7 @@
 'use strict';
 
-const semver = require('semver');
+const { semver } = require('@micro-app/shared-utils');
+
 const logger = require('../../../utils/logger');
 const CONSTANTS = require('../../Constants');
 
@@ -24,11 +25,11 @@ class BaseAPI {
     }
 
     setState(key, value) {
-        this.service.state[key] = value;
+        this.service.setState(key, value);
     }
 
     getState(key, value) {
-        return this.service.state[key] || value;
+        return this.service.getState(key, value);
     }
 
     assertVersion(range) {

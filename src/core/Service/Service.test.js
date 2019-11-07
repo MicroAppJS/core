@@ -15,7 +15,7 @@ describe('Service', () => {
         // 去除
         expect(service.selfServerConfig).toBeUndefined();
 
-        expect(service.micros).toBeInstanceOf(Set);
+        expect(service.micros).toBeInstanceOf(Array);
 
         expect(service.microsConfig).not.toBeNull();
         expect(service.microsConfig).not.toBeUndefined();

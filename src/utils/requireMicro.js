@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const fs = require('fs-extra');
+const { _, fs } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../core/Constants');
 const MicroAppConfig = require('../core/Config');
@@ -28,65 +28,40 @@ function self() {
     return null;
 }
 
-function isExists(p) {
-    try {
-        return fs.existsSync(p) && fs.statSync(p).isDirectory();
-    } catch (error) {
-        return false;
-    }
-}
-
-// TODO global 可优化
-// @custom 开发模式软链接
-// 当 global.MicroAppConfig.microsExtraConfig 存在时, 才会开启软链功能
-function fixedDevLink(id, micPath) {
-    const MicroAppConfig = global.MicroAppConfig || {};
-    const microsExtraConfig = MicroAppConfig.microsExtraConfig || {};
-    const extralConfig = microsExtraConfig[id];
-    if (extralConfig && extralConfig.link && fs.existsSync(extralConfig.link)) {
-        return extralConfig.link;
-    }
-    return micPath;
-}
-
-function requireMicro(id) {
-    const { ROOT, SCOPE_NAME, CONFIG_NAME, NODE_MODULES_NAME } = CONSTANTS;
-    const name = `${SCOPE_NAME}/${id}`;
-    if (configCache[name]) {
-        return configCache[name];
-    }
-    // 兼容 id
-    let originalMicPath = path.join(ROOT, NODE_MODULES_NAME, id);
-    if (isExists(originalMicPath)) {
-        const micPath = fixedDevLink(id, originalMicPath);
-        const microConfig = loadFile(micPath, CONFIG_NAME);
-        if (microConfig) {
-            microConfig[symbols.KEY] = id;
-            microConfig[symbols.ORIGINAL_ROOT] = originalMicPath;
-            const _microAppConfig = new MicroAppConfig(microConfig);
-            configCache[name] = _microAppConfig;
-            return _microAppConfig;
-        }
-    } else {
-        originalMicPath = path.join(ROOT, NODE_MODULES_NAME, name);
-        if (isExists(originalMicPath)) {
-            const micPath = fixedDevLink(id, originalMicPath);
-            const microConfig = loadFile(micPath, CONFIG_NAME);
-            if (microConfig) {
-                microConfig[symbols.KEY] = id;
-                microConfig[symbols.ORIGINAL_ROOT] = originalMicPath;
-                const _microAppConfig = new MicroAppConfig(microConfig);
-                configCache[name] = _microAppConfig;
-                return _microAppConfig;
-            }
-        }
+function loadMicroAppConfig(id, [ rootPath, originalMicPath ]) {
+    const { CONFIG_NAME } = CONSTANTS;
+    const microConfig = loadFile(rootPath, CONFIG_NAME);
+    if (microConfig) {
+        microConfig[symbols.KEY] = id;
+        microConfig[symbols.ORIGINAL_ROOT] = originalMicPath;
+        const _microAppConfig = new MicroAppConfig(microConfig);
+        configCache[name] = _microAppConfig;
+        return _microAppConfig;
     }
     return null;
 }
 
+function requireMicro(id, changeRootPath, scope = '') {
+    const { ROOT, SCOPE_NAME, NODE_MODULES_NAME } = CONSTANTS;
+    const name = `${SCOPE_NAME}/${id}`;
+    if (configCache[name]) {
+        return configCache[name];
+    }
+    let result = null;
+    // 兼容 id
+    let originalMicPath = path.resolve(ROOT, NODE_MODULES_NAME, scope, id);
+    const ps = _.isFunction(changeRootPath) && changeRootPath(id, originalMicPath) || [ originalMicPath, originalMicPath ];
+    result = loadMicroAppConfig(id, ps);
+    if (!result) {
+        originalMicPath = path.resolve(ROOT, NODE_MODULES_NAME, scope, name);
+        const ps = _.isFunction(changeRootPath) && changeRootPath(id, originalMicPath) || [ originalMicPath, originalMicPath ];
+        result = loadMicroAppConfig(id, ps);
+    }
+    return result;
+}
+
 
 module.exports = requireMicro;
-
 module.exports.self = self;
 
 module.exports._cache = configCache;

@@ -9,13 +9,13 @@
         "lint:fix": "npm run lint -- --fix",
         "test": "jest"
     },
-    "homepage": "https://github.com/MicrosApp/MicroApp-Core",
+    "homepage": "https://github.com/MicroAppJS/MicroApp-Core",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/MicrosApp/MicroApp-Core.git"
+        "url": "git+https://github.com/MicroAppJS/MicroApp-Core.git"
     },
     "bugs": {
-        "url": "https://github.com/MicrosApp/MicroApp-Core/issues"
+        "url": "https://github.com/MicroAppJS/MicroApp-Core/issues"
     },
     "files": [
         "src",
@@ -51,13 +51,13 @@
         "yargs-parser": "^13.1.1"
     },
     "dependencies": {
-        "@micro-app/shared-utils": "^0.0.4",
+        "@micro-app/shared-utils": "file:../MicroApp-Shared-Utils",
         "ajv": "^6.10.2",
         "ajv-keywords": "^3.4.1",
         "dotenv": "^8.2.0"
     },
     "peerDependencies": {
-        "@micro-app/shared-utils": ">=0.0.4"
+        "@micro-app/shared-utils": ">=0.0.5"
     },
     "engines": {
         "node": ">=8"

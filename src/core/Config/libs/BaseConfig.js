@@ -1,15 +1,12 @@
 'use strict';
 
 const path = require('path');
-const fs = require('fs-extra');
-const tryRequire = require('try-require');
-const _ = require('lodash');
-
-const { getPadLength } = require('@micro-app/shared-utils');
+const { getPadLength, _, tryRequire, isGlob } = require('@micro-app/shared-utils');
 
 const Symbols = require('../../Constants/symbols');
 const CONSTANTS = require('../../Constants');
 const logger = require('../../../utils/logger');
+const loadFile = require('../../../utils/loadFile');
 
 // 默认配置
 // const DEFAULT_CONFIG = require('../../Constants/default');
@@ -57,15 +54,12 @@ class BaseConfig {
         }
         if (this.root) {
             try {
-                const packagePath = path.resolve(this.root, CONSTANTS.PACKAGE_JSON);
-                if (fs.existsSync(packagePath)) {
-                    this[KEY_PACKAGE_PATH] = packagePath;
-                    this[KEY_PACKAGE] = require(packagePath);
-                    if (!this.config[Symbols.LOAD_SUCCESS]) {
-                        // 文件未加载成功. 可以从 package.json 中查询配置文件
-                        if (this[KEY_PACKAGE] && this[KEY_PACKAGE]['micro-app'] && _.isPlainObject(this[KEY_PACKAGE]['micro-app'])) {
-                            Object.assign(this[KEY_ORIGNAL_CONFIG], this[KEY_PACKAGE]['micro-app']);
-                        }
+                this[KEY_PACKAGE_PATH] = path.resolve(this.root, CONSTANTS.PACKAGE_JSON);
+                this[KEY_PACKAGE] = loadFile(this.root, CONSTANTS.PACKAGE_JSON);
+                if (!this.config[Symbols.LOAD_SUCCESS]) {
+                    // 文件未加载成功. 可以从 package.json 中查询配置文件
+                    if (this[KEY_PACKAGE] && this[KEY_PACKAGE]['micro-app'] && _.isPlainObject(this[KEY_PACKAGE]['micro-app'])) {
+                        Object.assign(this[KEY_ORIGNAL_CONFIG], this[KEY_PACKAGE]['micro-app']);
                     }
                 }
             } catch (error) {
@@ -129,13 +123,13 @@ class BaseConfig {
     }
 
     get package() {
-        return Object.freeze(JSON.parse(JSON.stringify(this[KEY_PACKAGE] || {})));
+        return _.cloneDeep(this[KEY_PACKAGE] || {});
     }
 
+    // 唯一标识
     get key() {
         const config = this.config;
-        const reg = new RegExp(`^${CONSTANTS.SCOPE_NAME}\/?`, 'ig');
-        return config[Symbols.KEY] || this.packageName.replace(reg, '') || '';
+        return config[Symbols.KEY] || this.packageName || path.basename(path.dirname(this.root)) || '';
     }
 
     get name() {
@@ -150,7 +144,7 @@ class BaseConfig {
     get aliasName() {
         let aliasName = this.name || '';
         if (!aliasName.startsWith(CONSTANTS.SCOPE_NAME)) {
-            aliasName = `${CONSTANTS.SCOPE_NAME}/${aliasName}`;
+            aliasName = `${CONSTANTS.SCOPE_NAME}/${aliasName.replace(/^@/ig, '')}`;
         }
         return aliasName[0] !== '@' ? `@${aliasName}` : aliasName;
     }
@@ -169,6 +163,7 @@ class BaseConfig {
         const config = this.config;
         return config.type || '';
     }
+
     get micros() {
         const config = this.config;
         if (config.micros && Array.isArray(config.micros)) {
@@ -326,7 +321,7 @@ class BaseConfig {
     }
 
     inspect() {
-        return this.toConfig(true);
+        return this.toJSON();
     }
 
     toJSON(notSimple = false) {
@@ -343,31 +338,14 @@ class BaseConfig {
             originalRoot: this.originalRoot,
             hasSoftLink: this.hasSoftLink,
             nodeModules: this.nodeModules,
+            strict: this.strict,
         };
         if (notSimple) {
-            json.strict = this.strict;
             json.path = this.path;
             json.micros = this.micros;
             json.packagePath = this.packagePath;
             json.subModulesRoot = this.subModulesRoot;
             json.package = this.package;
-        }
-        return json;
-    }
-
-    toConfig(notSimple = false) {
-        const json = {
-            ...this.toJSON(notSimple),
-            alias: this.alias,
-            aliasObj: this.aliasObj,
-            resolveAlias: this.resolveAlias,
-            shared: this.shared,
-            sharedObj: this.sharedObj,
-            resolveShared: this.resolveShared,
-        };
-        if (notSimple) {
-            json.plugins = this.plugins;
-            json.originalConfig = this.config;
         }
         return json;
     }

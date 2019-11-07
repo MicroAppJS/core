@@ -2,9 +2,9 @@
 
 /* global expect */
 
-const Service = require('./index');
+const Service = require('../Service/index');
 const PluginAPI = require('./PluginAPI');
-const DEFAULT_METHODS = require('./methods');
+const DEFAULT_METHODS = require('../Service/methods');
 
 describe('PluginAPI', () => {
 

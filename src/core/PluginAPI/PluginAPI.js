@@ -3,8 +3,8 @@
 const assert = require('assert');
 const _ = require('lodash');
 
-const BaseAPI = require('./base/BaseAPI');
-const DEFAULT_METHODS = require('./methods');
+const BaseAPI = require('./libs/BaseAPI');
+const DEFAULT_METHODS = require('../Service/methods');
 
 class PluginAPI extends BaseAPI {
 
@@ -129,7 +129,7 @@ class PluginAPI extends BaseAPI {
             'Only id, apply and opts is valid plugin properties'
         );
         this.service.extraPlugins.push(opts);
-        this.logger.debug(`[Plugin] registerPlugin( ${id} ); Success!`);
+        this.logger.debug('[Plugin]', ` registerPlugin( ${id} ); Success!`);
     }
 }
 

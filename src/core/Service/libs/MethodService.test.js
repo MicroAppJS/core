@@ -2,14 +2,12 @@
 
 /* global expect */
 
-const BaseService = require('./BaseService');
+const MethodService = require('./MethodService');
 
-describe('BaseService', () => {
+describe('MethodService', () => {
 
     it('new constructor', () => {
-        const base = new BaseService();
-
-        base._initDotEnv();
+        const base = new MethodService();
 
         expect(base.pkg).not.toBeNull();
         expect(base.pkg).not.toBeUndefined();
@@ -24,7 +22,7 @@ describe('BaseService', () => {
     });
 
     it('parseConfig', () => {
-        const base = new BaseService();
+        const base = new MethodService();
 
         const config = base.parseConfig('webpack');
         expect(config).not.toBeUndefined();
@@ -32,6 +30,22 @@ describe('BaseService', () => {
         const extraConfig = base.parseConfig('extra');
         expect(extraConfig).not.toBeUndefined();
         expect(extraConfig).not.toBeNull();
+    });
+
+    it('packages', () => {
+        const base = new MethodService();
+
+        expect(base.packages).not.toBeUndefined();
+        expect(base.packages).not.toBeNull();
+    });
+
+    it('microsConfig', () => {
+        const base = new MethodService();
+
+        expect(base.microsConfig).not.toBeUndefined();
+        expect(base.microsConfig).not.toBeNull();
+
+        console.warn(base.micros);
     });
 
 });
