@@ -74,6 +74,10 @@ class BaseConfig {
         return this[KEY_ORIGNAL_CONFIG] || {};
     }
 
+    get originalConfig() {
+        return this.config;
+    }
+
     get root() {
         const config = this.config;
         return config[Symbols.ROOT] || '';

@@ -1,8 +1,7 @@
 'use strict';
 
-const npa = require('npm-package-arg');
 const path = require('path');
-const { fs, _ } = require('@micro-app/shared-utils');
+const { fs, _, npa } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../../Constants');
 

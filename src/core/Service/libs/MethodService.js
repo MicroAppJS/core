@@ -183,6 +183,7 @@ class MethodService extends BaseService {
             value: config,
         });
 
+        // redirect
         Object.defineProperty(this, 'selfConfig', {
             get() {
                 return this.microsConfig[selfKey] || {};

@@ -35,7 +35,6 @@ function loadMicroAppConfig(id, [ rootPath, originalMicPath ]) {
         microConfig[symbols.KEY] = id;
         microConfig[symbols.ORIGINAL_ROOT] = originalMicPath;
         const _microAppConfig = new MicroAppConfig(microConfig);
-        configCache[name] = _microAppConfig;
         return _microAppConfig;
     }
     return null;
@@ -43,9 +42,8 @@ function loadMicroAppConfig(id, [ rootPath, originalMicPath ]) {
 
 function requireMicro(id, changeRootPath, scope = '') {
     const { ROOT, SCOPE_NAME, NODE_MODULES_NAME } = CONSTANTS;
-    const name = `${SCOPE_NAME}/${id}`;
-    if (configCache[name]) {
-        return configCache[name];
+    if (configCache[id]) {
+        return configCache[id];
     }
     let result = null;
     // 兼容 id
@@ -53,9 +51,13 @@ function requireMicro(id, changeRootPath, scope = '') {
     const ps = _.isFunction(changeRootPath) && changeRootPath(id, originalMicPath) || [ originalMicPath, originalMicPath ];
     result = loadMicroAppConfig(id, ps);
     if (!result) {
+        const name = `${SCOPE_NAME}/${id}`;
         originalMicPath = path.resolve(ROOT, NODE_MODULES_NAME, scope, name);
         const ps = _.isFunction(changeRootPath) && changeRootPath(id, originalMicPath) || [ originalMicPath, originalMicPath ];
-        result = loadMicroAppConfig(id, ps);
+        result = loadMicroAppConfig(name, ps);
+    }
+    if (result) { // cache
+        configCache[id] = result;
     }
     return result;
 }
