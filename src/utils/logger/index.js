@@ -21,10 +21,10 @@ const toString = { // 兼容.
 module.exports = {
     ...logger,
     toString, // 兼容.
-    logo() {
+    logo(...args) {
         if (isNew) {
-            return logger.noise(false, ...arguments);
+            return logger.noise(...args);
         }
-        return logger.getStdoutMethod('log')(toString.logo.call(toString, ...arguments));
+        return logger.getStdoutMethod('log')(toString.logo.call(toString, ...args));
     },
 };

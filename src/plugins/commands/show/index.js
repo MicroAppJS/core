@@ -2,17 +2,13 @@
 
 module.exports = function(api) {
 
-    const _ = require('lodash');
-    const chalk = require('chalk');
-    const { getPadLength } = require('@micro-app/shared-utils');
+    const { _, chalk, getPadLength } = require('@micro-app/shared-utils');
     const aliasMerge = require('../../../utils/merge-alias');
 
     const details = `
 Examples:
   ${chalk.gray('# info')}
-  micro-app show
-  ${chalk.gray('# alias')}
-  micro-app show alias
+  micro-app show info
   `.trim();
     api.registerCommand('show', {
         description: 'show alias & shared list, etc.',
@@ -138,7 +134,8 @@ Examples:
             default:
                 // const envinfo = require('envinfo');
                 // TODO 这里应该支持扩展.
-                return;
+                api.logger.error(`Not Support options: "${type}" !`);
+                return api.runCommand('help', { _: [ 'show' ] });
         }
     });
 

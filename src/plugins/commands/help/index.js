@@ -5,9 +5,7 @@ const { Command } = require('../../../');
 class HelpCommand extends Command {
 
     execute(api) {
-        const _ = require('lodash');
-        const chalk = require('chalk');
-        const { getPadLength } = require('@micro-app/shared-utils');
+        const { _, chalk, getPadLength } = require('@micro-app/shared-utils');
 
         api.registerCommand('help', {
             hide: true,
@@ -26,9 +24,8 @@ class HelpCommand extends Command {
         });
 
         function logMainHelp(helpInfo) {
-            api.logger.logo(`\n\n  Usage: ${helpInfo.scriptName} <command> [options]\n`);
-            api.logger.logo();
-            api.logger.logo(`${chalk.green('Commands')}:`);
+            api.logger.logo(`\n  Usage: ${helpInfo.scriptName} <command> [options]\n`);
+            api.logger.logo(`  ${chalk.green('Commands')}:`);
             const commands = helpInfo.commands;
             const padLength = getPadLength(commands);
             for (const name in commands) {
@@ -38,7 +35,7 @@ class HelpCommand extends Command {
                 }
             }
             api.logger.logo(
-                `\n\n  run ${chalk.blue(
+                `\n  run ${chalk.blue(
                     `${helpInfo.scriptName} help [command]`
                 )} for usage of a specific command.\n`
             );
@@ -50,25 +47,23 @@ class HelpCommand extends Command {
             } else {
                 const opts = command.opts || {};
                 if (opts.usage) {
-                    api.logger.logo(`\n\n  Usage: ${opts.usage}\n`);
+                    api.logger.logo(`\n  Usage: ${opts.usage}\n`);
                 }
                 if (opts.options) {
-                    api.logger.logo();
-                    api.logger.logo(`${chalk.green('Options')}:`);
+                    api.logger.logo(`  ${chalk.green('Options')}:`);
                     const padLength = getPadLength(opts.options);
                     for (const name in opts.options) {
                         api.logger.logo(`    * ${chalk.yellow(_.padEnd(name, padLength))} ( ${chalk.gray(opts.options[name])} )`);
                     }
                 }
                 if (opts.details) {
-                    api.logger.logo('\n\n' +
+                    api.logger.logo('\n' +
                     opts.details
                         .split('\n')
                         .map(line => `  ${line}`)
                         .join('\n')
                 + '\n');
                 }
-                api.logger.logo();
             }
         }
     }

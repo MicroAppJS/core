@@ -3,9 +3,7 @@
 module.exports = function(api) {
 
     const os = require('os');
-    const chalk = require('chalk');
-    const _ = require('lodash');
-    const { getPadLength } = require('@micro-app/shared-utils');
+    const { _, chalk, getPadLength } = require('@micro-app/shared-utils');
 
     const details = `
 Examples:

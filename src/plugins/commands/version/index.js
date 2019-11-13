@@ -2,9 +2,7 @@
 
 module.exports = function(api) {
 
-    const _ = require('lodash');
-    const chalk = require('chalk');
-    const { getPadLength } = require('@micro-app/shared-utils');
+    const { _, chalk, getPadLength } = require('@micro-app/shared-utils');
 
     api.registerCommand('version', {
         description: 'show version',

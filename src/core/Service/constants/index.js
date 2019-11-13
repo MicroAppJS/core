@@ -27,6 +27,12 @@ const contants = {
         'runCommand',
         'hasPlugin',
         'findPlugin',
+        // new v0.3
+        'fileFinder',
+        'packages',
+        'microsGlobs',
+        'microsPackages',
+        'microsPackageGraph',
     ],
 };
 

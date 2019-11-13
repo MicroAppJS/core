@@ -45,8 +45,10 @@ module.exports = {
 
     strict: true,
 
-    micros: [ 'test', 'abab', '@micro/shared-utils',
-        'git+ssh://git@g.hz.netease.com:22222/ops-fullstack/micro/micro-gportal.git#e718f77fce613a3044c451264e75e9e64b2941f7'
+    micros: [ 'test', 'abab', '@micro-app/shared-utils',
+        'git+ssh://git@g.hz.netease.com:22222/ops-fullstack/micro/micro-gportal.git#e718f77fce613a3044c451264e75e9e64b2941f7',
+        'git+ssh://git@g.hz.netease.com:22222/ops-fullstack/micro/micro-platform.git#e718f77fce613a3044c451264e75e9e64b2941f7',
+        'https://g.hz.netease.com/ops-fullstack/micro/micro-common.git',
     ], // 被注册的容器
 
     // 服务配置

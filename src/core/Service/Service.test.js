@@ -67,7 +67,7 @@ describe('Service', () => {
         expect(service.version).not.toBeNull();
     });
 
-    it('packageGraph', async () => {
+    it('microsPackageGraph', async () => {
         const service = new Service();
         await service.init();
 
