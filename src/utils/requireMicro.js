@@ -1,10 +1,10 @@
 'use strict';
 
 const path = require('path');
-const { _, fs } = require('@micro-app/shared-utils');
+const { _ } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../core/Constants');
-const MicroAppConfig = require('../core/Config');
+const MicroAppConfig = require('../core/MicroAppConfig');
 const symbols = require('../core/Constants/symbols');
 const loadFile = require('./loadFile');
 
@@ -40,19 +40,19 @@ function loadMicroAppConfig(id, [ rootPath, originalMicPath ]) {
     return null;
 }
 
-function requireMicro(id, changeRootPath, scope = '') {
-    const { ROOT, SCOPE_NAME, NODE_MODULES_NAME } = CONSTANTS;
+function requireMicro(id, changeRootPath, scope = CONSTANTS.NODE_MODULES_NAME) {
+    const { ROOT, SCOPE_NAME } = CONSTANTS;
     if (configCache[id]) {
         return configCache[id];
     }
     let result = null;
     // 兼容 id
-    let originalMicPath = path.resolve(ROOT, NODE_MODULES_NAME, scope, id);
+    let originalMicPath = path.resolve(ROOT, scope, id);
     const ps = _.isFunction(changeRootPath) && changeRootPath(id, originalMicPath) || [ originalMicPath, originalMicPath ];
     result = loadMicroAppConfig(id, ps);
     if (!result) {
         const name = `${SCOPE_NAME}/${id}`;
-        originalMicPath = path.resolve(ROOT, NODE_MODULES_NAME, scope, name);
+        originalMicPath = path.resolve(ROOT, scope, name);
         const ps = _.isFunction(changeRootPath) && changeRootPath(id, originalMicPath) || [ originalMicPath, originalMicPath ];
         result = loadMicroAppConfig(name, ps);
     }

@@ -51,20 +51,31 @@ describe('Service', () => {
         });
     });
 
-    it('new constructor init', () => {
+    it('new constructor init', async () => {
         const service = new Service();
-        service.init();
+        await service.init();
 
         expect(service.version).not.toBeUndefined();
         expect(service.version).not.toBeNull();
     });
 
-    it('new constructor run', () => {
+    it('new constructor run', async () => {
         const service = new Service();
-        service.run();
+        await service.run();
 
         expect(service.version).not.toBeUndefined();
         expect(service.version).not.toBeNull();
+    });
+
+    it('packageGraph', async () => {
+        const service = new Service();
+        await service.init();
+
+        expect(service.microsPackageGraph).not.toBeUndefined();
+        expect(service.microsPackageGraph).not.toBeNull();
+
+        console.warn(service.microsPackageGraph);
+        console.warn(service.microsPackageGraph.rawPackageList);
     });
 
 });

@@ -10,6 +10,10 @@ const CONTENTS_PATH = Symbol('MicroApp#contents');
 
 class Package extends BasePackage {
 
+    get __isMicroAppPackage() {
+        return true;
+    }
+
     // accessors
     get version() {
         return this.pkg.version;

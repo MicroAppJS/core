@@ -46,6 +46,19 @@ describe('MethodService', () => {
         expect(base.microsConfig).not.toBeNull();
 
         console.warn(base.micros);
+        // console.warn(base.microsConfig);
+        // console.warn(base.packages);
+    });
+
+    it('microsPackages', () => {
+        const base = new MethodService();
+
+        expect(base.microsPackages).not.toBeUndefined();
+        expect(base.microsPackages).not.toBeNull();
+
+        // console.warn(base.microsPackages);
+        // console.warn(base.microsConfig);
+        console.warn(base.packages);
     });
 
 });

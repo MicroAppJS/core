@@ -14,6 +14,10 @@ class PluginAPI extends BaseAPI {
         this._addMethods();
     }
 
+    get __isMicroAppPluginAPI() {
+        return true;
+    }
+
     _addMethods() {
         DEFAULT_METHODS.forEach(method => {
             if (Array.isArray(method)) {

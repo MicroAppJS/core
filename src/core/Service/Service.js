@@ -10,6 +10,7 @@ const MethodService = require('./libs/MethodService');
 const logger = require('../../utils/logger');
 const PluginAPI = require('../PluginAPI/PluginAPI');
 const { PreLoadPlugins } = require('./constants');
+const PackageGraph = require('../PackageGraph');
 
 class Service extends MethodService {
     constructor() {
@@ -23,6 +24,10 @@ class Service extends MethodService {
             return arr.concat(this.resolvePlugin(item));
         }, []).filter(item => !!item);
         this.extraPlugins = []; // 临时存储扩展模块
+    }
+
+    get __isMicroAppService() {
+        return true;
     }
 
     __initInjectAliasModule__() {
@@ -57,21 +62,19 @@ class Service extends MethodService {
         return pluginsObj;
     }
 
-    _initPlugins() {
+    async _initPlugins() {
         this.plugins.push(...this._getPlugins());
 
-        this.plugins.forEach(plugin => {
-            this._initPlugin(plugin);
-        });
+        await Promise.all(this.plugins.map(async plugin => await this._initPlugin(plugin)));
 
         let count = 0;
         while (this.extraPlugins.length) {
             const extraPlugins = _.cloneDeep(this.extraPlugins);
             this.extraPlugins = [];
-            extraPlugins.forEach(plugin => {
-                this._initPlugin(plugin);
+            await Promise.all(extraPlugins.map(async plugin => {
+                await this._initPlugin(plugin);
                 this.plugins.push(plugin);
-            });
+            }));
             count += 1;
             assert(count <= 10, '插件注册死循环？');
         }
@@ -98,7 +101,7 @@ class Service extends MethodService {
         logger.debug('[Plugin] _initPlugins() End!');
     }
 
-    _initPlugin(plugin) {
+    async _initPlugin(plugin) {
         const { id, apply, opts = {}, mode } = plugin;
         if (mode) { // 默认为全支持
             let _mode = mode;
@@ -178,7 +181,12 @@ e.g.
             plugin._onOptionChange = fn;
         };
 
-        apply(api, opts);
+        if (apply.__isMicroAppCommand) {
+            const _apply = new apply(api, opts);
+            await _apply.execute.call(api, api, opts);
+        } else {
+            await apply(api, opts);
+        }
         plugin._api = api;
     }
 
@@ -338,37 +346,58 @@ e.g.
 
     init() {
         if (this.initialized) {
-            return;
+            return Promise.resolve();
         }
 
-        this._initPlugins();
+        let chain = Promise.resolve();
 
-        this.initialized = true; // 再此之前可重新 init
+        chain = chain.then(() => this._initPlugins());
 
-        this.applyPluginHooks('onPluginInitDone');
+        chain = chain.then(() => {
 
-        // modify  freeze!!!
-        Object.defineProperty(this, 'microsConfig', {
-            value: this.applyPluginHooks('modifyMicrosConfig', this.microsConfig),
+            this.initialized = true; // 再此之前可重新 init
+
+            this.applyPluginHooks('onPluginInitDone');
+
         });
 
-        // merge config
-        this.applyPluginHooks('beforeMergeConfig', this.config);
-        this._mergeConfig();
-        this.config = this.applyPluginHooks('modifyDefaultConfig', this.config);
-        this.applyPluginHooks('afterMergeConfig', this.config);
+        chain = chain.then(() => {
+            // modify  freeze!!!
+            Object.defineProperty(this, 'microsConfig', {
+                value: this.applyPluginHooks('modifyMicrosConfig', this.microsConfig),
+            });
+            Object.defineProperty(this, 'microsPackageGraph', {
+                value: new PackageGraph(this.microsPackages),
+            });
+        });
 
-        // 注入全局的别名
-        moduleAlias.add(this.config.resolveShared);
+        chain = chain.then(() => {
+            // merge config
+            this.applyPluginHooks('beforeMergeConfig', this.config);
+            this._mergeConfig();
+            this.config = this.applyPluginHooks('modifyDefaultConfig', this.config);
+            this.applyPluginHooks('afterMergeConfig', this.config);
+        });
 
-        this.applyPluginHooks('onInitWillDone');
-        this.applyPluginHooks('onInitDone');
+        chain = chain.then(() => {
+            // 注入全局的别名
+            moduleAlias.add(this.config.resolveShared);
+        });
 
-        logger.debug('[Plugin] init(); Done!');
+        chain = chain.then(() => {
+            this.applyPluginHooks('onInitWillDone');
+        });
+
+        chain = chain.then(() => {
+            this.applyPluginHooks('onInitDone');
+            logger.debug('[Plugin] init(); Done!');
+        });
+
+        return chain;
     }
 
-    run(name = 'help', args) {
-        this.init();
+    async run(name = 'help', args) {
+        await this.init();
         return this.runCommand(name, args);
     }
 

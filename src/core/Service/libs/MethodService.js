@@ -2,10 +2,12 @@
 
 const os = require('os');
 const path = require('path');
-const { logger, _, fs, assert, npa, parseGitUrl, globParent } = require('@micro-app/shared-utils');
+const { logger, _, fs, assert, globParent } = require('@micro-app/shared-utils');
 
 const BaseService = require('./BaseService');
+const { parsePackageInfo } = require('./PackageInfo');
 
+const PackageGraph = require('../../PackageGraph');
 const CONSTANTS = require('../../Constants');
 const makeFileFinder = require('../../../utils/makeFileFinder');
 
@@ -57,6 +59,9 @@ class MethodService extends BaseService {
         // console.warn(this.packages);
     }
 
+    get microsGlobs() {
+        return MethodService.MICROS_GLOB;
+    }
 
     get packages() {
         const pkgInfos = this.fileFinder(CONSTANTS.PACKAGE_JSON, filePaths => {
@@ -66,39 +71,10 @@ class MethodService extends BaseService {
         });
         logger.debug('packages', `length: '${pkgInfos.length}'`);
 
-        const packages = (this.self.micros || []).map(item => {
-            if (!_.isString(item)) return null; // TODO 处理解析
-            const pkgInfo = npa(item, this.root);
-            // git, remote, file, directory, tag, version, range
-            if ([ 'git', 'remote' ].includes(pkgInfo.type)) {
-                const gitInfo = parseGitUrl(item);
-                pkgInfo.source = pkgInfo.source || gitInfo.resource || undefined;
-                pkgInfo.gitCommittish = pkgInfo.gitCommittish || gitInfo.hash || undefined;
-                if (!pkgInfo.name) {
-                    pkgInfo.setName(gitInfo.name);
-                    pkgInfo.fullName = gitInfo.full_name;
-                }
-                pkgInfo.scope = pkgInfo.scope || gitInfo.organization || undefined;
-            }
-            pkgInfo.fullName = pkgInfo.fullName || pkgInfo.name;
-            return pkgInfo;
-        }).filter(item => {
-            if (!item) return false;
-            const pkgInfo = pkgInfos.find(info => info[CONSTANTS.Symbols.DIRNAME] === item.name);
-            if (pkgInfo && pkgInfo.name) {
-                item.setName(pkgInfo.name);
-                item.location = pkgInfo[CONSTANTS.Symbols.ROOT];
-            }
-            return true;
-        }).map(pkg => {
-            if (pkg.location) { // 存在的重组
-                const rootPath = this.root;
-                const newPkg = npa.resolve(pkg.name, `file:${path.relative(rootPath, pkg.location)}`, rootPath);
-                newPkg.fullName = newPkg.fullName || newPkg.name;
-                return _.merge(pkg, newPkg);
-            }
-            return pkg;
-        });
+        const packages = (this.self.micros || []).map(name => {
+            // ZAP 处理解析
+            return parsePackageInfo(name, this.root, pkgInfos);
+        }).filter(pkg => !!pkg);
 
         Object.defineProperty(this, 'packages', {
             value: packages,
@@ -141,7 +117,7 @@ class MethodService extends BaseService {
         const config = {};
         const microsExtraConfig = this.microsExtraConfig || {};
 
-        // TODO 应该去找到正真的package.json, 并且拿到名称
+        // ZAP 应该去找到正真的package.json, 并且拿到名称
         const packages = this.packages || [];
 
         // 暂时已被优化
@@ -151,7 +127,7 @@ class MethodService extends BaseService {
             if (extralConfig && extralConfig.link && fs.existsSync(extralConfig.link)) {
                 return [ extralConfig.link, originalMicPath ];
             }
-            // TODO 从 packages 中获取
+            // ZAP 从 packages 中获取
             const pkg = packages.find(pkg => pkg.name === id);
             if (pkg && pkg.location && fs.existsSync(pkg.location)) {
                 return [ pkg.location, pkg.location ];
@@ -159,12 +135,16 @@ class MethodService extends BaseService {
             return null;
         }
 
-        const scope = globParent(MethodService.MICROS_GLOB[0]);
         this.micros.forEach(key => {
-            const microConfig = requireMicro(key, changeRootPath, scope);
-            if (microConfig) {
-                config[key] = _.cloneDeep(microConfig);
-            } else {
+            for (const glob of this.microsGlobs) {
+                // get parent
+                const scope = globParent(glob);
+                const microConfig = requireMicro(key, changeRootPath, scope);
+                if (microConfig) {
+                    config[key] = _.cloneDeep(microConfig);
+                }
+            }
+            if (!config[key]) {
                 logger.warn(`Not Found micros: "${key}"`);
             }
         });
@@ -206,7 +186,7 @@ class MethodService extends BaseService {
                 link: false,
             });
 
-            // 附加内容需要参考全局配置
+            // 附加内容需要参考全局配置 (兼容)
             if (process.env.MICRO_APP_OPEN_SOFT_LINK !== 'true') { // 强制禁止使用 软链接
                 result[key].link = false;
             }
@@ -218,8 +198,23 @@ class MethodService extends BaseService {
         return Object.assign({}, microsExtra, result);
     }
 
+    get microsPackages() {
+        return Object.values(this.microsConfig).map(config => config.manifest);
+    }
+
+    get microsPackageGraph() {
+        const microsPackageGraph = new PackageGraph(this.microsPackages);
+
+        Object.defineProperty(this, 'microsConfig', {
+            writable: true,
+            value: microsPackageGraph,
+        });
+
+        return microsPackageGraph;
+    }
+
     get fileFinder() {
-        const finder = makeFileFinder(this.nodeModulesPath, MethodService.MICROS_GLOB);
+        const finder = makeFileFinder(this.root, this.microsGlobs);
 
         // redefine getter to lazy-loaded value
         Object.defineProperty(this, 'fileFinder', {

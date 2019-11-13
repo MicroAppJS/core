@@ -7,18 +7,18 @@ const Service = require('../../../core/Service');
 
 describe('Command help', () => {
 
-    it('command', () => {
+    it('command', async () => {
         const service = new Service();
 
-        service.run('help', {
+        await service.run('help', {
             _: [ 'show' ],
         });
     });
 
-    it('all', () => {
+    it('all', async () => {
         const service = new Service();
 
-        service.run('help');
+        await service.run('help');
     });
 
 });

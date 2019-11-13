@@ -1,62 +1,63 @@
 'use strict';
 
-const semver = require('semver');
-const prereleaseIdFromVersion = require('@lerna/prerelease-id-from-version');
+const { semver } = require('@micro-app/shared-utils');
+const prereleaseIdFromVersion = require('./prereleaseIdFromVersion');
+
+const PKG = Symbol('PackageGraphNode#PKG');
 
 /**
  * Represents a node in a PackageGraph.
  * @constructor
- * @param {!<Package>} pkg - A Package object to build the node from.
+ * @param {Object} manifest - A Package object to build the node from.
  */
 class PackageGraphNode {
-    constructor(pkg) {
-        Object.defineProperties(this, {
-            // immutable properties
-            name: {
-                enumerable: true,
-                value: pkg.name,
-            },
-            location: {
-                value: pkg.location,
-            },
-            prereleaseId: {
-                // an existing prerelease ID only matters at the beginning
-                value: prereleaseIdFromVersion(pkg.version),
-            },
-            // properties that might change over time
-            version: {
-                get() {
-                    return pkg.version;
-                },
-            },
-            pkg: {
-                get() {
-                    return pkg;
-                },
-            },
-        });
+    constructor(manifest) {
+        this[PKG] = manifest;
 
         this.externalDependencies = new Map();
         this.localDependencies = new Map();
         this.localDependents = new Map();
     }
 
-    /**
-   * Determine if the Node satisfies a resolved semver range.
-   * @see https://github.com/npm/npm-package-arg#result-object
-   *
-   * @param {!Result} resolved npm-package-arg Result object
-   * @return {Boolean}
-   */
-    satisfies({ gitCommittish, gitRange, fetchSpec }) {
-        return semver.satisfies(this.version, gitCommittish || gitRange || fetchSpec);
+    get __isMicroAppPackageGraphNode() {
+        return true;
+    }
+
+    get pkg() {
+        return this[PKG];
+    }
+
+    get name() {
+        return this.pkg.name;
+    }
+
+    get location() {
+        return this.pkg.location;
+    }
+
+    get vusion() {
+        return this.pkg.version;
+    }
+
+    get prereleaseId() {
+        return prereleaseIdFromVersion(this.version);
     }
 
     /**
-   * Returns a string representation of this node (its name)
-   *
-   * @return {String}
-   */
+     * Determine if the Node satisfies a resolved semver range.
+     *
+     * @param {String} version PackageInfo.version
+     * @return {Boolean} result
+     */
+    satisfies(version) {
+        return semver.satisfies(this.version, version);
+    }
+
+    /**
+     * Returns a string representation of this node (its name)
+     *
+     * @return {String} name
+     */
     toString() {
         return this.name;
     }

@@ -15,4 +15,5 @@ module.exports = {
     EXTRAL_CONFIG_NAME: 'micro-app.extra.config.js',
     TYPES: [], // support types
     INJECT_ID: '_MICRO_APP_INJECT_',
+    ENV_PREFIX: 'MICRO_APP_',
 };

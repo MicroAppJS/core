@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const { fs, _, npa } = require('@micro-app/shared-utils');
+const { fs, _, npa, assert } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../../Constants');
 
@@ -12,6 +12,9 @@ const ROOT_PATH = Symbol('MicroApp#rootPath');
 
 class BasePackage {
     constructor(pkg, location, rootPath = location) {
+        assert(pkg, 'pkg is required!');
+        assert(location, 'location is required!');
+
         this[PKG] = pkg;
 
         // npa will throw an error if the name is invalid
@@ -19,10 +22,6 @@ class BasePackage {
 
         this[LOCATION] = location;
         this[ROOT_PATH] = rootPath;
-    }
-
-    get __isMicroAppPackage() {
-        return true;
     }
 
     get pkg() {
@@ -96,6 +95,23 @@ class BasePackage {
      */
     serialize() {
         return fs.writeJSON(this.manifestLocation, this.pkg).then(() => this);
+    }
+
+    inspect() {
+        return this.toString();
+    }
+
+    toString() {
+        return _.pick(this, [
+            'name',
+            'private',
+            'bin',
+            'scripts',
+            'location',
+            'manifestLocation',
+            'nodeModulesLocation',
+            'binLocation',
+        ]);
     }
 }
 

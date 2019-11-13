@@ -2,6 +2,7 @@
 
 const CONSTANTS = require('./core/Constants');
 const Service = require('./core/Service');
+const Command = require('./core/Command');
 const logger = require('./utils/logger');
 const loadFile = require('./utils/loadFile');
 const requireMicro = require('./utils/requireMicro');
@@ -13,10 +14,6 @@ const {
     injectHtml,
 } = require('@micro-app/shared-utils');
 
-function microApp() {
-    return requireMicro.apply(requireMicro, arguments);
-}
-
 // 核心模块不在提供工具
 const utils = {
     loadFile,
@@ -24,10 +21,12 @@ const utils = {
     moduleAlias,
     virtualFile,
     injectHtml, // 可移除
+    requireMicro,
 };
 
-module.exports = Object.assign(microApp, requireMicro, utils, {
+module.exports = Object.assign(Service, utils, {
     CONSTANTS,
-    Service,
+    Service, // 兼容
+    Command,
     logger,
 });

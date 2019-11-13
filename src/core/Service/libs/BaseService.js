@@ -68,7 +68,7 @@ class BaseService {
                 process.env.HOSTNAME = config.HOSTNAME;
             }
             Object.assign(this.env, config);
-            logger.debug('dotenv', `dotenv parsed envs:${os.EOL}`, JSON.stringify(this.env, null, 4));
+            logger.debug('[dotenv]', `dotenv parsed envs:${os.EOL}`, JSON.stringify(this.env, null, 4));
         }
 
         if (env === 'production') { // fixed
@@ -90,7 +90,7 @@ class BaseService {
             },
         };
         Object.keys(env).forEach(key => {
-            const _k = `MICRO_APP_${key.toUpperCase()}`;
+            const _k = `${CONSTANTS.ENV_PREFIX}${key.toUpperCase()}`;
             const item = env[key];
             if (item.force || _.isUndefined(process.env[_k])) {
                 process.env[_k] = item.value;
