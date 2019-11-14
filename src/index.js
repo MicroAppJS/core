@@ -1,10 +1,10 @@
 'use strict';
 
-const CONSTANTS = require('../libs/Constants');
-const Service = require('../libs/Service');
-const logger = require('../src/utils/logger');
-const loadFile = require('../src/utils/loadFile');
-const requireMicro = require('../src/utils/requireMicro');
+const CONSTANTS = require('./core/Constants');
+const Service = require('./core/Service');
+const logger = require('./utils/logger');
+const loadFile = require('./utils/loadFile');
+const requireMicro = require('./utils/requireMicro');
 
 const {
     moduleAlias,

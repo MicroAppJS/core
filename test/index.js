@@ -68,9 +68,32 @@
 
 // logger.throw('abc');
 
-const { logger } = require('@micro-app/shared-utils');
+const { npa, parseGitUrl, _ } = require('@micro-app/shared-utils');
 
-logger.warn(module);
-logger.warn(module.exports);
-logger.warn(exports);
+// const result = npa('git+ssh://git@g.hz.netease.com:22222/ops-fullstack/micro/micro-common.git#develop');
+// console.log(result);
 
+// console.log(GitUrlParse(result.raw));
+const item = '@micro-app/cli';
+// const item = 'http://abc.com/MicroApp-Core.tgz';
+// const item = 'git+ssh://git@g.hz.netease.com:22222/ops-fullstack/micro/micro-gportal.git#e718f77fce613a3044c451264e75e9e64b2941f7';
+
+
+// const _n2 = parseGitUrl(item);
+// const _n = _.merge({}, _n2, _n1);
+
+const pkgInfo = npa(item);
+if ([ 'git', 'remote' ].includes(pkgInfo.type)) {
+    const gitInfo = parseGitUrl(item);
+    pkgInfo.source = pkgInfo.source || gitInfo.resource || undefined;
+    pkgInfo.gitCommittish = pkgInfo.gitCommittish || gitInfo.hash || undefined;
+    if (!pkgInfo.name) {
+        pkgInfo.setName(gitInfo.name);
+        pkgInfo.fullName = gitInfo.full_name;
+    }
+    pkgInfo.scope = pkgInfo.scope || gitInfo.organization || undefined;
+}
+pkgInfo.fullName = pkgInfo.fullName || pkgInfo.name;
+
+
+console.log(pkgInfo);
