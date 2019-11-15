@@ -8,8 +8,6 @@ const CONSTANTS = require('../../Constants');
 class BaseAPI {
 
     constructor(id, service) {
-        this.logger = logger;
-
         this.id = id;
         this.service = service || {};
 
@@ -18,6 +16,15 @@ class BaseAPI {
             MODIFY: Symbol('modify'),
             EVENT: Symbol('event'),
         };
+    }
+
+    get logger() {
+        const log = logger.newGroup(this.id);
+        // create logger that subclasses use
+        Object.defineProperty(this, 'logger', {
+            value: log,
+        });
+        return log;
     }
 
     get version() {

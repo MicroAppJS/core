@@ -13,7 +13,7 @@ class Command {
         this.opts = opts;
     }
 
-    execute(api, opts) {
+    execute(/* api, opts */) {
         logger.throw(this.name, 'execute() needs to be implemented.');
     }
 }

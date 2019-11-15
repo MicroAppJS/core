@@ -57,4 +57,11 @@ describe('Logger', () => {
 
     });
 
+    it('logger toString', () => {
+
+        const logger = require('../logger');
+        console.log(logger.toString());
+
+    });
+
 });

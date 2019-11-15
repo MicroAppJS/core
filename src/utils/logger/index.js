@@ -9,22 +9,24 @@ const isNew = !!logger.npmlog;
 
 const CONSTANTS = require('../../core/Constants');
 
-const toString = { // 兼容.
-    ...logger.toString,
-    logo() {
-        const message = utils.format(...(arguments || []));
-        const { NAME } = CONSTANTS;
-        return `${chalk.bgHex('#662F88')(` ${NAME} `)} ${message} ${os.EOL}`;
-    },
-};
+let result = logger;
 
-module.exports = {
-    ...logger,
-    toString, // 兼容.
-    logo(...args) {
-        if (isNew) {
-            return logger.noise(...args);
-        }
-        return logger.getStdoutMethod('log')(toString.logo.call(toString, ...args));
-    },
-};
+if (isNew) {
+    logger.setAlias('logo', 'noise');
+} else {
+    result = {
+        ...logger,
+        toString: Object.assign({ // 兼容.
+            logo() {
+                const message = utils.format(...(arguments || []));
+                const { NAME } = CONSTANTS;
+                return `${chalk.bgHex('#662F88')(` ${NAME} `)} ${message} ${os.EOL}`;
+            },
+        }, logger.toString), // 兼容.
+        logo(...args) {
+            return logger.getStdoutMethod('log')(toString.logo.call(toString, ...args));
+        },
+    };
+}
+
+module.exports = result;
