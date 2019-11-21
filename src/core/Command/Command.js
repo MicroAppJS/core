@@ -2,6 +2,9 @@
 
 const { logger } = require('@micro-app/shared-utils');
 
+const API = Symbol('Command#api');
+const OPTIONS = Symbol('Command#options');
+
 class Command {
 
     static get __isMicroAppCommand() {
@@ -9,12 +12,21 @@ class Command {
     }
 
     constructor(api, opts) {
-        this.api = api;
-        this.opts = opts;
+        this[OPTIONS] = opts;
+        this[API] = api;
     }
 
-    execute(/* api, opts */) {
-        logger.throw(this.name, 'execute() needs to be implemented.');
+    get api() {
+        return this[API];
+    }
+
+    get options() {
+        return this[OPTIONS];
+    }
+
+    initialize(/* api, opts */) {
+        logger.throw(this.name, 'initialize(api, opts) needs to be implemented.');
+        return Promise.resolve();
     }
 }
 

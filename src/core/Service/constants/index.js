@@ -28,9 +28,12 @@ const contants = {
         'hasPlugin',
         'findPlugin',
         // new v0.3
+        'selfKey',
+        'nodeModulesPath',
         'fileFinder',
         'packages',
         'microsGlobs',
+        'microsGlobParents',
         'microsPackages',
         'microsPackageGraph',
     ],

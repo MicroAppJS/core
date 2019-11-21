@@ -1,12 +1,10 @@
 'use strict';
 
 const path = require('path');
-const { getPadLength, _, tryRequire, isGlob } = require('@micro-app/shared-utils');
+const { getPadLength, _, tryRequire, loadFile } = require('@micro-app/shared-utils');
 
-const Symbols = require('../../Constants/symbols');
 const CONSTANTS = require('../../Constants');
 const logger = require('../../../utils/logger');
-const loadFile = require('../../../utils/loadFile');
 
 // 默认配置
 // const DEFAULT_CONFIG = require('../../Constants/default');
@@ -19,14 +17,33 @@ const KEY_ORIGNAL_CONFIG = Symbol('@BaseConfig#KEY_ORIGNAL_CONFIG');
 const KEY_PACKAGE = Symbol('@BaseConfig#KEY_PACKAGE');
 const KEY_PACKAGE_PATH = Symbol('@BaseConfig#KEY_PACKAGE_PATH');
 
+const OPTION_KEY = Symbol('@MicroAppConfig#KEY');
+const OPTION_ROOT = Symbol('@MicroAppConfig#ROOT');
+const OPTION_FILEPATH = Symbol('@MicroAppConfig#FILEPATH');
+const OPTION_FILENAME = Symbol('@MicroAppConfig#FILENAME');
+const OPTION_DIRNAME = Symbol('@MicroAppConfig#DIRNAME');
+const OPTION_ORIGINAL_ROOT = Symbol('@MicroAppConfig#ORIGINAL_ROOT');
+const OPTION_LOAD_SUCCESS = Symbol('@MicroAppConfig#LOAD_SUCCESS');
+
 class BaseConfig {
 
     /**
      * Creates an instance of BaseConfig.
      * @param {DEFAULT_CONFIG} config config
+     * @param {Object} opts opts
      * @memberof BaseConfig
      */
-    constructor(config /* , opts = {} */) {
+    constructor(config, opts = {}) {
+        this[OPTION_KEY] = opts.key;
+        this[OPTION_FILEPATH] = opts.filePath;
+        this[OPTION_ORIGINAL_ROOT] = opts.originalRoot;
+        // 以上必须有
+        this[OPTION_ROOT] = opts.root || path.dirname(opts.filePath);
+        this[OPTION_FILENAME] = opts.filename || path.basename(opts.filePath);
+        this[OPTION_DIRNAME] = opts.dirname || path.dirname(opts.filePath);
+
+        this[OPTION_LOAD_SUCCESS] = opts.loadSuccess || false;
+
         // 校验 config
         this._validateSchema(config);
         this[KEY_ORIGNAL_CONFIG] = config;
@@ -47,7 +64,7 @@ class BaseConfig {
     }
 
     [INIT]() {
-        if (!this.config[Symbols.LOAD_SUCCESS]) {
+        if (!this[OPTION_LOAD_SUCCESS]) {
             // 文件未加载成功.
             logger.warn(`Not Found "${CONSTANTS.CONFIG_NAME}"`);
             logger.warn(`You must be to create "${CONSTANTS.CONFIG_NAME}" in "${this.root}"`);
@@ -56,7 +73,7 @@ class BaseConfig {
             try {
                 this[KEY_PACKAGE_PATH] = path.resolve(this.root, CONSTANTS.PACKAGE_JSON);
                 this[KEY_PACKAGE] = loadFile(this.root, CONSTANTS.PACKAGE_JSON);
-                if (!this.config[Symbols.LOAD_SUCCESS]) {
+                if (!this[OPTION_LOAD_SUCCESS]) {
                     // 文件未加载成功. 可以从 package.json 中查询配置文件
                     if (this[KEY_PACKAGE] && this[KEY_PACKAGE]['micro-app'] && _.isPlainObject(this[KEY_PACKAGE]['micro-app'])) {
                         Object.assign(this[KEY_ORIGNAL_CONFIG], this[KEY_PACKAGE]['micro-app']);
@@ -79,13 +96,11 @@ class BaseConfig {
     }
 
     get root() {
-        const config = this.config;
-        return config[Symbols.ROOT] || '';
+        return this[OPTION_ROOT] || '';
     }
 
     get originalRoot() {
-        const config = this.config;
-        return config[Symbols.ORIGINAL_ROOT] || this.root || '';
+        return this[OPTION_ORIGINAL_ROOT] || this.root || '';
     }
 
     get hasSoftLink() {
@@ -93,8 +108,7 @@ class BaseConfig {
     }
 
     get path() {
-        const config = this.config;
-        return config[Symbols.PATH] || '';
+        return this[OPTION_FILEPATH] || '';
     }
 
     get nodeModules() {
@@ -103,11 +117,6 @@ class BaseConfig {
             return path.join(this.root, nodeModules);
         }
         return '';
-    }
-
-    get subModulesRoot() {
-        const scopeName = CONSTANTS.SCOPE_NAME || '';
-        return path.join(this.nodeModules, scopeName);
     }
 
     get mode() {
@@ -132,8 +141,7 @@ class BaseConfig {
 
     // 唯一标识
     get key() {
-        const config = this.config;
-        return config[Symbols.KEY] || this.packageName || path.basename(path.dirname(this.root)) || '';
+        return this[OPTION_KEY] || this.packageName || path.basename(path.dirname(this.root)) || '';
     }
 
     get name() {
@@ -348,7 +356,6 @@ class BaseConfig {
             json.path = this.path;
             json.micros = this.micros;
             json.packagePath = this.packagePath;
-            json.subModulesRoot = this.subModulesRoot;
             json.package = this.package;
         }
         return json;

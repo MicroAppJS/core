@@ -3,7 +3,7 @@
 /* global expect */
 
 const BaseConfig = require('./BaseConfig');
-const loadFile = require('../../../utils/loadFile');
+const { loadFile } = require('@micro-app/shared-utils');
 
 const testConfig = {
     shared: {
@@ -29,7 +29,11 @@ describe('BaseConfig', () => {
 
     it('new constructor', () => {
         const defaultConfig = loadFile(__dirname, '../../Constants/default.js');
-        const config = new BaseConfig(Object.assign(defaultConfig, testConfig));
+        const config = new BaseConfig(Object.assign(defaultConfig, testConfig), {
+            key: 'a',
+            filePath: __dirname,
+            originalRoot: __dirname,
+        });
 
         expect(config.config).not.toBeNull();
         expect(config.root).not.toBeUndefined();
@@ -54,7 +58,11 @@ describe('BaseConfig', () => {
 
     it('config inspect', () => {
         const defaultConfig = loadFile(__dirname, '../../Constants/default.js');
-        const config = new BaseConfig(Object.assign(defaultConfig, testConfig));
+        const config = new BaseConfig(Object.assign(defaultConfig, testConfig), {
+            key: 'a',
+            filePath: __dirname,
+            originalRoot: __dirname,
+        });
 
         expect(config.inspect).not.toBeNull();
         expect(config.inspect).not.toBeUndefined();

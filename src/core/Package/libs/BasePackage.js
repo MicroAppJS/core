@@ -57,6 +57,10 @@ class BasePackage {
         return this[LOCATION];
     }
 
+    get rootPath() {
+        return this[ROOT_PATH];
+    }
+
     get manifestLocation() {
         return path.join(this.location, CONSTANTS.PACKAGE_JSON);
     }

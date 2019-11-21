@@ -153,10 +153,7 @@ class PluginService extends MethodService {
 
         if (apply.__isMicroAppCommand) {
             const _apply = new apply(api, opts);
-            if (_.isFunction(_apply.initialize)) {
-                await _apply.initialize.call(api, api, opts);
-            }
-            await _apply.execute.call(api, api, opts);
+            await _apply.initialize(api, opts);
         } else {
             await apply(api, opts);
         }

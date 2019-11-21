@@ -11,6 +11,7 @@ class PackageInfo {
     constructor(name, root = process.cwd()) {
         assert(name, 'name is required!');
 
+        // ZAP: 可进行参数优化
         const pkgInfo = npa(name, root);
         if (!pkgInfo.name) {
             const gitInfo = parseGitUrl(name);

@@ -1,66 +1,33 @@
 'use strict';
 
-const os = require('os');
-const path = require('path');
-const { logger, _, fs, assert, globParent } = require('@micro-app/shared-utils');
+const { logger, _, fs, assert, globParent, loadFile } = require('@micro-app/shared-utils');
 
 const BaseService = require('./BaseService');
 const { parsePackageInfo } = require('./PackageInfo');
+const ExtraConfig = require('./ExtraConfig');
 
 const PackageGraph = require('../../PackageGraph');
 const CONSTANTS = require('../../Constants');
 const makeFileFinder = require('../../../utils/makeFileFinder');
 
 const requireMicro = require('../../../utils/requireMicro');
-const loadFile = require('../../../utils/loadFile');
-
-const INIT_TEMP_FILES = Symbol('INIT_TEMP_FILES');
-const INIT_SYMLINKS = Symbol('INIT_SYMLINKS');
 
 class MethodService extends BaseService {
 
     static get MICROS_GLOB() {
         // return [ '*' ];
-        return [ '.micros/*' ];
-    }
-
-    constructor() {
-        super();
-
-        // 初始化临时文件夹
-        this[INIT_TEMP_FILES]();
-        // 初始化软链
-        this[INIT_SYMLINKS]();
-    }
-
-    /**
-     * @private
-     *
-     * @memberof BaseService
-     */
-    [INIT_TEMP_FILES]() {
-        // TODO 初始化临时文件
-        // 1. 有没有这个文件夹?
-        const tempDir = path.resolve(this.nodeModulesPath, '.micros');
-        if (!fs.existsSync(tempDir)) {
-            fs.mkdirpSync(tempDir);
-        }
-        // 2.
-
-    }
-
-    /**
-     * @private
-     *
-     * @memberof BaseService
-     */
-    [INIT_SYMLINKS]() {
-        // TODO 初始化链接, 依赖 packages
-        // console.warn(this.packages);
+        return [ `${CONSTANTS.NODE_MODULES_NAME}/.micros/*` ];
     }
 
     get microsGlobs() {
         return MethodService.MICROS_GLOB;
+    }
+
+    get microsGlobParents() {
+        return this.microsGlobs.map(glob => {
+            const scope = globParent(glob);
+            return scope;
+        });
     }
 
     get packages() {
@@ -83,6 +50,7 @@ class MethodService extends BaseService {
         return packages;
     }
 
+    // TODO 重构， 支持 OBJECT， key : value
     get micros() {
         // 当前可用服务
         const microsSet = new Set(this.packages.map(pkg => pkg.name));
@@ -95,24 +63,6 @@ class MethodService extends BaseService {
         return micros;
     }
 
-    get extraConfig() {
-        // 加载高级附加配置
-        const extraConfig = loadFile(this.root, CONSTANTS.EXTRAL_CONFIG_NAME);
-
-        if (extraConfig && _.isPlainObject(extraConfig)) {
-            Object.keys(extraConfig).forEach(key => {
-                const item = extraConfig[key];
-                logger.debug(`【 Extra Config 】${key}: ${os.EOL}${JSON.stringify(item, false, 4)}`);
-            });
-        }
-
-        Object.defineProperty(this, 'extraConfig', {
-            value: extraConfig,
-        });
-
-        return extraConfig || {};
-    }
-
     get microsConfig() {
         const config = {};
         const microsExtraConfig = this.microsExtraConfig || {};
@@ -122,24 +72,22 @@ class MethodService extends BaseService {
 
         // 暂时已被优化
         // @custom 开发模式软链接
-        function changeRootPath(id, originalMicPath) {
+        function changeRootPath(id) {
             const extralConfig = microsExtraConfig[id];
             if (extralConfig && extralConfig.link && fs.existsSync(extralConfig.link)) {
-                return [ extralConfig.link, originalMicPath ];
+                return extralConfig.link;
             }
             // ZAP 从 packages 中获取
             const pkg = packages.find(pkg => pkg.name === id);
             if (pkg && pkg.location && fs.existsSync(pkg.location)) {
-                return [ pkg.location, pkg.location ];
+                return pkg.location;
             }
             return null;
         }
 
         this.micros.forEach(key => {
-            for (const glob of this.microsGlobs) {
-                // get parent
-                const scope = globParent(glob);
-                const microConfig = requireMicro(key, changeRootPath, scope);
+            for (const scope of this.microsGlobParents) {
+                const microConfig = requireMicro(key, scope, changeRootPath(key));
                 if (microConfig) {
                     config[key] = _.cloneDeep(microConfig);
                 }
@@ -174,28 +122,21 @@ class MethodService extends BaseService {
     }
 
     // 扩增配置
+    get extraConfig() {
+        // 加载高级附加配置
+        const extraConfig = new ExtraConfig(this.root);
+
+        Object.defineProperty(this, 'extraConfig', {
+            value: extraConfig,
+        });
+
+        return extraConfig || {};
+    }
+
+    // 扩增配置中的 micros
     get microsExtraConfig() {
         const extraConfig = this.extraConfig || {};
-        // 兼容旧版本
-        const microsExtra = extraConfig.micro || extraConfig || {};
-        const result = {};
-        Object.keys(microsExtra).forEach(key => {
-            result[key] = Object.assign({}, microsExtra[key] || {
-                disabled: false, // 禁用入口
-                disable: false,
-                link: false,
-            });
-
-            // 附加内容需要参考全局配置 (兼容)
-            if (process.env.MICRO_APP_OPEN_SOFT_LINK !== 'true') { // 强制禁止使用 软链接
-                result[key].link = false;
-            }
-            if (process.env.MICRO_APP_OPEN_DISABLED_ENTRY !== 'true') { // 强制禁止使用 开启禁用指定模块入口, 优化开发速度
-                result[key].disabled = false;
-                result[key].disable = false;
-            }
-        });
-        return Object.assign({}, microsExtra, result);
+        return extraConfig.micros || {};
     }
 
     get microsPackages() {

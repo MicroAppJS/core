@@ -2,16 +2,13 @@
 
 /* global expect */
 
-const MicroAppConfig = require('./index');
-const loadFile = require('../../utils/loadFile');
+const MicroAppConfig = require('./MicroAppConfig');
+const { loadFile } = require('@micro-app/shared-utils');
 
 describe('MicroAppConfig', () => {
 
     it('new constructor', () => {
-        const defaultConfig = loadFile(__dirname, '../Constants/default.js');
-        const config = new MicroAppConfig(Object.assign({}, defaultConfig, {
-
-        }));
+        const config = MicroAppConfig.createInstance();
 
         expect(config.config).not.toBeNull();
         expect(config.root).not.toBeUndefined();
@@ -35,10 +32,7 @@ describe('MicroAppConfig', () => {
     });
 
     it('new constructor Config', () => {
-        const defaultConfig = loadFile(__dirname, '../Constants/default.js');
-        const config = new MicroAppConfig(Object.assign({}, defaultConfig, {
-
-        }));
+        const config = MicroAppConfig.createInstance();
 
         expect(config.toJSON(true)).not.toBeUndefined();
         expect(config.toJSON(true)).not.toBeNull();
@@ -72,7 +66,11 @@ describe('MicroAppConfig', () => {
                     filepath: __filename,
                 },
             ],
-        }));
+        }), {
+            key: 'a',
+            filePath: __dirname,
+            originalRoot: __dirname,
+        });
 
         expect(config.toJSON(true)).not.toBeUndefined();
         expect(config.toJSON(true)).not.toBeNull();
@@ -93,20 +91,14 @@ describe('MicroAppConfig', () => {
     });
 
     it('manifest', () => {
-        const defaultConfig = loadFile(process.cwd(), 'micro-app.config.js');
-        const config = new MicroAppConfig(Object.assign({}, defaultConfig, {
-
-        }));
+        const config = MicroAppConfig.createInstance();
 
         expect(config.manifest).not.toBeUndefined();
         expect(config.manifest).not.toBeNull();
     });
 
     it('licensePath', () => {
-        const defaultConfig = loadFile(process.cwd(), 'micro-app.config.js');
-        const config = new MicroAppConfig(Object.assign({}, defaultConfig, {
-
-        }));
+        const config = MicroAppConfig.createInstance();
 
         expect(config.licensePath).not.toBeUndefined();
         expect(config.licensePath).not.toBeNull();

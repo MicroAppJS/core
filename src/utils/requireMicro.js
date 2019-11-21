@@ -1,67 +1,52 @@
 'use strict';
 
 const path = require('path');
-const { _ } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../core/Constants');
 const MicroAppConfig = require('../core/MicroAppConfig');
-const symbols = require('../core/Constants/symbols');
-const loadFile = require('./loadFile');
 
 const SELF_CONFIG = Symbol('@MicroAppConfig#SELF_CONFIG');
 const configCache = {};
 
 function self() {
-    const { ROOT, CONFIG_NAME } = CONSTANTS;
+    const { ROOT } = CONSTANTS;
     if (configCache[SELF_CONFIG]) {
         return configCache[SELF_CONFIG];
     }
-    let microConfig = loadFile(ROOT, CONFIG_NAME);
-    if (!microConfig) { // 可忽略配置文件.
-        microConfig = loadFile.extraConfig({}, ROOT, CONFIG_NAME);
-    }
+    const microConfig = loadMicroAppConfig(ROOT);
     if (microConfig) {
-        const _microAppConfig = new MicroAppConfig(microConfig);
-        configCache[SELF_CONFIG] = _microAppConfig;
-        return _microAppConfig;
+        configCache[SELF_CONFIG] = microConfig;
     }
-    return null;
+    return microConfig;
 }
 
-function loadMicroAppConfig(id, [ rootPath, originalMicPath ]) {
-    const { CONFIG_NAME } = CONSTANTS;
-    const microConfig = loadFile(rootPath, CONFIG_NAME);
-    if (microConfig) {
-        microConfig[symbols.KEY] = id;
-        microConfig[symbols.ORIGINAL_ROOT] = originalMicPath;
-        const _microAppConfig = new MicroAppConfig(microConfig);
-        return _microAppConfig;
-    }
-    return null;
+function loadMicroAppConfig(rootPath, { originalRootPath = rootPath, key } = {}) {
+    return MicroAppConfig.createInstance(rootPath, { originalRootPath, key });
 }
 
-function requireMicro(id, changeRootPath, scope = CONSTANTS.NODE_MODULES_NAME) {
+function requireMicro(id, scope = CONSTANTS.NODE_MODULES_NAME, changeRootPath) {
     const { ROOT, SCOPE_NAME } = CONSTANTS;
     if (configCache[id]) {
         return configCache[id];
     }
+    let key = id;
     let result = null;
     // 兼容 id
-    let originalMicPath = path.resolve(ROOT, scope, id);
-    const ps = _.isFunction(changeRootPath) && changeRootPath(id, originalMicPath) || [ originalMicPath, originalMicPath ];
-    result = loadMicroAppConfig(id, ps);
+    let originalRootPath = path.resolve(ROOT, scope, key);
+    result = loadMicroAppConfig(originalRootPath, { key, originalRootPath });
     if (!result) {
-        const name = `${SCOPE_NAME}/${id}`;
-        originalMicPath = path.resolve(ROOT, scope, name);
-        const ps = _.isFunction(changeRootPath) && changeRootPath(id, originalMicPath) || [ originalMicPath, originalMicPath ];
-        result = loadMicroAppConfig(name, ps);
+        key = `${SCOPE_NAME}/${id}`;
+        originalRootPath = path.resolve(ROOT, scope, key);
+        result = loadMicroAppConfig(originalRootPath, { key, originalRootPath });
     }
     if (result) { // cache
+        if (changeRootPath) {
+            result = loadMicroAppConfig(changeRootPath, { key, originalRootPath });
+        }
         configCache[id] = result;
     }
     return result;
 }
-
 
 module.exports = requireMicro;
 module.exports.self = self;

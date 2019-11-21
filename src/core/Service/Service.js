@@ -105,7 +105,10 @@ class Service extends PluginService {
             opts,
         });
 
-        return fn(args);
+        // 获取配置中的 options
+        const commandOpts = this.extraConfig.command[name] || {};
+
+        return fn(args, commandOpts);
     }
 
     async run(name = 'help', args) {

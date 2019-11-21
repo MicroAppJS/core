@@ -2,9 +2,10 @@
 
 const CONSTANTS = require('./core/Constants');
 const Service = require('./core/Service');
+const Package = require('./core/Package');
+const PackageGraph = require('./core/PackageGraph');
 const Command = require('./core/Command');
 const logger = require('./utils/logger');
-const loadFile = require('./utils/loadFile');
 const requireMicro = require('./utils/requireMicro');
 
 const {
@@ -16,7 +17,6 @@ const {
 
 // 核心模块不在提供工具
 const utils = {
-    loadFile,
     smartMerge,
     moduleAlias,
     virtualFile,
@@ -29,4 +29,5 @@ module.exports = Object.assign(Service, utils, {
     Service, // 兼容
     Command,
     logger,
+    Package, PackageGraph,
 });
