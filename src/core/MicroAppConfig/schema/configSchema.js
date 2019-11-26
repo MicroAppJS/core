@@ -69,11 +69,24 @@ module.exports = {
         },
         micros: {
             description: '需要注入的子模块. ( array<string> )',
-            items: {
-                type: 'string',
+            anyOf: [{
+                items: {
+                    anyOf: [{
+                        required: [ 'name' ],
+                        type: 'object',
+                    },
+                    {
+                        type: 'string',
+                    },
+                    ],
+                },
+                minItems: 1,
+                type: 'array',
             },
-            minItems: 1,
-            type: 'array',
+            {
+                type: 'object',
+            },
+            ],
         },
         server: {
             description: '服务端配置. ( object )',

@@ -51,6 +51,8 @@ describe('MethodService', () => {
     });
 
     it('microsPackages', () => {
+        const { logger } = require('@micro-app/shared-utils');
+        logger.level = 'silly';
         const base = new MethodService();
 
         expect(base.microsPackages).not.toBeUndefined();
@@ -59,6 +61,21 @@ describe('MethodService', () => {
         // console.warn(base.microsPackages);
         // console.warn(base.microsConfig);
         console.warn(base.packages);
+    });
+
+    it('tempDirPackageGraph', () => {
+        const { logger } = require('@micro-app/shared-utils');
+        logger.level = 'silly';
+        const base = new MethodService();
+
+        const tempDirPackageGraph = base.tempDirPackageGraph;
+
+        expect(tempDirPackageGraph).not.toBeUndefined();
+        expect(tempDirPackageGraph).not.toBeNull();
+
+        // console.warn(base.microsPackages);
+        // console.warn(base.microsConfig);
+        console.warn(tempDirPackageGraph.rawPackageList);
     });
 
 });

@@ -16,4 +16,5 @@ module.exports = {
     TYPES: [], // support types
     INJECT_ID: '_MICRO_APP_INJECT_',
     ENV_PREFIX: 'MICRO_APP_',
+    MICRO_APP_TEMP_DIR: '.microapp', // glob temp
 };

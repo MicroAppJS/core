@@ -24,10 +24,15 @@ const utils = {
     requireMicro,
 };
 
-module.exports = Object.assign(Service, utils, {
-    CONSTANTS,
-    Service, // 兼容
-    Command,
-    logger,
-    Package, PackageGraph,
+module.exports = Service;
+
+Object.keys(utils).forEach(key => {
+    module.exports[key] = utils[key];
 });
+
+module.exports.Service = Service; // 兼容
+module.exports.Command = Command;
+module.exports.CONSTANTS = CONSTANTS;
+module.exports.logger = logger;
+module.exports.Package = Package;
+module.exports.PackageGraph = PackageGraph;

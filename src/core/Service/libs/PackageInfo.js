@@ -8,11 +8,11 @@ const PKG_INFO = Symbol('PackageInfo#pkgInfo');
 
 class PackageInfo {
 
-    constructor(name, root = process.cwd()) {
+    constructor(name, root = process.cwd(), spec = false) {
         assert(name, 'name is required!');
 
         // ZAP: 可进行参数优化
-        const pkgInfo = npa(name, root);
+        const pkgInfo = spec ? npa.resolve(name, spec, root) : npa(name, root);
         if (!pkgInfo.name) {
             const gitInfo = parseGitUrl(name);
             pkgInfo.source = pkgInfo.source || gitInfo.resource || undefined;
@@ -114,17 +114,10 @@ class PackageInfo {
     }
 }
 
-function parsePackageInfo(name, root, pkgInfos = []) {
+function parsePackageInfo(name, root, spec) {
     assert(root, 'root is required!');
     if (!_.isString(name)) return null;
-    // ZAP 处理解析
-    const pkgInfo = new PackageInfo(name, root);
-    // fixed
-    const _pkgInfo = pkgInfos.find(info => info[CONSTANTS.Symbols.DIRNAME] === pkgInfo.name);
-    if (_pkgInfo && _pkgInfo.name) {
-        pkgInfo.name = _pkgInfo.name;
-        pkgInfo.location = _pkgInfo[CONSTANTS.Symbols.ROOT];
-    }
+    const pkgInfo = new PackageInfo(name, root, spec);
     return pkgInfo;
 }
 

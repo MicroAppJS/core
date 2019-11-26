@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+const { _ } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../core/Constants');
 const MicroAppConfig = require('../core/MicroAppConfig');
@@ -25,6 +26,10 @@ function loadMicroAppConfig(rootPath, { originalRootPath = rootPath, key } = {})
 }
 
 function requireMicro(id, scope = CONSTANTS.NODE_MODULES_NAME, changeRootPath) {
+    if (_.isFunction(scope)) {
+        changeRootPath = scope;
+        scope = CONSTANTS.NODE_MODULES_NAME;
+    }
     const { ROOT, SCOPE_NAME } = CONSTANTS;
     if (configCache[id]) {
         return configCache[id];
@@ -39,10 +44,13 @@ function requireMicro(id, scope = CONSTANTS.NODE_MODULES_NAME, changeRootPath) {
         originalRootPath = path.resolve(ROOT, scope, key);
         result = loadMicroAppConfig(originalRootPath, { key, originalRootPath });
     }
-    if (result) { // cache
-        if (changeRootPath) {
-            result = loadMicroAppConfig(changeRootPath, { key, originalRootPath });
+    if (_.isFunction(changeRootPath)) {
+        const newRootPath = changeRootPath(id);
+        if (newRootPath && _.isString(newRootPath)) {
+            result = loadMicroAppConfig(newRootPath, { key, originalRootPath });
         }
+    }
+    if (result) { // cache
         configCache[id] = result;
     }
     return result;

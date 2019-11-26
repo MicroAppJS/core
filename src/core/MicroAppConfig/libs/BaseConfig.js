@@ -40,7 +40,7 @@ class BaseConfig {
         // 以上必须有
         this[OPTION_ROOT] = opts.root || path.dirname(opts.filePath);
         this[OPTION_FILENAME] = opts.filename || path.basename(opts.filePath);
-        this[OPTION_DIRNAME] = opts.dirname || path.dirname(opts.filePath);
+        this[OPTION_DIRNAME] = opts.dirname || path.basename(this.root);
 
         this[OPTION_LOAD_SUCCESS] = opts.loadSuccess || false;
 
@@ -85,6 +85,14 @@ class BaseConfig {
                 logger.warn(`Not Fount "${CONSTANTS.PACKAGE_JSON}" !`);
             }
         }
+    }
+
+    get filename() {
+        return this[OPTION_FILENAME] || '';
+    }
+
+    get dirname() {
+        return this[OPTION_DIRNAME] || '';
     }
 
     get config() {
@@ -176,10 +184,41 @@ class BaseConfig {
         return config.type || '';
     }
 
-    get micros() {
+    get packages() {
         const config = this.config;
-        if (config.micros && Array.isArray(config.micros)) {
-            return [ ...new Set(config.micros) ];
+        const _micros = config.micros;
+        if (_micros && Array.isArray(_micros)) {
+            return [ ...new Set(_micros) ].map(item => {
+                if (_.isString(item)) {
+                    return {
+                        name: item,
+                        spec: false,
+                    };
+                }
+                return item;
+            });
+        } else if (_micros && _.isPlainObject(_micros)) {
+            return Object.keys(_micros).map(key => {
+                const pkg = _micros[key];
+                if (_.isString(pkg)) {
+                    return {
+                        name: key,
+                        spec: pkg,
+                    };
+                }
+                return {
+                    name: key,
+                    ...pkg,
+                };
+            });
+        }
+        return [];
+    }
+
+    get micros() {
+        const packages = this.packages;
+        if (packages && Array.isArray(packages)) {
+            return [ ...new Set(packages.map(item => item.name).filter(name => !!name)) ];
         }
         return [];
     }
@@ -320,8 +359,8 @@ class BaseConfig {
                 p = p.link;
             }
             id = id || p;
-            if (p && !tryRequire.resolve(p)) {
-                p = path.resolve(this.root, p);
+            if (p && id === p) {
+                p = null; // 不希望相等
             }
             return {
                 ...(others || {}),

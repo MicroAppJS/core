@@ -121,13 +121,14 @@ class PluginService extends MethodService {
                     return this.pluginMethods[prop].fn;
                 }
                 if (this.sharedProps[prop]) {
-                    if (typeof this[prop] === 'function') {
-                        return this[prop].bind(this);
+                    const val = this[prop];
+                    if (typeof val === 'function') {
+                        return val.bind(this);
                     }
                     if (prop === 'micros') {
-                        return [ ...this[prop] ];
+                        return [ ...val ];
                     }
-                    return this[prop];
+                    return val;
                 }
                 if (prop === 'service') {
                     return new Proxy(target[prop], {
@@ -224,6 +225,9 @@ class PluginService extends MethodService {
         if (!link) {
             link = tryRequire.resolve(id);
         }
+        if (!link) { // TODO 这里需要优化
+            link = tryRequire.resolve(require('path').resolve(this.root, this.tempDirNodeModules, id));
+        }
         if (link) {
             // 先尝试从模拟缓存中找文件
             const apply = virtualFile.require(link) || tryRequire(link);
@@ -252,7 +256,7 @@ class PluginService extends MethodService {
                 });
             }
         }
-        logger.warn('[Plugin]', `not found plugin: "${id || item}"\n   --> link: "${link}"`);
+        logger.warn('[Plugin]', `Not Found plugin: "${id || item}"\n   --> link: "${link}"`);
         return false;
     }
 

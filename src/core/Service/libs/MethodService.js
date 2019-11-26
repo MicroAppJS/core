@@ -1,11 +1,13 @@
 'use strict';
 
-const { logger, _, fs, assert, globParent, loadFile } = require('@micro-app/shared-utils');
+const path = require('path');
+const { logger, _, fs, assert, loadFile } = require('@micro-app/shared-utils');
 
 const BaseService = require('./BaseService');
 const { parsePackageInfo } = require('./PackageInfo');
 const ExtraConfig = require('./ExtraConfig');
 
+const Package = require('../../Package');
 const PackageGraph = require('../../PackageGraph');
 const CONSTANTS = require('../../Constants');
 const makeFileFinder = require('../../../utils/makeFileFinder');
@@ -14,46 +16,31 @@ const requireMicro = require('../../../utils/requireMicro');
 
 class MethodService extends BaseService {
 
-    static get MICROS_GLOB() {
-        // return [ '*' ];
-        return [ `${CONSTANTS.NODE_MODULES_NAME}/.micros/*` ];
+    get tempDirName() {
+        return CONSTANTS.MICRO_APP_TEMP_DIR;
     }
 
-    get microsGlobs() {
-        return MethodService.MICROS_GLOB;
+    get tempDirNodeModules() {
+        const tempDirName = this.tempDirName;
+        return path.join(tempDirName, CONSTANTS.NODE_MODULES_NAME);
     }
 
-    get microsGlobParents() {
-        return this.microsGlobs.map(glob => {
-            const scope = globParent(glob);
-            return scope;
-        });
-    }
-
-    get packages() {
+    get tempDirPackageGraph() {
         const pkgInfos = this.fileFinder(CONSTANTS.PACKAGE_JSON, filePaths => {
             return filePaths.map(filePath => {
-                return loadFile(filePath);
+                const packageJson = loadFile(filePath);
+                return new Package(packageJson, path.dirname(filePath), this.root);
             });
         });
-        logger.debug('packages', `length: '${pkgInfos.length}'`);
-
-        const packages = (this.self.micros || []).map(name => {
-            // ZAP 处理解析
-            return parsePackageInfo(name, this.root, pkgInfos);
-        }).filter(pkg => !!pkg);
-
-        Object.defineProperty(this, 'packages', {
-            value: packages,
-        });
-
-        return packages;
+        logger.debug('[fileFinder]', `packages length: '${pkgInfos.length}'`);
+        const tempDirPackageGraph = new PackageGraph(pkgInfos, 'dependencies');
+        return tempDirPackageGraph;
     }
 
-    // TODO 重构， 支持 OBJECT， key : value
     get micros() {
+        const selfMicros = this.self.micros || [];
+        const microsSet = new Set(selfMicros);
         // 当前可用服务
-        const microsSet = new Set(this.packages.map(pkg => pkg.name));
         const micros = [ ...microsSet ];
         // redefine getter to lazy-loaded value
         Object.defineProperty(this, 'micros', {
@@ -63,37 +50,45 @@ class MethodService extends BaseService {
         return micros;
     }
 
+    get packages() {
+        const packages = (this.self.packages || []).map(item => {
+            const name = item.name;
+            const spec = item.spec || false;
+            // ZAP 处理解析
+            return parsePackageInfo(name, this.root, spec);
+        }).filter(pkg => !!pkg);
+
+        Object.defineProperty(this, 'packages', {
+            value: packages,
+        });
+
+        return packages;
+    }
+
     get microsConfig() {
         const config = {};
         const microsExtraConfig = this.microsExtraConfig || {};
 
-        // ZAP 应该去找到正真的package.json, 并且拿到名称
-        const packages = this.packages || [];
-
         // 暂时已被优化
-        // @custom 开发模式软链接
-        function changeRootPath(id) {
-            const extralConfig = microsExtraConfig[id];
-            if (extralConfig && extralConfig.link && fs.existsSync(extralConfig.link)) {
-                return extralConfig.link;
-            }
-            // ZAP 从 packages 中获取
-            const pkg = packages.find(pkg => pkg.name === id);
-            if (pkg && pkg.location && fs.existsSync(pkg.location)) {
-                return pkg.location;
-            }
-            return null;
-        }
-
+        const scope = this.tempDirNodeModules;
         this.micros.forEach(key => {
-            for (const scope of this.microsGlobParents) {
-                const microConfig = requireMicro(key, scope, changeRootPath(key));
-                if (microConfig) {
-                    config[key] = _.cloneDeep(microConfig);
+            let microConfig = requireMicro(key, id => {
+                // @custom 开发模式软链接
+                const extralConfig = microsExtraConfig[id];
+                if (extralConfig && extralConfig.link && fs.existsSync(extralConfig.link)) {
+                    return extralConfig.link;
                 }
+                return null;
+            });
+            if (!microConfig) { // 私有的
+                logger.debug('[Micros]', 'try load private package micros!');
+                microConfig = requireMicro(key, scope);
+            }
+            if (microConfig) {
+                config[key] = _.cloneDeep(microConfig);
             }
             if (!config[key]) {
-                logger.warn(`Not Found micros: "${key}"`);
+                logger.warn('[Micros]', `Not Found micros: "${key}"`);
             }
         });
 
@@ -155,7 +150,7 @@ class MethodService extends BaseService {
     }
 
     get fileFinder() {
-        const finder = makeFileFinder(this.root, this.microsGlobs);
+        const finder = makeFileFinder(this.root, `${this.tempDirNodeModules}/**`);
 
         // redefine getter to lazy-loaded value
         Object.defineProperty(this, 'fileFinder', {
@@ -228,14 +223,20 @@ class MethodService extends BaseService {
             if (!_.isEmpty(_config)) {
                 return _config;
             }
+            // 文件夹中
+            const subFileName = `${name}.config.js`;
+            const _microsConfig = loadFile(path.resolve(root, this.tempDirName), subFileName);
+            if (!_.isEmpty(_microsConfig)) {
+                return _microsConfig;
+            }
             const _extraConfig = this.extraConfig || {};
             if (!_.isEmpty(_extraConfig[name])) {
                 return _extraConfig[name];
             }
-            const _originalConfig = microConfig.originalConfig || {};
-            if (!_.isEmpty(_originalConfig[name])) {
-                return _originalConfig[name];
-            }
+            // const _originalConfig = microConfig.originalConfig || {};
+            // if (!_.isEmpty(_originalConfig[name])) {
+            //     return _originalConfig[name];
+            // }
         }
         return null;
     }

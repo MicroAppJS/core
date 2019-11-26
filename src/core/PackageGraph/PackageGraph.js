@@ -5,6 +5,8 @@ const PackageGraphNode = require('./libs/PackageGraphNode');
 const CyclicPackageGraphNode = require('./libs/CyclicPackageGraphNode');
 const reportCycles = require('./libs/reportCycles');
 
+// TODO 此块需要大范围修改。（支持别名 @micro-app，可提取依赖）
+
 /**
  * A PackageGraph.
  * @constructor
