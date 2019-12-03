@@ -32,14 +32,17 @@ class PluginAPI extends BaseAPI {
                     type = this.API_TYPE.ADD;
                 } else if (
                     slicedMethod.indexOf('on') === 0 ||
-                  slicedMethod.indexOf('before') === 0 ||
-                  slicedMethod.indexOf('after') === 0
+                    slicedMethod.indexOf('before') === 0 ||
+                    slicedMethod.indexOf('after') === 0
                 ) {
                     type = this.API_TYPE.EVENT;
                 } else {
                     throw new Error(`unexpected method name ${method}`);
                 }
-                this.registerMethod(method, { type, description: 'System Build-in' });
+                this.registerMethod(method, {
+                    type,
+                    description: 'System Build-in',
+                });
             }
         });
     }
@@ -53,7 +56,9 @@ class PluginAPI extends BaseAPI {
             typeof fn === 'function',
             `The second argument of api.register() must be function, but got ${fn}`
         );
-        const { pluginHooks } = this.service;
+        const {
+            pluginHooks,
+        } = this.service;
         pluginHooks[hook] = pluginHooks[hook] || [];
         pluginHooks[hook].push({
             fn,
@@ -66,7 +71,10 @@ class PluginAPI extends BaseAPI {
         assert(name || /^_/i.test(name), `${name} cannot begin with '_'.`);
         assert(!this[name] || !this.service.extendMethods[name] || !this.service.pluginMethods[name] || !this.service.sharedProps[name], `api.${name} exists.`);
         assert(opts, 'opts must supplied');
-        const { type, apply } = opts;
+        const {
+            type,
+            apply,
+        } = opts;
         assert(!(type && apply), 'Only be one for type and apply.');
         assert(type || apply, 'One of type and apply must supplied.');
 
@@ -120,7 +128,10 @@ class PluginAPI extends BaseAPI {
         assert(_.isPlainObject(opts), `opts should be plain object, but got ${opts}`);
         opts = this.service.resolvePlugin(opts);
         if (!opts) return; // error
-        const { id, apply } = opts;
+        const {
+            id,
+            apply,
+        } = opts;
         assert(id && apply, 'id and apply must supplied');
         assert(typeof id === 'string', 'id must be string');
         assert(typeof apply === 'function', 'apply must be function');
