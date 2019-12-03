@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function(api) {
+module.exports = function showCommand(api) {
 
     const { _, chalk, getPadLength } = require('@micro-app/shared-utils');
     const aliasMerge = require('../../../utils/merge-alias');

@@ -37,19 +37,7 @@ class MethodService extends BaseService {
         return tempDirPackageGraph;
     }
 
-    get micros() {
-        const selfMicros = this.self.micros || [];
-        const microsSet = new Set(selfMicros);
-        // 当前可用服务
-        const micros = [ ...microsSet ];
-        // redefine getter to lazy-loaded value
-        Object.defineProperty(this, 'micros', {
-            writable: true,
-            value: micros,
-        });
-        return micros;
-    }
-
+    // micros 配置
     get packages() {
         const packages = (this.self.packages || []).map(item => {
             const name = item.name;
@@ -65,14 +53,27 @@ class MethodService extends BaseService {
         return packages;
     }
 
+    get micros() {
+        const selfMicros = this.self.micros || [];
+        const microsSet = new Set(selfMicros);
+        // 当前可用服务
+        const micros = [ ...microsSet ];
+        // redefine getter to lazy-loaded value
+        Object.defineProperty(this, 'micros', {
+            writable: true,
+            value: micros,
+        });
+        return micros;
+    }
+
     get microsConfig() {
         const config = {};
         const microsExtraConfig = this.microsExtraConfig || {};
 
         // 暂时已被优化
-        const scope = this.tempDirNodeModules;
+        // const scope = this.tempDirNodeModules;
         this.micros.forEach(key => {
-            let microConfig = requireMicro(key, id => {
+            const microConfig = requireMicro(key, id => {
                 // @custom 开发模式软链接
                 const extralConfig = microsExtraConfig[id];
                 if (extralConfig && extralConfig.link && fs.existsSync(extralConfig.link)) {
@@ -80,10 +81,10 @@ class MethodService extends BaseService {
                 }
                 return null;
             });
-            if (!microConfig) { // 私有的
-                logger.debug('[Micros]', 'try load private package micros!');
-                microConfig = requireMicro(key, scope);
-            }
+            // if (!microConfig) { // 私有的
+            //     logger.debug('[Micros]', 'try load private package micros!');
+            //     microConfig = requireMicro(key, scope);
+            // }
             if (microConfig) {
                 config[key] = _.cloneDeep(microConfig);
             }
@@ -141,7 +142,7 @@ class MethodService extends BaseService {
     get microsPackageGraph() {
         const microsPackageGraph = new PackageGraph(this.microsPackages);
 
-        Object.defineProperty(this, 'microsConfig', {
+        Object.defineProperty(this, 'microsPackageGraph', {
             writable: true,
             value: microsPackageGraph,
         });
@@ -150,7 +151,7 @@ class MethodService extends BaseService {
     }
 
     get fileFinder() {
-        const finder = makeFileFinder(this.root, `${this.tempDirNodeModules}/**`);
+        const finder = makeFileFinder(this.root, [ `${this.tempDirNodeModules}/*`, `${this.tempDirNodeModules}/*/*` ]);
 
         // redefine getter to lazy-loaded value
         Object.defineProperty(this, 'fileFinder', {
@@ -233,6 +234,7 @@ class MethodService extends BaseService {
             if (!_.isEmpty(_extraConfig[name])) {
                 return _extraConfig[name];
             }
+            // 以下可能会冲突，后期再考虑
             // const _originalConfig = microConfig.originalConfig || {};
             // if (!_.isEmpty(_originalConfig[name])) {
             //     return _originalConfig[name];

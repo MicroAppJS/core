@@ -46,6 +46,13 @@ class ExtraConfig {
         return this[EXTRA_CONFIG] || {};
     }
 
+    get scope() {
+        if (this.__isPro) {
+            return this.config.scope || '';
+        }
+        return CONSTANTS.SCOPE_NAME;
+    }
+
     get micros() {
         const extraConfig = this.config || {};
         // 兼容旧版本
@@ -65,6 +72,11 @@ class ExtraConfig {
             if (process.env.MICRO_APP_OPEN_DISABLED_ENTRY !== 'true') { // 强制禁止使用 开启禁用指定模块入口, 优化开发速度
                 result[key].disabled = false;
                 result[key].disable = false;
+            }
+
+            // ZAP 兼容赋值
+            if (!key.startsWith(this.scope) && _.isUndefined(result[`${this.scope}/${key}`])) {
+                result[`${this.scope}/${key}`] = result[key];
             }
         });
         return _.cloneDeep(Object.assign({}, microsExtra, result));

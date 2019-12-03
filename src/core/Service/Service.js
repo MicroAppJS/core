@@ -27,10 +27,11 @@ class Service extends PluginService {
 
         // TODO 可优化, 则不需要走 alias, 直接 symlinks
         // 先判断是否存在 symlink, 如果存在则不需要走这个.
-        moduleAlias.addPaths(micros
+        const microsPaths = micros
             .map(key => microsConfig[key])
             .filter(item => item.hasSoftLink && microsExtraConfig[item.key] && !!microsExtraConfig[item.key].link)
-            .map(item => item.nodeModules));
+            .map(item => item.nodeModules);
+        moduleAlias.addPaths(microsPaths);
     }
 
     init() {

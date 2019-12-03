@@ -47,7 +47,12 @@ function requireMicro(id, scope = CONSTANTS.NODE_MODULES_NAME, changeRootPath) {
     if (_.isFunction(changeRootPath)) {
         const newRootPath = changeRootPath(id);
         if (newRootPath && _.isString(newRootPath)) {
-            result = loadMicroAppConfig(newRootPath, { key, originalRootPath });
+            result = loadMicroAppConfig(newRootPath, { key: id, originalRootPath });
+        } else {
+            const newRootPath = changeRootPath(key);
+            if (newRootPath && _.isString(newRootPath)) {
+                result = loadMicroAppConfig(newRootPath, { key, originalRootPath });
+            }
         }
     }
     if (result) { // cache
