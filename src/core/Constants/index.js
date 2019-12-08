@@ -11,8 +11,9 @@ module.exports = {
     NODE_MODULES_NAME: 'node_modules',
     PACKAGE_JSON: 'package.json',
     SCOPE_NAME: '@micro-app', // namespace
-    CONFIG_NAME: 'micro-app.config.js',
+    CONFIG_NAME: 'micro-app.config',
     EXTRAL_CONFIG_NAME: 'micro-app.extra.config.js',
+    SUPPOER_CONFIG_FILE_EXTS: [ '.js', '.json', '.yaml', '.yml' ],
     TYPES: [], // support types
     INJECT_ID: '_MICRO_APP_INJECT_',
     ENV_PREFIX: 'MICRO_APP_',

@@ -3,7 +3,7 @@
 module.exports = function checkCommand(api) {
 
     const os = require('os');
-    const { _, chalk, getPadLength } = require('@micro-app/shared-utils');
+    const { _, chalk, getPadLength, logger: { SPACE_CHAR } } = require('@micro-app/shared-utils');
 
     const details = `
 Examples:
@@ -28,15 +28,21 @@ Examples:
         switch (type) {
             case 'deps':
             case 'dependencies':
-                api.logger.logo(`${chalk.green('Dependencies List')}:`);
-                return checkDependencies({ selfConfig, micros, microsConfig });
+                return checkDependencies('Dependencies List', { selfConfig, micros, microsConfig });
             default:
                 api.logger.error(`Not Support options: "${type}" !`);
                 return api.runCommand('help', { _: [ 'check' ] });
         }
     });
 
-    function checkDependencies({ selfConfig, micros, microsConfig }) {
+    function checkDependencies(title, { selfConfig, micros, microsConfig }) {
+        const loggerStacks = [];
+
+        if (_.isString(title)) {
+            loggerStacks.push('');
+            loggerStacks.push(`${SPACE_CHAR} ${chalk.green(title)}:`);
+        }
+
         const selfPackage = selfConfig.package || {};
         const selfDeps = selfPackage.dependencies || {};
         const dependenciesMap = {};
@@ -58,7 +64,7 @@ Examples:
         const padLength = getPadLength(arrs.concat(micros).map(key => ({ name: key })));
         arrs.forEach(key => {
             const _version = selfDeps[key];
-            const textStrs = [ `   * ${chalk.yellow(_.padEnd(key, padLength))} ${chalk.gray(`[ ${_version} ]`)}` ];
+            const textStrs = [ `${SPACE_CHAR.repeat(2)} * ${chalk.yellow(_.padEnd(key, padLength))} ${chalk.gray(`[ ${_version} ]`)}` ];
             const _names = dependenciesMap[key] || false;
             if (_names && Array.isArray(_names) && _names.length > 0) {
                 _names.forEach(_name => {
@@ -72,10 +78,15 @@ Examples:
                         color = 'yellow';
                     }
                     const _warpperMicroVersion = chalk[color](`[ ${_microVersion} ]`);
-                    textStrs.push(`${os.EOL}${' '.repeat(15) + chalk.gray('|--')} ${_microName} ${_warpperMicroVersion}`);
+                    textStrs.push(os.EOL);
+                    textStrs.push(`${SPACE_CHAR.repeat(2)}${chalk.gray('|--')} ${_microName} ${_warpperMicroVersion}`);
                 });
             }
-            api.logger.logo(textStrs.join(' '));
+            loggerStacks.push(textStrs.join(' '));
         });
+
+        if (loggerStacks.length) {
+            api.logger.logo(os.EOL, loggerStacks.join(os.EOL), os.EOL);
+        }
     }
 };

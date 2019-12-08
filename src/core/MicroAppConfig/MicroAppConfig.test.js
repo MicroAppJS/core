@@ -2,7 +2,7 @@
 
 /* global expect */
 
-const MicroAppConfig = require('./MicroAppConfig');
+const MicroAppConfig = require('.');
 const { loadFile } = require('@micro-app/shared-utils');
 
 describe('MicroAppConfig', () => {

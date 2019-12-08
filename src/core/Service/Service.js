@@ -1,6 +1,6 @@
 'use strict';
 
-const { logger, moduleAlias } = require('@micro-app/shared-utils');
+const { _, logger, moduleAlias, smartMerge } = require('@micro-app/shared-utils');
 
 const PluginService = require('./libs/PluginService');
 const PackageGraph = require('../PackageGraph');
@@ -34,6 +34,22 @@ class Service extends PluginService {
         moduleAlias.addPaths(microsPaths);
     }
 
+    _mergeConfig() {
+        const selfConfig = this.selfConfig;
+        const micros = this.micros;
+        const microsConfig = this.microsConfig;
+        const finalConfig = smartMerge({}, ...micros.map(key => {
+            if (!microsConfig[key]) return {};
+            return _.pick(microsConfig[key], [
+                'alias',
+                'resolveAlias',
+                'shared',
+                'resolveShared',
+            ]);
+        }), selfConfig);
+        return Object.assign({}, _.cloneDeep(finalConfig));
+    }
+
     init() {
         if (this.initialized) {
             return Promise.resolve();
@@ -64,8 +80,9 @@ class Service extends PluginService {
         chain = chain.then(() => {
             // merge config
             this.applyPluginHooks('beforeMergeConfig', this.config);
-            this._mergeConfig();
-            this.config = this.applyPluginHooks('modifyDefaultConfig', this.config);
+            Object.defineProperty(this, 'config', {
+                value: this.applyPluginHooks('modifyDefaultConfig', this._mergeConfig()),
+            });
             this.applyPluginHooks('afterMergeConfig', this.config);
         });
 
@@ -106,7 +123,7 @@ class Service extends PluginService {
             opts,
         });
 
-        // 获取配置中的 options
+        // TODO 获取配置中的 options
         const commandOpts = this.extraConfig.command[name] || {};
 
         return fn(args, commandOpts);

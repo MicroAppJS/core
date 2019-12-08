@@ -2,14 +2,14 @@
 
 module.exports = function showCommand(api) {
 
-    const { _, chalk, getPadLength } = require('@micro-app/shared-utils');
-    const aliasMerge = require('../../../utils/merge-alias');
+    const { _, chalk, getPadLength, logger: { SPACE_CHAR } } = require('@micro-app/shared-utils');
+    const os = require('os');
 
     const details = `
 Examples:
-  ${chalk.gray('# info')}
-  micro-app show info
-  `.trim();
+    ${chalk.gray('# info')}
+    micro-app show info
+    `.trim();
     api.registerCommand('show', {
         description: 'show alias & shared list, etc.',
         usage: 'micro-app show [options]',
@@ -28,6 +28,8 @@ Examples:
         },
         details,
     }, args => {
+        const aliasMerge = require('../../../utils/merge-alias');
+
         const pluginHooks = api.service.pluginHooks;
         const pluginMethods = api.service.pluginMethods;
         const extendMethods = api.service.extendMethods;
@@ -55,24 +57,21 @@ Examples:
         const type = args._[0];
         switch (type) {
             case 'env':
-                api.logger.logo(`${chalk.green('Env List')}:`);
-                return showAliasList(Object.keys(env).reduce((obj, key) => {
+                return showAliasList('Env List', Object.keys(env).reduce((obj, key) => {
                     obj[key] = {
                         description: env[key],
                     };
                     return obj;
                 }, {}));
             case 'process.env':
-                api.logger.logo(`${chalk.green('Process Env List')}:`);
-                return showAliasList(Object.keys(process.env).reduce((obj, key) => {
+                return showAliasList('Process Env List', Object.keys(process.env).reduce((obj, key) => {
                     obj[key] = {
                         description: process.env[key],
                     };
                     return obj;
                 }, {}));
             case 'micros':
-                api.logger.logo(`${chalk.green('Micros List')}:`);
-                return showAliasList(micros.reduce((obj, key) => {
+                return showAliasList('Micros List', micros.reduce((obj, key) => {
                     obj[key] = {
                         alias: microsConfig[key] && microsConfig[key].aliasName,
                         description: microsConfig[key] && microsConfig[key].description,
@@ -81,30 +80,25 @@ Examples:
                     return obj;
                 }, {}));
             case 'alias':
-                api.logger.logo(`${chalk.green('Alias List')}:`);
-                return showAliasList(Object.keys(alias).reduce((obj, key) => {
+                return showAliasList('Alias List', Object.keys(alias).reduce((obj, key) => {
                     const item = alias[key];
                     obj[key] = { description: item.description, link: args.link && item.link };
                     return obj;
                 }, {}));
             case 'shared':
-                api.logger.logo(`${chalk.green('Shared List')}:`);
-                return showAliasList(Object.keys(shared).reduce((obj, key) => {
+                return showAliasList('Shared List', Object.keys(shared).reduce((obj, key) => {
                     const item = shared[key];
                     obj[key] = { description: item.description, link: args.link && item.link };
                     return obj;
                 }, {}));
             case 'methods':
-                api.logger.logo(`${chalk.green('Plugin Methods')}:`);
-                showAliasList(pluginMethods);
+                showAliasList('Plugin Methods', pluginMethods);
                 return showAliasList(extendMethods);
             case 'configs':
-                api.logger.logo(`${chalk.green('Plugin Configs')}:`);
-                showAliasList(sharedProps);
+                showAliasList('Plugin Configs', sharedProps);
                 return showAliasList(extendConfigs);
             case 'plugins':
-                api.logger.logo(`${chalk.green('Plugin List')}:`);
-                return showAliasList(plugins.reduce((obj, item) => {
+                return showAliasList('Plugin List', plugins.reduce((obj, item) => {
                     const key = item.id;
                     const alias = item.alias;
                     let i = 0;
@@ -120,14 +114,12 @@ Examples:
                     return obj;
                 }, {}));
             case 'hooks':
-                api.logger.logo(`${chalk.green('Plugin hooks')}:`);
-                return showAliasList(Object.keys(pluginHooks).reduce((obj, key) => {
+                return showAliasList('Plugin hooks', Object.keys(pluginHooks).reduce((obj, key) => {
                     obj[key] = { description: `${JSON.stringify(pluginHooks[key].length)}` };
                     return obj;
                 }, {}));
             case 'info':
-                api.logger.logo(`${chalk.green('Show Details')}:`);
-                return showAliasList(Object.keys(info).reduce((obj, key) => {
+                return showAliasList('Show Details', Object.keys(info).reduce((obj, key) => {
                     obj[key] = { description: JSON.stringify(info[key]) };
                     return obj;
                 }, {}));
@@ -139,11 +131,23 @@ Examples:
         }
     });
 
-    function showAliasList(obj) {
+    function showAliasList(title, obj) {
+        const loggerStacks = [];
+
+        if (_.isString(title)) {
+            loggerStacks.push('');
+            loggerStacks.push(`${SPACE_CHAR} ${chalk.green(title)}:`);
+        } else if (!_.isPlainObject(obj)) {
+            obj = title;
+            title = undefined;
+        }
+
         const arrs = Object.keys(obj);
         const padLength = getPadLength(arrs.map(key => ({ name: key })));
+
         arrs.forEach(key => {
-            const textStrs = [ `   * ${chalk.yellow(_.padEnd(key, padLength))}` ];
+            const textStrs = [];
+            textStrs.push(`${SPACE_CHAR.repeat(2)} * ${chalk.yellow(_.padEnd(key, padLength))}`);
             const alias = obj[key] && obj[key].alias || false;
             if (alias && typeof alias === 'string') {
                 textStrs.push(`[ ${chalk.blue(alias)} ]`);
@@ -154,9 +158,14 @@ Examples:
             }
             const link = obj[key] && obj[key].link || false;
             if (link && typeof link === 'string') {
-                textStrs.push(`\n${' '.repeat(20)}>>> ${chalk.gray(link)}`);
+                textStrs.push(os.EOL);
+                textStrs.push(`${SPACE_CHAR.repeat(3)} >>> ${chalk.gray(link)}`);
             }
-            api.logger.logo(textStrs.join(' '));
+            loggerStacks.push(textStrs.join(''));
         });
+
+        if (loggerStacks.length) {
+            api.logger.logo(os.EOL, loggerStacks.join(os.EOL), os.EOL);
+        }
     }
 };

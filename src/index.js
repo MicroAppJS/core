@@ -5,7 +5,6 @@ const Service = require('./core/Service');
 const Package = require('./core/Package');
 const PackageGraph = require('./core/PackageGraph');
 const Command = require('./core/Command');
-const logger = require('./utils/logger');
 const requireMicro = require('./utils/requireMicro');
 
 const {
@@ -13,6 +12,7 @@ const {
     smartMerge,
     virtualFile,
     injectHtml,
+    logger,
 } = require('@micro-app/shared-utils');
 
 // 核心模块不在提供工具

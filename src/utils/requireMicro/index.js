@@ -3,8 +3,8 @@
 const path = require('path');
 const { _ } = require('@micro-app/shared-utils');
 
-const CONSTANTS = require('../core/Constants');
-const MicroAppConfig = require('../core/MicroAppConfig');
+const CONSTANTS = require('../../core/Constants');
+const MicroAppConfig = require('../../core/MicroAppConfig');
 
 const SELF_CONFIG = Symbol('@MicroAppConfig#SELF_CONFIG');
 const configCache = {};

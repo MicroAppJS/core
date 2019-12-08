@@ -12,10 +12,11 @@ class HelpCommand extends Command {
 
     execute(args) {
         const api = this.api;
+        const commands = api.service.commands;
 
         const helpInfo = api.applyPluginHooks('modifyCommandHelp', {
             scriptName: 'micro-app',
-            commands: api.service.commands,
+            commands,
         });
 
         const command = args._[0];
@@ -27,51 +28,65 @@ class HelpCommand extends Command {
     }
 
     logMainHelp(helpInfo) {
-        const { _, chalk, getPadLength } = require('@micro-app/shared-utils');
+        const os = require('os');
+        const { _, chalk, getPadLength, logger: { SPACE_CHAR } } = require('@micro-app/shared-utils');
         const api = this.api;
+        const loggerStacks = [];
 
-        api.logger.logo(`\n  Usage: ${helpInfo.scriptName} <command> [options]\n`);
-        api.logger.logo(`  ${chalk.green('Commands')}:`);
+        loggerStacks.push(`${SPACE_CHAR} Usage: ${helpInfo.scriptName} <command> [options]`);
+        loggerStacks.push('');
+        loggerStacks.push(`${SPACE_CHAR} ${chalk.green('Commands')}:`);
         const commands = helpInfo.commands;
         const padLength = getPadLength(commands);
         for (const name in commands) {
             const opts = commands[name].opts || {};
             if (opts.hide !== true) {
-                api.logger.logo(`    * ${chalk.yellow(_.padEnd(name, padLength))}${opts.description ? ` ( ${chalk.gray(opts.description)} )` : ''}`);
+                loggerStacks.push(`${SPACE_CHAR}${SPACE_CHAR} * ${chalk.yellow(_.padEnd(name, padLength))}${opts.description ? ` ( ${chalk.gray(opts.description)} )` : ''}`);
             }
         }
-        api.logger.logo(
-            `\n  run ${chalk.blue(
+        loggerStacks.push('');
+        loggerStacks.push(
+            `${SPACE_CHAR} run ${chalk.blue(
                 `${helpInfo.scriptName} help [command]`
-            )} for usage of a specific command.\n`
+            )} for usage of a specific command.`
         );
+
+        if (loggerStacks.length) {
+            api.logger.logo(os.EOL, os.EOL, loggerStacks.join(os.EOL), os.EOL);
+        }
     }
 
     logHelpForCommand(name, command) {
-        const { _, chalk, getPadLength } = require('@micro-app/shared-utils');
+        const os = require('os');
+        const { _, chalk, getPadLength, logger: { SPACE_CHAR } } = require('@micro-app/shared-utils');
         const api = this.api;
 
         if (!command) {
-            api.logger.error(`\n  Command "${name}" does not exist.`);
+            api.logger.error(`Command "${name}" does not exist.`);
         } else {
+            const loggerStacks = [];
             const opts = command.opts || {};
             if (opts.usage) {
-                api.logger.logo(`\n  Usage: ${opts.usage}\n`);
+                loggerStacks.push('');
+                loggerStacks.push(`${SPACE_CHAR} Usage: ${opts.usage}`);
             }
             if (opts.options) {
-                api.logger.logo(`  ${chalk.green('Options')}:`);
+                loggerStacks.push('');
+                loggerStacks.push(`${SPACE_CHAR} ${chalk.green('Options')}:`);
                 const padLength = getPadLength(opts.options);
                 for (const name in opts.options) {
-                    api.logger.logo(`    * ${chalk.yellow(_.padEnd(name, padLength))} ( ${chalk.gray(opts.options[name])} )`);
+                    loggerStacks.push(`${SPACE_CHAR}${SPACE_CHAR} * ${chalk.yellow(_.padEnd(name, padLength))} ( ${chalk.gray(opts.options[name])} )`);
                 }
             }
             if (opts.details) {
-                api.logger.logo('\n' +
-                opts.details
-                    .split('\n')
-                    .map(line => `  ${line}`)
-                    .join('\n')
-            + '\n');
+                loggerStacks.push('');
+                loggerStacks.push(...opts.details
+                    .split(os.EOL)
+                    .map(line => `${SPACE_CHAR} ${line}`));
+            }
+
+            if (loggerStacks.length) {
+                api.logger.logo(os.EOL, loggerStacks.join(os.EOL), os.EOL);
             }
         }
     }

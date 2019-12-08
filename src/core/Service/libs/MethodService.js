@@ -16,6 +16,11 @@ const requireMicro = require('../../../utils/requireMicro');
 
 class MethodService extends BaseService {
 
+    constructor() {
+        super();
+        this.commands = {};
+    }
+
     get tempDirName() {
         return CONSTANTS.MICRO_APP_TEMP_DIR;
     }
@@ -159,6 +164,10 @@ class MethodService extends BaseService {
         });
 
         return finder;
+    }
+
+    resolve(_path) {
+        return path.resolve(this.root, _path);
     }
 
     assertExtendOptions(name, opts, fn) {

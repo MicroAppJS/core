@@ -28,6 +28,7 @@ const contants = {
         'hasPlugin',
         'findPlugin',
         // new v0.3
+        'resolve',
         'selfKey',
         'nodeModulesPath',
         'fileFinder',

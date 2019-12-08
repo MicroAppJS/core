@@ -56,8 +56,20 @@ module.exports = {
             },
             {
                 type: 'string',
+            }],
+        },
+        publicPath: {
+            description: 'public resource path. ( stirng | array<string> )',
+            anyOf: [{
+                items: {
+                    type: 'string',
+                },
+                minItems: 1,
+                type: 'array',
             },
-            ],
+            {
+                type: 'string',
+            }],
         },
         webpack: {
             description: 'webpack 配置, 只针对自己有效. ( object )',

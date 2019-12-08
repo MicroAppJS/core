@@ -1,10 +1,9 @@
 'use strict';
 
 const path = require('path');
-const { getPadLength, _, tryRequire, loadFile } = require('@micro-app/shared-utils');
+const { getPadLength, _, tryRequire, loadFile, logger } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../../Constants');
-const logger = require('../../../utils/logger');
 
 // 默认配置
 // const DEFAULT_CONFIG = require('../../Constants/default');
@@ -163,10 +162,10 @@ class BaseConfig {
 
     get aliasName() {
         let aliasName = this.name || '';
-        if (!aliasName.startsWith(CONSTANTS.SCOPE_NAME)) {
+        if (!aliasName.startsWith(CONSTANTS.SCOPE_NAME)) { // 加入作用域，并去除原 scope 的 @ 开头符
             aliasName = `${CONSTANTS.SCOPE_NAME}/${aliasName.replace(/^@/ig, '')}`;
         }
-        return aliasName[0] !== '@' ? `@${aliasName}` : aliasName;
+        return aliasName.startsWith('@') ? aliasName : `@${aliasName}`;
     }
 
     get version() {

@@ -2,7 +2,7 @@
 
 /* global expect */
 
-const requireMicro = require('../requireMicro');
+const requireMicro = require('.');
 
 describe('requireMicro', () => {
 

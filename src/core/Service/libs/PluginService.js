@@ -1,6 +1,6 @@
 'use strict';
 
-const { logger, _, assert, tryRequire, smartMerge, virtualFile, dedent } = require('@micro-app/shared-utils');
+const { logger, _, assert, tryRequire, virtualFile, dedent } = require('@micro-app/shared-utils');
 
 const MethodService = require('./MethodService');
 const PluginAPI = require('../../PluginAPI');
@@ -91,6 +91,7 @@ class PluginService extends MethodService {
                 return;
             }
         }
+
         assert(typeof apply === 'function',
             dedent`plugin "${id}" must export a function,
                 e.g.
@@ -98,6 +99,7 @@ class PluginService extends MethodService {
                         // Implement functions via api
                     }`
         );
+
         const api = new Proxy(new PluginAPI(id, this), {
             get: (target, prop) => {
                 if (typeof prop === 'string' && /^_/i.test(prop)) {
@@ -158,27 +160,8 @@ class PluginService extends MethodService {
         } else {
             await apply(api, opts);
         }
-        plugin._api = api;
-    }
 
-    _mergeConfig() {
-        const selfConfig = this.selfConfig;
-        const micros = this.micros;
-        const microsConfig = this.microsConfig;
-        const finalConfig = smartMerge({}, ...micros.map(key => {
-            if (!microsConfig[key]) return {};
-            return _.pick(microsConfig[key], [
-                'entry',
-                'htmls',
-                'dlls',
-                'alias',
-                'resolveAlias',
-                'shared',
-                'resolveShared',
-                'staticPaths',
-            ]);
-        }), selfConfig);
-        Object.assign(this.config, _.cloneDeep(finalConfig));
+        plugin._api = api;
     }
 
     registerPlugin(opts) {

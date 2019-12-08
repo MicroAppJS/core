@@ -1,8 +1,7 @@
 'use strict';
 
-const { semver } = require('@micro-app/shared-utils');
+const { semver, logger } = require('@micro-app/shared-utils');
 
-const logger = require('../../../utils/logger');
 const CONSTANTS = require('../../Constants');
 
 class BaseAPI {
@@ -53,6 +52,11 @@ class BaseAPI {
         const version = this.version;
 
         if (semver.satisfies(version, range)) return;
+
+        if (process.env.MICRO_APP_TEST) {
+            this.logger.warn('test', `skip assertVersion(${range}) !`);
+            return;
+        }
 
         this.logger.throw(`Require ${CONSTANTS.SCOPE_NAME}/core "${range}", but was loaded with "${version}".`);
     }

@@ -2,7 +2,7 @@
 
 /* global expect */
 
-const mergeAlias = require('../merge-alias');
+const mergeAlias = require('.');
 
 describe('mergeAlias', () => {
 

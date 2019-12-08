@@ -11,7 +11,9 @@ const commands = [
 
 module.exports = commands.map(p => {
     return {
-        id: 'built-in:' + p.replace(/^\/?commands\/?/ig, '').replace(/\//ig, '-').replace(/\.js/ig, '')
+        id: 'built-in:' + p.replace(/^\/?commands\/?/ig, '')
+            .replace(/\//ig, '-')
+            .replace(/\.js/ig, '')
             .toLowerCase(),
         link: path.resolve(__dirname, p),
         description: 'System Build-in',

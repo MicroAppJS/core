@@ -1,42 +1,12 @@
 'use strict';
 
 const path = require('path');
-const { globby, logger, loadFile, _ } = require('@micro-app/shared-utils');
+const { globby } = require('@micro-app/shared-utils');
 
-const CONSTANTS = require('../Constants');
 const BaseConfig = require('./libs/BaseConfig');
 const Package = require('../Package');
 
 class MicroAppConfig extends BaseConfig {
-
-    static createInstance(rootPath = process.cwd(), { originalRootPath = rootPath, key } = {}) {
-        const { CONFIG_NAME, PACKAGE_JSON, SCOPE_NAME } = CONSTANTS;
-        let microConfig = loadFile(rootPath, CONFIG_NAME);
-        if (microConfig) {
-            const filePath = path.resolve(rootPath, CONFIG_NAME);
-            const _microAppConfig = new MicroAppConfig(microConfig, {
-                key,
-                filePath,
-                originalRoot: originalRootPath,
-                loadSuccess: true,
-            });
-            return _microAppConfig;
-        }
-        microConfig = loadFile(rootPath, PACKAGE_JSON);
-        if (microConfig && _.isPlainObject(microConfig[SCOPE_NAME])) {
-            // 文件未加载成功.
-            logger.warn(`second load "${PACKAGE_JSON}"`);
-            const filePath = path.resolve(rootPath, PACKAGE_JSON);
-            const _microAppConfig = new MicroAppConfig(microConfig[SCOPE_NAME], {
-                key: microConfig.name,
-                filePath,
-                originalRoot: originalRootPath,
-                loadSuccess: false,
-            });
-            return _microAppConfig;
-        }
-        return null;
-    }
 
     static get LICENSE_GLOB() {
         return 'LICEN{S,C}E{,.*}';
