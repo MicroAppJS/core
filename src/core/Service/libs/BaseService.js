@@ -2,6 +2,7 @@
 
 const os = require('os');
 const { logger, _, semverRegex } = require('@micro-app/shared-utils');
+const path = require('path');
 
 const CONSTANTS = require('../../Constants');
 
@@ -18,11 +19,18 @@ const GLOBAL_STATE = {};
 
 class BaseService {
 
-    constructor() {
+    constructor(context) {
+        this.context = context || {};
+
         // 初始化
         this[INIT_PARAMS]();
         this[INIT_ENV]();
         this[INIT_DEFAULT_ENV]();
+
+        // reset logger level
+        if (process.env.MICRO_APP_LOGGER_LEVEL) {
+            logger.level = process.env.MICRO_APP_LOGGER_LEVEL;
+        }
     }
 
     /**
@@ -43,7 +51,6 @@ class BaseService {
             return obj;
         }, {});
 
-        this.env = {}; // 环境变量
         this.config = {};
 
         this.state = GLOBAL_STATE; // 状态集
@@ -54,29 +61,48 @@ class BaseService {
      *
      * @memberof BaseService
      */
-    [INIT_ENV]() {
-        // 可增加对模式的解析
-        const env = process.env.NODE_ENV;
+    [INIT_ENV]() { // 支持对模式解析
         const dotenv = require('dotenv');
-        const result = dotenv.config();
-        if (result.error) {
-            logger.error(result.error);
-        } else if (result.parsed) {
-            const config = result.parsed;
-            if (config.HOSTNAME) { // fixed
-                process.env.HOSTNAME = config.HOSTNAME;
+        const dotenvExpand = require('dotenv-expand');
+
+        const load = envFileName => {
+            const envPath = path.resolve(this.root, envFileName);
+            const result = dotenv.config({ path: envPath });
+            if (result.error) {
+                // only ignore error if file is not found
+                if (result.error.toString().indexOf('ENOENT') < 0) {
+                    logger.error(result.error);
+                }
+            } else {
+                dotenvExpand(result);
+                if (result.parsed) {
+                    const config = result.parsed;
+                    if (config.HOSTNAME) { // fixed
+                        process.env.HOSTNAME = config.HOSTNAME;
+                    }
+                }
             }
-            Object.assign(this.env, config);
-            logger.debug('[dotenv]', `dotenv parsed envs:${os.EOL}`, JSON.stringify(this.env, null, 4));
+        };
+
+        load('.env');
+        load('.env.local');
+
+        // default env
+        const context = this.context;
+        // 全局环境模式 production, development
+        process.env.NODE_ENV = context.mode || this.mode || 'development';
+
+        const mode = this.mode;
+        if (mode) {
+            load(`.env.${mode}`);
+            load(`.env.${mode}.local`);
         }
 
-        if (env === 'production') { // fixed
-            this.env.NODE_ENV = env;
-            process.env.NODE_ENV = env;
-        }
+        logger.debug('[dotenv]', `dotenv parsed envs:${os.EOL}`, JSON.stringify(this.env, null, 4));
     }
 
     /**
+     * 注入默认环境变量
      * @private
      *
      * @memberof BaseService
@@ -88,6 +114,11 @@ class BaseService {
                 value: semverRegex().exec(this.version)[0],
             },
         };
+        if (this.mode === 'test') {
+            env.TEST = {
+                value: true,
+            };
+        }
         Object.keys(env).forEach(key => {
             const _k = `${CONSTANTS.ENV_PREFIX}${key.toUpperCase()}`;
             const item = env[key];
@@ -95,6 +126,10 @@ class BaseService {
                 process.env[_k] = item.value;
             }
         });
+    }
+
+    get env() { // 环境变量
+        return process.env;
     }
 
     get root() {
@@ -106,7 +141,7 @@ class BaseService {
     }
 
     get mode() {
-        return process.env.NODE_ENV || 'production'; // "production" | "development"
+        return process.env.NODE_ENV || 'development'; // "production" | "development"
     }
 
     get self() {
@@ -123,6 +158,10 @@ class BaseService {
 
     get selfConfig() {
         return _.cloneDeep(this.self) || {};
+    }
+
+    get type() {
+        return this.selfConfig.type || '';
     }
 
     get pkg() {

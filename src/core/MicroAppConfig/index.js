@@ -6,29 +6,13 @@ const { logger, loadFile, _ } = require('@micro-app/shared-utils');
 const CONSTANTS = require('../Constants');
 const MicroAppConfig = require('./MicroAppConfig');
 
+const loadConfigFile = require('../../utils/loadConfigFile').path;
+
 module.exports = MicroAppConfig;
 
-function loadConfigFile(rootPath) {
-    const { CONFIG_NAME, SUPPOER_CONFIG_FILE_EXTS } = CONSTANTS;
-    const exts = [ ].concat(SUPPOER_CONFIG_FILE_EXTS);
-
-    let microConfig;
-    let filePath;
-    while (!microConfig && exts.length > 0) {
-        filePath = path.resolve(rootPath, `${CONFIG_NAME}${exts.shift()}`);
-        microConfig = loadFile(filePath);
-    }
-
-    if (!microConfig) {
-        filePath = undefined;
-    }
-
-    return [ microConfig, filePath ];
-}
-
 module.exports.createInstance = (rootPath = process.cwd(), { originalRootPath = rootPath, key } = {}) => {
-    const { PACKAGE_JSON, SCOPE_NAME } = CONSTANTS;
-    let [ microConfig, filePath ] = loadConfigFile(rootPath);
+    const { CONFIG_NAME, PACKAGE_JSON, SCOPE_NAME } = CONSTANTS;
+    let [ microConfig, filePath ] = loadConfigFile(rootPath, CONFIG_NAME);
     if (microConfig) {
         const _microAppConfig = new MicroAppConfig(microConfig, {
             key,

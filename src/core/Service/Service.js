@@ -6,8 +6,9 @@ const PluginService = require('./libs/PluginService');
 const PackageGraph = require('../PackageGraph');
 
 class Service extends PluginService {
-    constructor() {
-        super();
+    constructor(context) {
+        super(context);
+
         this.initialized = false;
 
         // fixed soft link - node_modules 不统一
@@ -103,8 +104,14 @@ class Service extends PluginService {
         return chain;
     }
 
-    runCommand(rawName, rawArgs = { _: [] }) {
+    runCommand(rawName, rawArgs = {}) {
+        rawArgs._ = rawArgs._ || [];
         logger.debug('[Plugin]', `raw command name: ${rawName}, args: `, rawArgs);
+
+        // TODO 获取配置中的 options
+        const commandOpts = this.extraConfig.command[rawName] || {};
+        rawArgs = smartMerge({}, commandOpts, rawArgs);
+
         const { name = rawName, args = rawArgs } = this.applyPluginHooks('modifyCommand', {
             name: rawName,
             args: rawArgs,
@@ -117,19 +124,20 @@ class Service extends PluginService {
         }
 
         const { fn, opts } = command;
+
+        // TODO 分发引用，带优化
         this.applyPluginHooks('onRunCommand', {
             name,
             args,
             opts,
         });
 
-        // TODO 获取配置中的 options
-        const commandOpts = this.extraConfig.command[name] || {};
-
-        return fn(args, commandOpts);
+        return fn(args);
     }
 
-    async run(name = 'help', args) {
+    async run(name = 'help', args = { _: [] }) {
+        // TODO 可从这里判断全局变量， 如 mode
+
         await this.init();
         return this.runCommand(name, args);
     }

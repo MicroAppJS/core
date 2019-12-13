@@ -1,15 +1,14 @@
 'use strict';
 
 const path = require('path');
-const { getPadLength, _, tryRequire, loadFile, logger } = require('@micro-app/shared-utils');
+const { getPadLength, _, validateSchema, loadFile, logger } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../../Constants');
 
 // 默认配置
 // const DEFAULT_CONFIG = require('../../Constants/default');
 
-const validate = require('../schema');
-const SCHEMA = require('../schema/configSchema');
+const SCHEMA = require('./configSchema');
 
 const INIT = Symbol('@BaseConfig#INIT');
 const KEY_ORIGNAL_CONFIG = Symbol('@BaseConfig#KEY_ORIGNAL_CONFIG');
@@ -50,16 +49,16 @@ class BaseConfig {
     }
 
     _validateSchema(config) {
-        const result = validate(SCHEMA, config);
+        const result = validateSchema(SCHEMA, config);
         const padLength = getPadLength(result.map(item => {
             return { name: item.keyword };
         }));
+        if (!result.length) return;
+
         result.forEach(item => {
-            logger.error(`[${_.padStart(item.keyword, padLength)}] ${item.dataPath} ${item.message}`);
+            logger.warn(`${_.padEnd(item.keyword, padLength)} [ ${item.dataPath} ${item.message} ]`);
         });
-        if (result.length > 0) {
-            logger.throw('illegal configuration !!!');
-        }
+        logger.throw('illegal configuration !!!');
     }
 
     [INIT]() {
@@ -180,7 +179,7 @@ class BaseConfig {
 
     get type() {
         const config = this.config;
-        return config.type || '';
+        return config.type || ''; // 默认类型为空
     }
 
     get packages() {

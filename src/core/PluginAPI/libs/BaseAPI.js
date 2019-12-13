@@ -1,6 +1,6 @@
 'use strict';
 
-const { semver, logger } = require('@micro-app/shared-utils');
+const { _, semver, logger, validateSchema, getPadLength } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../../Constants');
 
@@ -38,6 +38,19 @@ class BaseAPI {
         return this.service.getState(key, value);
     }
 
+    validateSchema(schema, config) {
+        const result = validateSchema(schema, config);
+        const padLength = getPadLength(result.map(item => {
+            return { name: item.keyword };
+        }));
+        if (!result.length) return;
+
+        result.forEach(item => {
+            this.logger.warn(`${_.padEnd(item.keyword, padLength)} [ ${item.dataPath} ${item.message} ]`);
+        });
+        this.logger.throw('illegal configuration !!!');
+    }
+
     assertVersion(range) {
         if (typeof range === 'number') {
             if (!Number.isInteger(range)) {
@@ -54,7 +67,7 @@ class BaseAPI {
         if (semver.satisfies(version, range)) return;
 
         if (process.env.MICRO_APP_TEST) {
-            this.logger.warn('test', `skip assertVersion(${range}) !`);
+            this.logger.warn('[test]', `skip assertVersion( ${range} ) !`);
             return;
         }
 

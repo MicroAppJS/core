@@ -21,4 +21,17 @@ describe('BaseService', () => {
 
     });
 
+    it('env', () => {
+        const base = new BaseService();
+
+        expect(base.mode).not.toBeNull();
+        expect(base.mode).not.toBeUndefined();
+        expect(base.mode).toEqual('test');
+
+        expect(process.env.MICRO_APP_TEST).not.toBeNull();
+        expect(process.env.MICRO_APP_TEST).not.toBeUndefined();
+        expect(process.env.MICRO_APP_TEST).toEqual('true');
+
+    });
+
 });

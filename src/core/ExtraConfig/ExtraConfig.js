@@ -1,21 +1,24 @@
 'use strict';
 
-const { logger, _, assert, loadFile } = require('@micro-app/shared-utils');
+const { logger, _, assert } = require('@micro-app/shared-utils');
 
-const CONSTANTS = require('../../Constants');
+const CONSTANTS = require('../Constants');
+
+const loadConfigFile = require('../../utils/loadConfigFile');
 
 const EXTRA_CONFIG = Symbol('EXTRA_CONFIG');
 
 class ExtraConfig {
 
-    constructor(root) {
+    constructor(root, context) {
         assert(typeof root === 'string', 'root is required!');
+        this.context = context || {};
 
         Object.defineProperty(this, 'root', {
             value: root,
         });
 
-        let extraConfig = loadFile(root, CONSTANTS.EXTRAL_CONFIG_NAME);
+        let extraConfig = loadConfigFile(root, CONSTANTS.EXTRAL_CONFIG_NAME);
         if (!extraConfig || !_.isPlainObject(extraConfig)) {
             extraConfig = {};
         } else {
@@ -28,18 +31,28 @@ class ExtraConfig {
         this[EXTRA_CONFIG] = extraConfig || {};
 
         // 其它赋值
-        Object.keys(this.config).forEach(key => {
-            if (this[key] === undefined) {
-                Object.defineProperty(this, key, {
-                    writable: true,
-                    value: this.config[key],
-                });
-            }
-        });
+        if (this.__isPro) {
+            Object.keys(this.config).forEach(key => {
+                if (this[key] === undefined) {
+                    Object.defineProperty(this, key, {
+                        writable: true,
+                        value: this.config[key],
+                    });
+                }
+            });
+        }
+
+        // 全局指令(兼容指令)
+        if (this.context.openSoftLink) {
+            logger.info('已开启软链接: --open-soft-link = true');
+        }
+        if (this.context.openDisabledEntry) {
+            logger.info('已开启禁用指定模块入口: --open-disabled-entry = true');
+        }
     }
 
     get __isPro() {
-        return _.isPlainObject(this.config.micros) || _.isPlainObject(this.config.micro);
+        return _.isPlainObject(this.config.micros);
     }
 
     get config() {
@@ -54,27 +67,29 @@ class ExtraConfig {
     }
 
     get micros() {
+        const { openSoftLink = false, openDisabledEntry = false } = this.context;
         const extraConfig = this.config || {};
         // 兼容旧版本
-        const microsExtra = this.__isPro ? (extraConfig.micros || extraConfig.micro) : extraConfig;
+        const microsExtra = this.__isPro ? extraConfig.micros : extraConfig;
+
         const result = {};
         Object.keys(microsExtra).forEach(key => {
             result[key] = Object.assign({}, microsExtra[key] || {
                 disabled: false, // 禁用入口
-                disable: false,
-                link: false,
+                disable: false, // 开启禁用指定模块入口, 优化开发速度, 同 disabled
+                link: false, // 开启软链接
             });
 
             // 附加内容需要参考全局配置 (兼容)
-            if (process.env.MICRO_APP_OPEN_SOFT_LINK !== 'true') { // 强制禁止使用 软链接
+            if (!openSoftLink) { // 强制禁止使用 软链接
                 result[key].link = false;
             }
-            if (process.env.MICRO_APP_OPEN_DISABLED_ENTRY !== 'true') { // 强制禁止使用 开启禁用指定模块入口, 优化开发速度
+            if (!openDisabledEntry) { // 强制禁止使用 开启禁用指定模块入口, 优化开发速度
                 result[key].disabled = false;
                 result[key].disable = false;
             }
 
-            // ZAP 兼容赋值
+            // ZAP 兼容赋值（后面需要去除的）
             if (!key.startsWith(this.scope) && _.isUndefined(result[`${this.scope}/${key}`])) {
                 result[`${this.scope}/${key}`] = result[key];
             }

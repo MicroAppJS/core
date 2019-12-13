@@ -187,12 +187,6 @@ module.exports = function(api, opts) {
     api.onPluginInitDone(item => {
         console.log('onPluginInitDone', item);
     });
-    api.beforeMergeWebpackConfig(item => {
-        console.log('beforeMergeWebpackConfig', item);
-    });
-    api.afterMergeWebpackConfig(item => {
-        console.log('afterMergeWebpackConfig', item);
-    });
     // api.onChainWebpcakConfig(webpackChainConfig => {
     //     console.log('onChainWebpcakConfig', webpackChainConfig);
     // });
@@ -221,8 +215,6 @@ npx micro-app show methods
      * modifyCommand               ( System Build-in )
      * onRunCommand                ( System Build-in )
      * modifyCommandHelp           ( System Build-in )
-     * beforeMergeWebpackConfig    ( 合并 webpack 配置之前事件 )
-     * afterMergeWebpackConfig     ( 合并 webpack 配置之后事件 )
      * modifyChainWebpcakConfig    ( 合并之后提供 webpack-chain 进行再次修改事件 )
      * onChainWebpcakConfig        ( 修改之后提供 webpack-chain 进行查看事件 )
      * onServerInit                ( 服务初始化时事件 )

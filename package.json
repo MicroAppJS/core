@@ -1,6 +1,6 @@
 {
     "name": "@micro-app/core",
-    "version": "0.3.0-alpha.2",
+    "version": "0.3.0-alpha.3",
     "description": "[Core] Pluggable micro application framework.",
     "main": "src/index.js",
     "scripts": {
@@ -47,17 +47,15 @@
         "eslint-config-2o3t": "^1.1.17",
         "husky": "^3.1.0",
         "jest": "^24.9.0",
-        "lint-staged": "^9.5.0",
-        "yargs-parser": "^13.1.1"
+        "lint-staged": "^9.5.0"
     },
     "dependencies": {
-        "@micro-app/shared-utils": "^0.1.6",
-        "ajv": "^6.10.2",
-        "ajv-keywords": "^3.4.1",
-        "dotenv": "^8.2.0"
+        "@micro-app/shared-utils": "^0.1.8",
+        "dotenv": "^8.2.0",
+        "dotenv-expand": "^5.1.0"
     },
     "peerDependencies": {
-        "@micro-app/shared-utils": ">=0.1.6"
+        "@micro-app/shared-utils": ">=0.1.8"
     },
     "engines": {
         "node": ">=8"

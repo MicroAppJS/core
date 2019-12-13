@@ -73,9 +73,29 @@ class HelpCommand extends Command {
             if (opts.options) {
                 loggerStacks.push('');
                 loggerStacks.push(`${SPACE_CHAR} ${chalk.green('Options')}:`);
-                const padLength = getPadLength(opts.options);
+                const tempObj = Object.keys(opts.options).reduce((obj, name) => {
+                    if (_.isString(opts.options[name])) {
+                        obj[name] = opts.options[name];
+                    } else if (_.isPlainObject(opts.options[name])) {
+                        const subOptions = opts.options[name];
+                        for (const key in subOptions) {
+                            obj[key] = subOptions[name];
+                        }
+                    }
+                    return obj;
+                }, {});
+                const padLength = getPadLength(tempObj);
                 for (const name in opts.options) {
-                    loggerStacks.push(`${SPACE_CHAR}${SPACE_CHAR} * ${chalk.yellow(_.padEnd(name, padLength))} ( ${chalk.gray(opts.options[name])} )`);
+                    if (_.isString(opts.options[name])) {
+                        loggerStacks.push(`${SPACE_CHAR.repeat(2)} * ${chalk.yellow(_.padEnd(name, padLength))} ( ${chalk.gray(opts.options[name])} )`);
+                    } else {
+                        const subOptions = opts.options[name];
+                        loggerStacks.push(`${SPACE_CHAR.repeat(2)} * ${chalk.yellow(_.padEnd(name, padLength))} ( ${chalk.gray(subOptions[''])} )`);
+                        delete subOptions[''];
+                        for (const key in subOptions) {
+                            loggerStacks.push(`${SPACE_CHAR.repeat(2)} ${chalk.gray('|')} ${chalk.cyan(_.padEnd(key, padLength))} ( ${chalk.gray(subOptions[key])} )`);
+                        }
+                    }
                 }
             }
             if (opts.details) {

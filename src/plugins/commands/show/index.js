@@ -93,10 +93,10 @@ Examples:
                 }, {}));
             case 'methods':
                 showAliasList('Plugin Methods', pluginMethods);
-                return showAliasList(extendMethods);
+                return showAliasList('Plugin Extend Methods', extendMethods);
             case 'configs':
                 showAliasList('Plugin Configs', sharedProps);
-                return showAliasList(extendConfigs);
+                return showAliasList('Plugin Extend Configs', extendConfigs);
             case 'plugins':
                 return showAliasList('Plugin List', plugins.reduce((obj, item) => {
                     const key = item.id;

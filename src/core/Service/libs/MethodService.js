@@ -5,7 +5,7 @@ const { logger, _, fs, assert, loadFile } = require('@micro-app/shared-utils');
 
 const BaseService = require('./BaseService');
 const { parsePackageInfo } = require('./PackageInfo');
-const ExtraConfig = require('./ExtraConfig');
+const ExtraConfig = require('../../ExtraConfig');
 
 const Package = require('../../Package');
 const PackageGraph = require('../../PackageGraph');
@@ -13,11 +13,13 @@ const CONSTANTS = require('../../Constants');
 const makeFileFinder = require('../../../utils/makeFileFinder');
 
 const requireMicro = require('../../../utils/requireMicro');
+const loadConfigFile = require('../../../utils/loadConfigFile');
 
 class MethodService extends BaseService {
 
-    constructor() {
-        super();
+    constructor(context) {
+        super(context);
+
         this.commands = {};
     }
 
@@ -125,7 +127,7 @@ class MethodService extends BaseService {
     // 扩增配置
     get extraConfig() {
         // 加载高级附加配置
-        const extraConfig = new ExtraConfig(this.root);
+        const extraConfig = new ExtraConfig(this.root, this.context);
 
         Object.defineProperty(this, 'extraConfig', {
             value: extraConfig,
@@ -228,22 +230,24 @@ class MethodService extends BaseService {
         const microConfig = microsConfig[key];
         if (microConfig && microConfig.__isMicroAppConfig) {
             const root = microConfig.root;
-            const filename = CONSTANTS.EXTRAL_CONFIG_NAME.replace('extra', name);
-            const _config = loadFile(root, filename);
+            const filename = CONSTANTS.EXTRAL_CONFIG_NAME.replace(/extra/, name);
+            const _config = loadConfigFile(root, filename);
             if (!_.isEmpty(_config)) {
                 return _config;
             }
             // 文件夹中
-            const subFileName = `${name}.config.js`;
-            const _microsConfig = loadFile(path.resolve(root, this.tempDirName), subFileName);
+            const subFileName = `${name}.config`;
+            const tempDirRoot = path.resolve(root, this.tempDirName);
+            const _microsConfig = loadConfigFile(tempDirRoot, subFileName);
             if (!_.isEmpty(_microsConfig)) {
                 return _microsConfig;
             }
+            // 附加配置中
             const _extraConfig = this.extraConfig || {};
             if (!_.isEmpty(_extraConfig[name])) {
                 return _extraConfig[name];
             }
-            // 以下可能会冲突，后期再考虑
+            // 以下可能会冲突，不考虑
             // const _originalConfig = microConfig.originalConfig || {};
             // if (!_.isEmpty(_originalConfig[name])) {
             //     return _originalConfig[name];

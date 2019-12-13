@@ -2,8 +2,6 @@
 
 // test file
 
-process.env.MICRO_APP_OPEN_SOFT_LINK = 'true';
-
 module.exports = {
     micros: {
         test: { // 单独配置

@@ -28,4 +28,23 @@ describe('BaseAPI', () => {
         // base.assertVersion('^0');
     });
 
+    it('validateSchema', () => {
+        const base = new BaseAPI();
+
+        const schema = {
+            additionalProperties: false,
+            properties: {
+                name: {
+                    description: '名称. ( string )',
+                    type: 'string',
+                },
+            },
+            type: 'object',
+        };
+
+        base.validateSchema(schema, {
+            name: 'test',
+        });
+    });
+
 });

@@ -7,8 +7,8 @@ const PluginAPI = require('../../PluginAPI');
 const { PreLoadPlugins } = require('../constants');
 
 class PluginService extends MethodService {
-    constructor() {
-        super();
+    constructor(context) {
+        super(context);
 
         this.plugins = PreLoadPlugins.reduce((arr, item) => {
             return arr.concat(this.resolvePlugin(item));
@@ -54,15 +54,15 @@ class PluginService extends MethodService {
 
 
         // 过滤掉没有初始化的 plugin
-        this.plugins = this.plugins.filter(plugin => !!plugin._api);
+        this.plugins = this.plugins.filter(plugin => !!plugin[Symbol.for('api')]);
 
         // Throw error for methods that can't be called after plugins is initialized
         this.plugins.forEach(plugin => {
-            Object.keys(plugin._api).forEach(method => {
+            Object.keys(plugin[Symbol.for('api')]).forEach(method => {
                 if (/^register/i.test(method) || [
                     'onOptionChange',
                 ].includes(method)) {
-                    plugin._api[method] = () => {
+                    plugin[Symbol.for('api')][method] = () => {
                         logger.throw('[Plugin]', `api.${method}() should not be called after plugin is initialized.`);
                     };
                 }
@@ -73,7 +73,7 @@ class PluginService extends MethodService {
     }
 
     async _initPlugin(plugin) {
-        const { id, apply, opts = {}, mode } = plugin;
+        const { id, apply, opts = {}, mode, alias } = plugin;
         if (mode) { // 默认为全支持
             let _mode = mode;
             if (_.isFunction(_mode)) { // 支持方法判断
@@ -82,12 +82,12 @@ class PluginService extends MethodService {
             if (Array.isArray(_mode)) {
                 if (!_mode.some(item => item === this.mode)) {
                     // 当前模式与插件不匹配
-                    logger.warn('[Plugin]', `{ ${this.mode} } - initPlugin() skip "${id}".  support modes: { ${_mode.join(', ')} }`);
+                    logger.warn('[Plugin]', `{ ${this.mode} } - initPlugin() skip "${id}${alias ? ' (' + alias + ')' : ''}".`, `support modes: { ${_mode.join(', ')} }`);
                     return;
                 }
             } else if (_mode !== this.mode) {
                 // 当前模式与插件不匹配
-                logger.warn('[Plugin]', `{ ${this.mode} } - initPlugin() skip "${id}". support mode: { ${_mode} }`);
+                logger.warn('[Plugin]', `{ ${this.mode} } - initPlugin() skip "${id}${alias ? ' (' + alias + ')' : ''}".`, `support mode: { ${_mode} }`);
                 return;
             }
         }
@@ -161,7 +161,7 @@ class PluginService extends MethodService {
             await apply(api, opts);
         }
 
-        plugin._api = api;
+        plugin[Symbol.for('api')] = api;
     }
 
     registerPlugin(opts) {
