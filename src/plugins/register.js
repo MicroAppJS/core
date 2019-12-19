@@ -3,10 +3,11 @@
 const path = require('path');
 
 const commands = [
+
     'help',
     'show',
-    'check',
     'version',
+
 ].map(p => path.join('commands', p));
 
 module.exports = commands.map(p => {

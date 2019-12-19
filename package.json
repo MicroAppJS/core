@@ -1,6 +1,6 @@
 {
     "name": "@micro-app/core",
-    "version": "0.3.0-alpha.3",
+    "version": "0.3.0",
     "description": "[Core] Pluggable micro application framework.",
     "main": "src/index.js",
     "scripts": {
@@ -8,13 +8,13 @@
         "lint:fix": "npm run lint -- --fix",
         "test": "jest"
     },
-    "homepage": "https://github.com/MicroAppJS/MicroApp-Core",
+    "homepage": "https://github.com/MicroAppJS/core",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/MicroAppJS/MicroApp-Core.git"
+        "url": "git+https://github.com/MicroAppJS/core.git"
     },
     "bugs": {
-        "url": "https://github.com/MicroAppJS/MicroApp-Core/issues"
+        "url": "https://github.com/MicroAppJS/core/issues"
     },
     "files": [
         "src",

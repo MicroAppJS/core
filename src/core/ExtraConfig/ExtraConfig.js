@@ -24,7 +24,7 @@ class ExtraConfig {
         } else {
             Object.keys(extraConfig).forEach(key => {
                 const item = extraConfig[key];
-                logger.debug('【 Extra Config 】', `${key}: ${JSON.stringify(item, false, 4)}`);
+                logger.debug('[ExtraConfig]', `${key}: ${JSON.stringify(item, false, 4)}`);
             });
         }
 
@@ -44,10 +44,10 @@ class ExtraConfig {
 
         // 全局指令(兼容指令)
         if (this.context.openSoftLink) {
-            logger.info('已开启软链接: --open-soft-link = true');
+            logger.info('[global]', '已开启软链接: --open-soft-link = true');
         }
         if (this.context.openDisabledEntry) {
-            logger.info('已开启禁用指定模块入口: --open-disabled-entry = true');
+            logger.info('[global]', '已开启禁用指定模块入口: --open-disabled-entry = true');
         }
     }
 

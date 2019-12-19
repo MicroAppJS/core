@@ -41,7 +41,6 @@ class BaseService {
     [INIT_PARAMS]() {
         this.extendConfigs = {};
         this.extendMethods = {};
-        this.pluginHooks = {};
         this.pluginMethods = {};
 
         this.sharedProps = SharedProps.reduce((obj, key) => {

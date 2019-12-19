@@ -9,6 +9,8 @@ const { PreLoadPlugins } = require('../constants');
 class PluginService extends MethodService {
     constructor(context) {
         super(context);
+        // plugin hooks
+        this.pluginHooks = {};
 
         this.plugins = PreLoadPlugins.reduce((arr, item) => {
             return arr.concat(this.resolvePlugin(item));
@@ -74,20 +76,26 @@ class PluginService extends MethodService {
 
     async _initPlugin(plugin) {
         const { id, apply, opts = {}, mode, alias } = plugin;
+
+        // --skip-plugins
+        const skipPlugins = this.context.skipPlugins;
+        if (skipPlugins) {
+            if ([].concat(skipPlugins).includes(id)) {
+                // 跳过此插件
+                logger.warn('[Plugin]', `--skip-plugins, initPlugin() skip "${id}${alias ? ' (' + alias + ')' : ''}".`);
+                return;
+            }
+        }
+
         if (mode) { // 默认为全支持
             let _mode = mode;
             if (_.isFunction(_mode)) { // 支持方法判断
                 _mode = _mode(this.mode);
             }
-            if (Array.isArray(_mode)) {
-                if (!_mode.some(item => item === this.mode)) {
-                    // 当前模式与插件不匹配
-                    logger.warn('[Plugin]', `{ ${this.mode} } - initPlugin() skip "${id}${alias ? ' (' + alias + ')' : ''}".`, `support modes: { ${_mode.join(', ')} }`);
-                    return;
-                }
-            } else if (_mode !== this.mode) {
+            _mode = [].concat(_mode);
+            if (!_mode.some(item => item === this.mode)) {
                 // 当前模式与插件不匹配
-                logger.warn('[Plugin]', `{ ${this.mode} } - initPlugin() skip "${id}${alias ? ' (' + alias + ')' : ''}".`, `support mode: { ${_mode} }`);
+                logger.warn('[Plugin]', `current mode: { ${this.mode} } - initPlugin() skip "${id}${alias ? ' (' + alias + ')' : ''}".`, `only support modes: { ${_mode.join(', ')} }`);
                 return;
             }
         }
@@ -207,9 +215,6 @@ class PluginService extends MethodService {
         let link = item.link;
         if (!link) {
             link = tryRequire.resolve(id);
-        }
-        if (!link) { // TODO 这里需要优化
-            link = tryRequire.resolve(require('path').resolve(this.root, this.tempDirNodeModules, id));
         }
         if (link) {
             // 先尝试从模拟缓存中找文件
