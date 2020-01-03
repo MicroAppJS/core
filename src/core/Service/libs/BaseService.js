@@ -1,7 +1,7 @@
 'use strict';
 
 const os = require('os');
-const { logger, _, semverRegex } = require('@micro-app/shared-utils');
+const { logger, _, semverRegex, debug } = require('@micro-app/shared-utils');
 const path = require('path');
 
 const CONSTANTS = require('../../Constants');
@@ -31,6 +31,12 @@ class BaseService {
         if (process.env.MICRO_APP_LOGGER_LEVEL) {
             logger.level = process.env.MICRO_APP_LOGGER_LEVEL;
         }
+    }
+
+    get debug() {
+        const _debug = debug('microapp:core');
+        Object.defineProperty(this, 'debug', { value: _debug });
+        return _debug;
     }
 
     /**

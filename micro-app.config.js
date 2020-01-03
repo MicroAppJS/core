@@ -1,34 +1,10 @@
 'use strict';
 
-module.exports = {
+const config = {
     name: '@micro-app/demo',
     description: '',
     version: '0.0.1',
     type: '', // types 类型
-    webpack: { // webpack 配置 (只有自己使用)
-        // output: {
-        //     path: path.resolve(__dirname, 'public'),
-        //     publicPath: '/public/',
-        // },
-    },
-
-    entry: {
-        main: './test/index.js',
-    },
-
-    htmls: [
-        {
-            template: './test/index.js',
-        },
-    ],
-
-    // staticPath: '',
-
-    // dlls: [
-    //     {
-    //         context: __dirname,
-    //     },
-    // ],
 
     alias: { // 前端
         api: 'abc',
@@ -44,27 +20,21 @@ module.exports = {
     },
 
     strict: true,
-
-    micros: [
-        'test', 'abab', '@micro-app/shared-utils',
-    ], // 被注册的容器
-
-    // 服务配置
-    server: {
-        entry: '', // 服务端入口
-        port: 8088, // 服务端口号
-        options: {
-            // 服务端回调参数
-        },
-    },
-
-    plugins: [
-        [{
-            id: 'test',
-            description: '这是test',
-            link: __dirname + '/test/testPlugin',
-        }, {
-            a: 1,
-        }],
-    ],
 };
+
+if (process.env.NODE_ENV === 'test') {
+    config.micros = [
+        'test', 'abab', '@micro-app/shared-utils',
+    ]; // 被注册的容器
+
+    if (!config.plugins) config.plugins = [];
+    config.plugins.push([{
+        id: 'test',
+        description: '这是test',
+        link: __dirname + '/test/testPlugin',
+    }, {
+        a: 1,
+    }]);
+}
+
+module.exports = config;

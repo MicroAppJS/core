@@ -1,6 +1,6 @@
 'use strict';
 
-const { _, semver, logger, validateSchema, getPadLength } = require('@micro-app/shared-utils');
+const { _, semver, logger, validateSchema, getPadLength, debug } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../../Constants');
 
@@ -15,6 +15,12 @@ class BaseAPI {
             MODIFY: Symbol('modify'),
             EVENT: Symbol('event'),
         };
+    }
+
+    get debug() {
+        const _debug = debug(`microapp:plugin:${this.id}`);
+        Object.defineProperty(this, 'debug', { value: _debug });
+        return _debug;
     }
 
     get logger() {

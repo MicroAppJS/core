@@ -1,12 +1,13 @@
 {
     "name": "@micro-app/core",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "[Core] Pluggable micro application framework.",
     "main": "src/index.js",
     "scripts": {
         "lint": "eslint .",
         "lint:fix": "npm run lint -- --fix",
-        "test": "jest"
+        "test": "jest",
+        "docs:dev": "micro-app vuepress dev"
     },
     "homepage": "https://github.com/MicroAppJS/core",
     "repository": {
@@ -39,10 +40,14 @@
             "git add"
         ]
     },
+    "peerDependencies": {
+        "@micro-app/shared-utils": ">=0.1.11"
+    },
     "devDependencies": {
-        "@types/jest": "^24.0.23",
+        "@micro-app/cli": "^0.3.0-alpha.2",
+        "@types/jest": "^24.0.25",
         "babel-eslint": "^10.0.3",
-        "coveralls": "^3.0.9",
+        "cloc": "^2.5.1",
         "eslint": "^5.16.0",
         "eslint-config-2o3t": "^1.1.17",
         "husky": "^3.1.0",
@@ -50,12 +55,9 @@
         "lint-staged": "^9.5.0"
     },
     "dependencies": {
-        "@micro-app/shared-utils": "^0.1.8",
+        "@micro-app/shared-utils": "^0.1.11",
         "dotenv": "^8.2.0",
         "dotenv-expand": "^5.1.0"
-    },
-    "peerDependencies": {
-        "@micro-app/shared-utils": ">=0.1.8"
     },
     "engines": {
         "node": ">=8"

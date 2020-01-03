@@ -23,11 +23,11 @@ module.exports.createInstance = (rootPath = process.cwd(), { originalRootPath = 
         return _microAppConfig;
     }
     microConfig = loadFile(rootPath, PACKAGE_JSON);
-    if (microConfig && _.isPlainObject(microConfig[SCOPE_NAME])) {
-        // 文件未加载成功.
-        logger.warn('[loadFile]', `second load "${PACKAGE_JSON}"`);
+    if (microConfig) {
+        // 文件未加载成功. 二次加载 package.json
+        logger.warn('[loadFile]', `try load "${PACKAGE_JSON}"`);
         const filePath = path.resolve(rootPath, PACKAGE_JSON);
-        const _microAppConfig = new MicroAppConfig(microConfig[SCOPE_NAME], {
+        const _microAppConfig = new MicroAppConfig(microConfig[SCOPE_NAME] || {}, {
             key: microConfig.name,
             filePath,
             originalRoot: originalRootPath,

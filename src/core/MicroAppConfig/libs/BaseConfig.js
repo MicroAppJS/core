@@ -64,8 +64,7 @@ class BaseConfig {
     [INIT]() {
         if (!this[OPTION_LOAD_SUCCESS]) {
             // 文件未加载成功.
-            logger.warn(`Not Found "${CONSTANTS.CONFIG_NAME}"`);
-            logger.warn(`You must be to create "${CONSTANTS.CONFIG_NAME}" in "${this.root}"`);
+            logger.warn('[Suggest]', `You should be create "${CONSTANTS.CONFIG_NAME}.js" in "${this.root}"`);
         }
         if (this.root) {
             try {
