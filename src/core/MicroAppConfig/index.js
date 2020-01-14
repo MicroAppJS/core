@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const { logger, loadFile, _ } = require('@micro-app/shared-utils');
+const { logger, loadFile } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../Constants');
 const MicroAppConfig = require('./MicroAppConfig');

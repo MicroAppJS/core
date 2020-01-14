@@ -3,7 +3,6 @@
 /* global expect */
 
 const Service = require('../Service');
-const PackageGraph = require('./PackageGraph');
 
 describe('PluginAPI', () => {
 

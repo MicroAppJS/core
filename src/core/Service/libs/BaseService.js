@@ -14,9 +14,6 @@ const INIT_DEFAULT_ENV = Symbol('INIT_DEFAULT_ENV');
 const INIT_ENV = Symbol('INIT_ENV');
 const INIT_PARAMS = Symbol('INIT_PARAMS');
 
-// 全局状态集
-const GLOBAL_STATE = {};
-
 class BaseService {
 
     constructor(context) {
@@ -57,8 +54,6 @@ class BaseService {
         }, {});
 
         this.config = {};
-
-        this.state = GLOBAL_STATE; // 状态集
     }
 
     /**
@@ -133,7 +128,7 @@ class BaseService {
         });
     }
 
-    get env() { // 环境变量
+    get env() { // 引用：环境变量
         return process.env;
     }
 
@@ -187,14 +182,6 @@ class BaseService {
 
     get micros() {
         return this.selfConfig.micros;
-    }
-
-    setState(key, value) {
-        this.state[key] = value;
-    }
-
-    getState(key, value) {
-        return this.state[key] || value;
     }
 }
 

@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const { _, globby, logger } = require('@micro-app/shared-utils');
+const { _, globby } = require('@micro-app/shared-utils');
 
 module.exports = makeFileFinder;
 

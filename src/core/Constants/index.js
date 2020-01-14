@@ -2,8 +2,9 @@
 
 const pkg = require('../../../package.json');
 const Symbols = require('./symbols');
+const path = require('path');
 
-module.exports = {
+const constants = {
     Symbols,
     NAME: 'Micro App',
     VERSION: pkg.version,
@@ -17,5 +18,10 @@ module.exports = {
     // TYPES: [], // support types， 不需要限制
     INJECT_ID: '_MICRO_APP_INJECT_',
     ENV_PREFIX: 'MICRO_APP_',
-    MICRO_APP_TEMP_DIR: '.microapp', // glob temp
+    MICRO_APP_DIR: 'microapp',
+    MICRO_APP_TEMP_DIR: '.temp', // glob temp
 };
+
+constants.MICRO_APP_CONFIG_DIR = path.join(constants.MICRO_APP_DIR, 'config');
+
+module.exports = constants;

@@ -68,7 +68,7 @@
 
 // logger.throw('abc');
 
-const { npa, parseGitUrl, _ } = require('@micro-app/shared-utils');
+const { npa, parseGitUrl } = require('@micro-app/shared-utils');
 
 // const result = npa('git+ssh://git@g.hz.netease.com:22222/ops-fullstack/micro/micro-common.git#develop');
 // console.log(result);

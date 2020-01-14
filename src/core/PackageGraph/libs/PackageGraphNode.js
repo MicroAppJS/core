@@ -13,10 +13,6 @@ const PKG = Symbol('PackageGraphNode#PKG');
 class PackageGraphNode {
     constructor(manifest) {
         this[PKG] = manifest;
-
-        this.externalDependencies = new Map();
-        this.localDependencies = new Map();
-        this.localDependents = new Map();
     }
 
     get __isMicroAppPackageGraphNode() {
@@ -35,7 +31,7 @@ class PackageGraphNode {
         return this.pkg.location;
     }
 
-    get vusion() {
+    get version() {
         return this.pkg.version;
     }
 

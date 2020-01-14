@@ -15,16 +15,25 @@ const makeFileFinder = require('../../../utils/makeFileFinder');
 const requireMicro = require('../../../utils/requireMicro');
 const loadConfigFile = require('../../../utils/loadConfigFile');
 
+// 全局状态集
+const GLOBAL_STATE = {};
+
 class MethodService extends BaseService {
 
     constructor(context) {
         super(context);
 
         this.commands = {};
+
+        this.state = GLOBAL_STATE; // 状态集
     }
 
     get tempDirName() {
         return CONSTANTS.MICRO_APP_TEMP_DIR;
+    }
+
+    get tempDir() {
+        return path.resolve(this.root, this.tempDirName);
     }
 
     get tempDirNodeModules() {
@@ -166,6 +175,14 @@ class MethodService extends BaseService {
         });
 
         return finder;
+    }
+
+    setState(key, value) {
+        this.state[key] = value;
+    }
+
+    getState(key, value) {
+        return this.state[key] || value;
     }
 
     resolve(_path) {
