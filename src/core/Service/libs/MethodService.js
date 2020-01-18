@@ -7,13 +7,13 @@ const BaseService = require('./BaseService');
 const { parsePackageInfo } = require('./PackageInfo');
 const ExtraConfig = require('../../ExtraConfig');
 
+const MicroAppConfig = require('../../MicroAppConfig');
 const Package = require('../../Package');
 const PackageGraph = require('../../PackageGraph');
 const CONSTANTS = require('../../Constants');
 const makeFileFinder = require('../../../utils/makeFileFinder');
 
-const requireMicro = require('../../../utils/requireMicro');
-const loadConfigFile = require('../../../utils/loadConfigFile');
+const loadConfig = require('../../../utils/loadConfig');
 
 // 全局状态集
 const GLOBAL_STATE = {};
@@ -28,32 +28,33 @@ class MethodService extends BaseService {
         this.state = GLOBAL_STATE; // 状态集
     }
 
-    get tempDirName() {
-        return CONSTANTS.MICRO_APP_TEMP_DIR;
-    }
-
     get tempDir() {
-        return path.resolve(this.root, this.tempDirName);
-    }
-
-    get tempDirNodeModules() {
-        const tempDirName = this.tempDirName;
-        return path.join(tempDirName, CONSTANTS.NODE_MODULES_NAME);
+        return this.resolveWorkspace(CONSTANTS.MICRO_APP_TEMP_DIR);
     }
 
     get tempDirPackageGraph() {
-        const pkgInfos = this.fileFinder(CONSTANTS.PACKAGE_JSON, filePaths => {
+        const pkgInfos = this.fileFinderTempDirNodeModules(CONSTANTS.PACKAGE_JSON, filePaths => {
             return filePaths.map(filePath => {
                 const packageJson = loadFile(filePath);
                 return new Package(packageJson, path.dirname(filePath), this.root);
             });
         });
-        logger.debug('[fileFinder]', `packages length: '${pkgInfos.length}'`);
+        logger.debug('[core > fileFinderTempDirNodeModules]', `packages length: '${pkgInfos.length}'`);
         const tempDirPackageGraph = new PackageGraph(pkgInfos, 'dependencies');
         return tempDirPackageGraph;
     }
 
-    // micros 配置
+    /**
+     * micros 配置
+     *
+     * @readonly
+     * @memberof MethodService
+     *
+     * eg. [
+     *     { name: 'a', spec: 'git@....a.git'},
+     *     { name: 'b', spec: 'git@....b.git'},
+     * ]
+     */
     get packages() {
         const packages = (this.self.packages || []).map(item => {
             const name = item.name;
@@ -69,6 +70,14 @@ class MethodService extends BaseService {
         return packages;
     }
 
+    /**
+     * micros 依赖
+     *
+     * @readonly
+     * @memberof MethodService
+     *
+     * eg. [ 'a', 'b' ]
+     */
     get micros() {
         const selfMicros = this.self.micros || [];
         const microsSet = new Set(selfMicros);
@@ -86,26 +95,20 @@ class MethodService extends BaseService {
         const config = {};
         const microsExtraConfig = this.microsExtraConfig || {};
 
-        // 暂时已被优化
-        // const scope = this.tempDirNodeModules;
+        // 已优化
         this.micros.forEach(key => {
-            const microConfig = requireMicro(key, id => {
-                // @custom 开发模式软链接
-                const extralConfig = microsExtraConfig[id];
-                if (extralConfig && extralConfig.link && fs.existsSync(extralConfig.link)) {
-                    return extralConfig.link;
-                }
-                return null;
-            });
-            // if (!microConfig) { // 私有的
-            //     logger.debug('[Micros]', 'try load private package micros!');
-            //     microConfig = requireMicro(key, scope);
-            // }
-            if (microConfig) {
-                config[key] = _.cloneDeep(microConfig);
+            // @custom 开发模式软链接
+            const extralConfig = microsExtraConfig[key];
+            const originalRootPath = path.join(this.root, CONSTANTS.NODE_MODULES_NAME, key);
+            let _rootPath = originalRootPath;
+            if (extralConfig && extralConfig.link && fs.existsSync(extralConfig.link)) {
+                _rootPath = extralConfig.link;
             }
-            if (!config[key]) {
-                logger.warn('[Micros]', `Not Found micros: "${key}"`);
+            const microConfig = MicroAppConfig.createInstance(_rootPath, { originalRootPath });
+            if (!microConfig) {
+                logger.warn('[core]', '[Micros]', `Not Found micros: "${key}"`);
+            } else {
+                config[key] = microConfig;
             }
         });
 
@@ -119,7 +122,7 @@ class MethodService extends BaseService {
         config[selfKey] = _.cloneDeep(this.self);
 
         Object.defineProperty(this, 'microsConfig', {
-            writable: true,
+            writable: true, // 提供修改
             value: config,
         });
 
@@ -167,10 +170,22 @@ class MethodService extends BaseService {
     }
 
     get fileFinder() {
-        const finder = makeFileFinder(this.root, [ `${this.tempDirNodeModules}/*`, `${this.tempDirNodeModules}/*/*` ]);
+        const finder = makeFileFinder(this.root, [ '*', '*/*' ]);
 
         // redefine getter to lazy-loaded value
         Object.defineProperty(this, 'fileFinder', {
+            value: finder,
+        });
+
+        return finder;
+    }
+
+    get fileFinderTempDirNodeModules() {
+        const tempDirNodeModules = path.resolve(this.tempDir, CONSTANTS.NODE_MODULES_NAME);
+        const finder = makeFileFinder(tempDirNodeModules, [ '*', '*/*' ]);
+
+        // redefine getter to lazy-loaded value
+        Object.defineProperty(this, 'fileFinderTempDirNodeModules', {
             value: finder,
         });
 
@@ -187,6 +202,10 @@ class MethodService extends BaseService {
 
     resolve(_path) {
         return path.resolve(this.root, _path);
+    }
+
+    resolveWorkspace(_path) {
+        return path.resolve(this.root, CONSTANTS.MICRO_APP_DIR, _path);
     }
 
     assertExtendOptions(name, opts, fn) {
@@ -247,17 +266,9 @@ class MethodService extends BaseService {
         const microConfig = microsConfig[key];
         if (microConfig && microConfig.__isMicroAppConfig) {
             const root = microConfig.root;
-            const filename = CONSTANTS.EXTRAL_CONFIG_NAME.replace(/extra/, name);
-            const _config = loadConfigFile(root, filename);
+            const _config = loadConfig(root, name);
             if (!_.isEmpty(_config)) {
                 return _config;
-            }
-            // 文件夹中
-            const subFileName = `${name}.config`;
-            const tempDirRoot = path.resolve(root, this.tempDirName);
-            const _microsConfig = loadConfigFile(tempDirRoot, subFileName);
-            if (!_.isEmpty(_microsConfig)) {
-                return _microsConfig;
             }
             // 附加配置中
             const _extraConfig = this.extraConfig || {};

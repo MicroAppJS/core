@@ -6,32 +6,30 @@ const { logger, loadFile } = require('@micro-app/shared-utils');
 const CONSTANTS = require('../Constants');
 const MicroAppConfig = require('./MicroAppConfig');
 
-const loadConfigFile = require('../../utils/loadConfigFile').path;
+const loadConfig = require('../../utils/loadConfig').carryPath;
 
 module.exports = MicroAppConfig;
 
-module.exports.createInstance = (rootPath = process.cwd(), { originalRootPath = rootPath, key } = {}) => {
-    const { CONFIG_NAME, PACKAGE_JSON, SCOPE_NAME } = CONSTANTS;
-    let [ microConfig, filePath ] = loadConfigFile(rootPath, CONFIG_NAME);
+module.exports.createInstance = (rootPath = process.cwd(), { originalRootPath = rootPath } = {}) => {
+    const { MICRO_APP_CONFIG_NAME, PACKAGE_JSON, SCOPE_NAME } = CONSTANTS;
+    let [ microConfig, filePath ] = loadConfig(rootPath, MICRO_APP_CONFIG_NAME);
     if (microConfig) {
         const _microAppConfig = new MicroAppConfig(microConfig, {
-            key,
             filePath,
             originalRoot: originalRootPath,
             loadSuccess: true,
         });
         return _microAppConfig;
     }
+    // 文件未加载成功. 二次加载 package.json
     microConfig = loadFile(rootPath, PACKAGE_JSON);
     if (microConfig) {
-        // 文件未加载成功. 二次加载 package.json
-        logger.warn('[loadFile]', `try load "${PACKAGE_JSON}"`);
+        logger.debug('[loadFile]', `try load "${PACKAGE_JSON}"`);
         const filePath = path.resolve(rootPath, PACKAGE_JSON);
         const _microAppConfig = new MicroAppConfig(microConfig[SCOPE_NAME] || {}, {
-            key: microConfig.name,
             filePath,
             originalRoot: originalRootPath,
-            loadSuccess: false,
+            loadSuccess: true,
         });
         return _microAppConfig;
     }

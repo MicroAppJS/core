@@ -5,8 +5,7 @@ const { logger, _, semverRegex, debug } = require('@micro-app/shared-utils');
 const path = require('path');
 
 const CONSTANTS = require('../../Constants');
-
-const requireMicro = require('../../../utils/requireMicro');
+const MicroAppConfig = require('../../MicroAppConfig');
 
 const { SharedProps } = require('../constants');
 
@@ -133,6 +132,7 @@ class BaseService {
     }
 
     get root() {
+        // const ctxRoot = this.context.root; // 从参数中获取
         return CONSTANTS.ROOT;
     }
 
@@ -141,13 +141,16 @@ class BaseService {
     }
 
     get mode() {
-        return process.env.NODE_ENV || 'development'; // "production" | "development"
+        const ctxMode = this.context.mode; // 从参数中获取
+        return ctxMode || process.env.NODE_ENV || 'development'; // "production" | "development"
     }
 
     get self() {
-        const _self = requireMicro.self();
+        // 加载自己
+        const { ROOT } = CONSTANTS;
+        const _self = MicroAppConfig.createInstance(ROOT, { key: Symbol.for('self') });
         if (!_self) {
-            logger.throw(`Not Found "${CONSTANTS.CONFIG_NAME}"`);
+            logger.throw('[core]', 'Not Found Config!!!'); // 一般不会出现
         }
         // redefine getter to lazy-loaded value
         Object.defineProperty(this, 'self', {

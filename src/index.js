@@ -5,7 +5,6 @@ const Service = require('./core/Service');
 const Package = require('./core/Package');
 const PackageGraph = require('./core/PackageGraph');
 const Command = require('./core/Command');
-const requireMicro = require('./utils/requireMicro');
 
 const {
     moduleAlias,
@@ -21,7 +20,6 @@ const utils = {
     moduleAlias,
     virtualFile,
     injectHtml, // 可移除
-    requireMicro,
 };
 
 module.exports = Service;

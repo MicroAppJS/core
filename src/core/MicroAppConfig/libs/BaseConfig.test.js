@@ -30,9 +30,9 @@ describe('BaseConfig', () => {
     it('new constructor', () => {
         const defaultConfig = loadFile(__dirname, '../../Constants/default.js');
         const config = new BaseConfig(Object.assign(defaultConfig, testConfig), {
-            key: 'a',
             filePath: __dirname,
             originalRoot: __dirname,
+            loadSuccess: true,
         });
 
         expect(config.config).not.toBeNull();
@@ -59,9 +59,9 @@ describe('BaseConfig', () => {
     it('config inspect', () => {
         const defaultConfig = loadFile(__dirname, '../../Constants/default.js');
         const config = new BaseConfig(Object.assign(defaultConfig, testConfig), {
-            key: 'a',
             filePath: __dirname,
             originalRoot: __dirname,
+            loadSuccess: true,
         });
 
         expect(config.inspect).not.toBeNull();

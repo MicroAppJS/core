@@ -52,20 +52,20 @@ class BaseAPI {
         if (!result.length) return;
 
         result.forEach(item => {
-            this.logger.warn(`${_.padEnd(item.keyword, padLength)} [ ${item.dataPath} ${item.message} ]`);
+            this.logger.warn('[core]', `${_.padEnd(item.keyword, padLength)} [ ${item.dataPath} ${item.message} ]`);
         });
-        this.logger.throw('illegal configuration !!!');
+        this.logger.throw('[core]', 'illegal configuration !!!');
     }
 
     assertVersion(range) {
         if (typeof range === 'number') {
             if (!Number.isInteger(range)) {
-                this.logger.throw('Expected string or integer value.');
+                this.logger.throw('[core]', 'Expected string or integer value.');
             }
             range = `^${range}.0.0-0`;
         }
         if (typeof range !== 'string') {
-            this.logger.throw('Expected string or integer value.');
+            this.logger.throw('[core] ', 'Expected string or integer value.');
         }
 
         const version = this.version;
@@ -77,7 +77,7 @@ class BaseAPI {
             return;
         }
 
-        this.logger.throw(`Require ${CONSTANTS.SCOPE_NAME}/core "${range}", but was loaded with "${version}".`);
+        this.logger.throw('[core]', `Require ${CONSTANTS.SCOPE_NAME}/core "${range}", but was loaded with "${version}".`);
     }
 }
 

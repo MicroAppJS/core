@@ -4,12 +4,17 @@ const { logger, _, assert } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../Constants');
 
-const loadConfigFile = require('../../utils/loadConfigFile');
+const loadConfig = require('../../utils/loadConfig');
 
 const EXTRA_CONFIG = Symbol('EXTRA_CONFIG');
 
 class ExtraConfig {
 
+    /**
+     *
+     * @param {*} root 更目录
+     * @param {*} context 上下文环境变量
+     */
     constructor(root, context) {
         assert(typeof root === 'string', 'root is required!');
         this.context = context || {};
@@ -18,7 +23,7 @@ class ExtraConfig {
             value: root,
         });
 
-        let extraConfig = loadConfigFile(root, CONSTANTS.EXTRAL_CONFIG_NAME);
+        let extraConfig = loadConfig(root, CONSTANTS.MICRO_APP_EXTRA_CONFIG_NAME);
         if (!extraConfig || !_.isPlainObject(extraConfig)) {
             extraConfig = {};
         } else {
@@ -59,6 +64,7 @@ class ExtraConfig {
         return this[EXTRA_CONFIG] || {};
     }
 
+    // ZAP 兼容，后面要去除
     get scope() {
         if (this.__isPro) {
             return this.config.scope || '';

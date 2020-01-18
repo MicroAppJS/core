@@ -15,7 +15,6 @@ const KEY_ORIGNAL_CONFIG = Symbol('@BaseConfig#KEY_ORIGNAL_CONFIG');
 const KEY_PACKAGE = Symbol('@BaseConfig#KEY_PACKAGE');
 const KEY_PACKAGE_PATH = Symbol('@BaseConfig#KEY_PACKAGE_PATH');
 
-const OPTION_KEY = Symbol('@MicroAppConfig#KEY');
 const OPTION_ROOT = Symbol('@MicroAppConfig#ROOT');
 const OPTION_FILEPATH = Symbol('@MicroAppConfig#FILEPATH');
 const OPTION_FILENAME = Symbol('@MicroAppConfig#FILENAME');
@@ -32,7 +31,6 @@ class BaseConfig {
      * @memberof BaseConfig
      */
     constructor(config, opts = {}) {
-        this[OPTION_KEY] = opts.key;
         this[OPTION_FILEPATH] = opts.filePath;
         this[OPTION_ORIGINAL_ROOT] = opts.originalRoot;
         // 以上必须有
@@ -56,30 +54,25 @@ class BaseConfig {
         if (!result.length) return;
 
         result.forEach(item => {
-            logger.warn(`${_.padEnd(item.keyword, padLength)} [ ${item.dataPath} ${item.message} ]`);
+            logger.warn('[core]', `${_.padEnd(item.keyword, padLength)} [ ${item.dataPath} ${item.message} ]`);
         });
-        logger.throw('illegal configuration !!!');
+        logger.throw('[core]', 'illegal configuration !!!');
     }
 
     [INIT]() {
         if (!this[OPTION_LOAD_SUCCESS]) {
-            // 文件未加载成功.
-            logger.warn('[Suggest]', `You should be create "${CONSTANTS.CONFIG_NAME}.js" in "${this.root}"`);
+            // 配置文件未加载成功.
+            // ZAP 优化提示
+            logger.throw('[core]', '[LOAD_FAIL]', `You should be create "${CONSTANTS.CONFIG_NAME}.js" in "${this.root}"`);
         }
         if (this.root) {
             try {
                 this[KEY_PACKAGE_PATH] = path.resolve(this.root, CONSTANTS.PACKAGE_JSON);
                 this[KEY_PACKAGE] = loadFile(this.root, CONSTANTS.PACKAGE_JSON);
-                if (!this[OPTION_LOAD_SUCCESS]) {
-                    // 文件未加载成功. 可以从 package.json 中查询配置文件
-                    if (this[KEY_PACKAGE] && this[KEY_PACKAGE]['micro-app'] && _.isPlainObject(this[KEY_PACKAGE]['micro-app'])) {
-                        Object.assign(this[KEY_ORIGNAL_CONFIG], this[KEY_PACKAGE]['micro-app']);
-                    }
-                }
             } catch (error) {
                 this[KEY_PACKAGE_PATH] = '';
                 this[KEY_PACKAGE] = {};
-                logger.warn(`Not Fount "${CONSTANTS.PACKAGE_JSON}" !`);
+                logger.warn('[core]', `Not Fount "${CONSTANTS.PACKAGE_JSON}" !`);
             }
         }
     }
@@ -146,7 +139,7 @@ class BaseConfig {
 
     // 唯一标识
     get key() {
-        return this[OPTION_KEY] || this.packageName || path.basename(path.dirname(this.root)) || '';
+        return this.packageName || path.basename(path.dirname(this.root)) || '';
     }
 
     get name() {

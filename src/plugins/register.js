@@ -16,7 +16,7 @@ module.exports = commands.map(p => {
             .replace(/\//ig, '-')
             .replace(/\.js/ig, '')
             .toLowerCase(),
-        link: path.resolve(__dirname, p),
+        link: require.resolve(`./${p}`),
         description: 'System Build-in',
     };
 });

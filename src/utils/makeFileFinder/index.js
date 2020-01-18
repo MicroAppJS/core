@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const { _, globby } = require('@micro-app/shared-utils');
+const { _, globby, logger } = require('@micro-app/shared-utils');
 
 module.exports = makeFileFinder;
 
@@ -18,6 +18,12 @@ function makeFileFinder(rootPath, packageConfigs = []) {
     };
 
     if (packageConfigs.some(cfg => cfg.indexOf('**') > -1)) {
+        if (packageConfigs.some(cfg => cfg.indexOf('node_modules') > -1)) {
+            logger.throw(
+                'EPKGCONFIG',
+                'An explicit node_modules package path does not allow globstars (**)'
+            );
+        }
         globOpts.ignore = [
             // allow globs like "packages/**",
             // but avoid picking up node_modules/**/package.json

@@ -30,7 +30,8 @@ class PackageGraph extends Map {
             for (const [ name, locations ] of seen) {
                 if (locations.length > 1) {
                     logger.throw(
-                        'ENAME',
+                        '[core]',
+                        'PackageGraph',
                         [ `Package name "${name}" used in multiple packages:`, ...locations ].join('\n\t')
                     );
                 }

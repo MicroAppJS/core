@@ -56,9 +56,7 @@ class PluginAPI extends BaseAPI {
             typeof fn === 'function',
             `The second argument of api.register() must be function, but got ${fn}`
         );
-        const {
-            pluginHooks,
-        } = this.service;
+        const { pluginHooks } = this.service;
         pluginHooks[hook] = pluginHooks[hook] || [];
         pluginHooks[hook].push({
             fn,
@@ -116,6 +114,23 @@ class PluginAPI extends BaseAPI {
         return this.service.registerCommand(name, opts, fn);
     }
 
+    changeCommandOption(name, newOpts) {
+        assert(name, 'name must supplied');
+        const command = this.service.commands[name];
+        assert(command, `command ${name} not found`);
+        let nV = newOpts;
+        if (_.isFunction(nV)) {
+            const oldOpts = command.opts;
+            nV = newOpts(oldOpts);
+        }
+        if (nV && _.isPlainObject(nV)) {
+            command.opts = nV;
+            this.logger.debug('[Plugin]', `changeCommandOption( ${name} ); Success!`);
+            return true;
+        }
+        return false;
+    }
+
     extendConfig(name, opts, fn) {
         return this.service.extendConfig(name, opts, fn);
     }
@@ -144,7 +159,7 @@ class PluginAPI extends BaseAPI {
             'Only id, apply and opts is valid plugin properties'
         );
         this.service.extraPlugins.push(opts);
-        this.logger.debug('[Plugin]', ` registerPlugin( ${id} ); Success!`);
+        this.logger.debug('[Plugin]', `registerPlugin( ${id} ); Success!`);
     }
 }
 

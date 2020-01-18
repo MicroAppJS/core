@@ -35,45 +35,6 @@ class PluginService extends MethodService {
         return pluginsObj;
     }
 
-    async _initPlugins() {
-        this.plugins.push(...this._getPlugins());
-
-        await Promise.all(this.plugins.map(async plugin => await this._initPlugin(plugin)));
-
-        let count = 0;
-        while (this.extraPlugins.length) {
-            const extraPlugins = _.cloneDeep(this.extraPlugins);
-            this.extraPlugins = [];
-            await Promise.all(extraPlugins.map(async plugin => {
-                await this._initPlugin(plugin);
-                this.plugins.push(plugin);
-            }));
-            count += 1;
-            assert(count <= 10, '插件注册死循环？');
-        }
-
-        // TODO 排序重组, reload();
-
-
-        // 过滤掉没有初始化的 plugin
-        this.plugins = this.plugins.filter(plugin => !!plugin[Symbol.for('api')]);
-
-        // Throw error for methods that can't be called after plugins is initialized
-        this.plugins.forEach(plugin => {
-            Object.keys(plugin[Symbol.for('api')]).forEach(method => {
-                if (/^register/i.test(method) || [
-                    'onOptionChange',
-                ].includes(method)) {
-                    plugin[Symbol.for('api')][method] = () => {
-                        logger.throw('[Plugin]', `api.${method}() should not be called after plugin is initialized.`);
-                    };
-                }
-            });
-        });
-
-        logger.debug('[Plugin]', '_initPlugins() End!');
-    }
-
     async _initPlugin(plugin) {
         const { id, apply, opts = {}, mode, alias } = plugin;
 
@@ -154,7 +115,7 @@ class PluginService extends MethodService {
             },
         });
         api.onOptionChange = fn => {
-            logger.info('onOptionChange...');
+            logger.info('[core]', 'onOptionChange...');
             assert(
                 typeof fn === 'function',
                 `The first argument for api.onOptionChange should be function in ${id}.`
@@ -170,6 +131,69 @@ class PluginService extends MethodService {
         }
 
         plugin[Symbol.for('api')] = api;
+    }
+
+    async _initPlugins() {
+        this.plugins.push(...this._getPlugins());
+
+        const prePlugins = [];
+        const normalPlugins = [];
+        const postPlugins = [];
+        this.plugins.forEach(plugin => {
+            switch (plugin.enforce) {
+                case 'pre':
+                    prePlugins.push(plugin);
+                    break;
+                case 'post':
+                    postPlugins.push(plugin);
+                    break;
+                default:
+                    normalPlugins.push(plugin);
+                    break;
+            }
+        });
+
+        await [].concat(
+            // enforce: pre
+            prePlugins,
+            // normal
+            normalPlugins,
+            // enforce: post
+            postPlugins
+        ).reduce((_chain, plugin) => _chain.then(() => this._initPlugin(plugin)), Promise.resolve());
+
+        let count = 0;
+        while (this.extraPlugins.length) {
+            const extraPlugins = _.cloneDeep(this.extraPlugins);
+            this.extraPlugins = [];
+            await Promise.all(extraPlugins.map(async plugin => {
+                await this._initPlugin(plugin);
+                this.plugins.push(plugin);
+            }));
+            count += 1;
+            assert(count <= 10, '插件注册死循环？');
+        }
+
+        // TODO 排序重组, reload();
+
+
+        // 过滤掉没有初始化的 plugin
+        this.plugins = this.plugins.filter(plugin => !!plugin[Symbol.for('api')]);
+
+        // Throw error for methods that can't be called after plugins is initialized
+        this.plugins.forEach(plugin => {
+            Object.keys(plugin[Symbol.for('api')]).forEach(method => {
+                if (/^register/i.test(method) || [
+                    'onOptionChange',
+                ].includes(method)) {
+                    plugin[Symbol.for('api')][method] = () => {
+                        logger.throw('[Plugin]', `api.${method}() should not be called after plugin is initialized.`);
+                    };
+                }
+            });
+        });
+
+        logger.debug('[Plugin]', '_initPlugins() End!');
     }
 
     registerPlugin(opts) {
@@ -206,56 +230,45 @@ class PluginService extends MethodService {
         const { id, opts = {} } = item;
         assert(id, 'id must supplied');
         assert(typeof id === 'string', 'id must be string');
-        if (item.apply && _.isFunction(item.apply)) {
-            return {
-                ...item,
-                opts,
-            };
-        }
+        let apply = item.apply; // 提供给特殊需求
         let link = item.link;
         if (!link) {
             link = tryRequire.resolve(id);
         }
-        if (link) {
-            // 先尝试从模拟缓存中找文件
-            const apply = virtualFile.require(link) || tryRequire(link);
-            if (apply) {
-                const _apply = apply.default || apply;
-                if (Array.isArray(_apply)) { // 支持数组模式
-                    return _apply.map(_applyItem => {
-                        if (_applyItem) {
-                            const defaultConfig = _applyItem.configuration || {};
-                            return Object.assign({}, defaultConfig, {
-                                ...item,
-                                link: require.resolve(link),
-                                apply: _applyItem,
-                                opts,
-                            });
-                        }
-                        return false;
-                    }).filter(_it => !!_it);
-                }
-                const defaultConfig = apply.configuration || {};
-                return Object.assign({}, defaultConfig, {
-                    ...item,
-                    link: require.resolve(link),
-                    apply: _apply,
-                    opts,
-                });
+        if (link) { // 先尝试从模拟缓存中找文件
+            apply = apply || virtualFile.require(link) || tryRequire(link);
+        }
+        if (apply) {
+            const _apply = apply.default || apply;
+            if (Array.isArray(_apply)) { // 支持数组模式
+                return _apply.map(_applyItem => {
+                    if (_applyItem) {
+                        const defaultConfig = _applyItem.configuration || {};
+                        return Object.assign({}, defaultConfig, {
+                            ...item,
+                            link: link ? require.resolve(link) : null,
+                            apply: _applyItem,
+                            opts,
+                        });
+                    }
+                    return false;
+                }).filter(_it => !!_it);
             }
+            const defaultConfig = apply.configuration || {};
+            return Object.assign({}, defaultConfig, {
+                ...item,
+                link: link ? require.resolve(link) : null,
+                apply: _apply,
+                opts,
+            });
         }
         logger.warn('[Plugin]', `Not Found plugin: "${id || item}"\n   --> link: "${link}"`);
         return false;
     }
 
-    applyPluginHooks(key, opts = {}) {
+    applyPluginHooks(key, opts = {}, ctx) {
         logger.debug('[Plugin]', `applyPluginHooks( ${key} )`);
-        const defaultOpts = opts;
-        // try {
-        //     defaultOpts = _.cloneDeep(opts);
-        // } catch (error) {
-        //     logger.debug('[Plugin]', ` Plugin: ${key}, _.cloneDeep() error`);
-        // }
+        const defaultOpts = ctx || opts;
         return (this.pluginHooks[key] || []).reduce((last, { fn }) => {
             try {
                 return fn({
@@ -269,14 +282,9 @@ class PluginService extends MethodService {
         }, opts);
     }
 
-    async applyPluginHooksAsync(key, opts = {}) {
+    async applyPluginHooksAsync(key, opts = {}, ctx) {
         logger.debug('[Plugin]', `applyPluginHooksAsync( ${key} )`);
-        const defaultOpts = opts;
-        // try {
-        //     defaultOpts = _.cloneDeep(opts);
-        // } catch (error) {
-        //     logger.debug('[Plugin]', ` Plugin: ${key}, _.cloneDeep() error`);
-        // }
+        const defaultOpts = ctx || opts;
         const hooks = this.pluginHooks[key] || [];
         let last = opts;
         for (const hook of hooks) {

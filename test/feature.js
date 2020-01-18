@@ -1,20 +1,7 @@
 'use strict';
 
-// const loadFile = require('../src/utils/loadFile');
-// const requireMicro = require('../src/utils/requireMicro');
-
-// const obj = loadFile(process.cwd(), 'micro-app.config.js');
-
-// const c = requireMicro('test');
-
-
 // const vusion = require('../adapter/vusion');
 // console.log(JSON.stringify(vusion.mergeConfig(require('../vusion.config')), null, 4));
-
-
-// const koa = require('../adapter/koa');
-// console.log(JSON.stringify(koa.mergeRouter(null), null, 4));
-// console.log(JSON.stringify(koa.mergeMiddleware(null), null, 4));
 
 
 // const common = require('../adapter/common');
@@ -35,7 +22,6 @@
 // // ma.CONSTANTS.ROOT = __dirname;
 // console.log(ma('test'));
 // console.log(ma.loadConfig());
-// ma.koa.start();
 
 
 // const tryRequire = require('try-require');

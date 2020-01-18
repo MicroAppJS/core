@@ -18,8 +18,6 @@ const config = {
             type: 'server',
         },
     },
-
-    strict: true,
 };
 
 if (process.env.NODE_ENV === 'test') {

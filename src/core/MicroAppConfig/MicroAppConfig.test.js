@@ -67,9 +67,9 @@ describe('MicroAppConfig', () => {
                 },
             ],
         }), {
-            key: 'a',
             filePath: __dirname,
             originalRoot: __dirname,
+            loadSuccess: true,
         });
 
         expect(config.toJSON(true)).not.toBeUndefined();

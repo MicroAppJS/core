@@ -25,7 +25,7 @@ class Command {
     }
 
     initialize(/* api, opts */) {
-        logger.throw(this.name, 'initialize(api, opts) needs to be implemented.');
+        logger.throw(`[${this.name}]`, 'initialize(api, opts) needs to be implemented.');
         return Promise.resolve();
     }
 }

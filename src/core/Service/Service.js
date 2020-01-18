@@ -120,7 +120,14 @@ class Service extends PluginService {
 
         const command = this.commands[name];
         if (!command) {
-            logger.throw(`Command "${name}" does not exists!`);
+            logger.throw('[core]', `Command "${name}" does not exists!`);
+        }
+
+        // 补充覆盖全局参数
+        for (const key of [ 'mode' ]) {
+            if (args[key] == null) {
+                args[key] = this[key];
+            }
         }
 
         const { fn, opts } = command;
