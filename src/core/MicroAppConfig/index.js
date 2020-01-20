@@ -15,6 +15,7 @@ module.exports.createInstance = (rootPath = process.cwd(), { originalRootPath = 
     let [ microConfig, filePath ] = loadConfig(rootPath, MICRO_APP_CONFIG_NAME);
     if (microConfig) {
         const _microAppConfig = new MicroAppConfig(microConfig, {
+            root: rootPath,
             filePath,
             originalRoot: originalRootPath,
             loadSuccess: true,
@@ -27,6 +28,7 @@ module.exports.createInstance = (rootPath = process.cwd(), { originalRootPath = 
         logger.debug('[loadFile]', `try load "${PACKAGE_JSON}"`);
         const filePath = path.resolve(rootPath, PACKAGE_JSON);
         const _microAppConfig = new MicroAppConfig(microConfig[SCOPE_NAME] || {}, {
+            root: rootPath,
             filePath,
             originalRoot: originalRootPath,
             loadSuccess: true,

@@ -28,6 +28,10 @@ class MethodService extends BaseService {
         this.state = GLOBAL_STATE; // 状态集
     }
 
+    get configDir() {
+        return this.resolve(CONSTANTS.MICRO_APP_CONFIG_DIR);
+    }
+
     get tempDir() {
         return this.resolveWorkspace(CONSTANTS.MICRO_APP_TEMP_DIR);
     }
@@ -119,7 +123,7 @@ class MethodService extends BaseService {
         });
 
         const selfKey = this.selfKey;
-        config[selfKey] = _.cloneDeep(this.self);
+        config[selfKey] = this.self;
 
         Object.defineProperty(this, 'microsConfig', {
             writable: true, // 提供修改

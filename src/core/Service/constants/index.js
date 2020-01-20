@@ -35,6 +35,7 @@ const contants = {
         'nodeModulesPath',
         'fileFinder',
         'packages',
+        'configDir',
         'tempDir',
         'tempDirPackageGraph',
         'microsPackages',

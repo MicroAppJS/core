@@ -24,6 +24,6 @@ const constants = {
     MICRO_APP_TEMP_DIR: '.temp', // glob temp
 };
 
-constants.MICRO_APP_CONFIG_DIR = path.join(constants.MICRO_APP_DIR, 'config');
+constants.MICRO_APP_CONFIG_DIR = path.join(constants.MICRO_APP_DIR, constants.MICRO_APP_CONFIG_NAME);
 
 module.exports = constants;

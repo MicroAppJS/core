@@ -5,6 +5,9 @@ const { Command } = require('../../../');
 class HelpCommand extends Command {
 
     initialize(api) {
+        const registerMethods = require('./methods');
+        registerMethods(api);
+
         api.registerCommand('help', {
             hide: true,
         }, this.execute.bind(this));

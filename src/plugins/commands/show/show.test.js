@@ -30,6 +30,10 @@ const customAPI = function(args) {
                 return function(name, o, cb) {
                     cb && cb(args);
                 };
+            } else if (key === 'registerMethod') {
+                return function(name, o, cb) {
+                    cb && cb(args);
+                };
             } else if (key === 'logger') {
                 return new Proxy({}, {
                     get() {
@@ -154,6 +158,61 @@ describe('show', () => {
             _: [ 'configs' ],
         });
         show(api);
+    });
+
+
+    it('addCommandShow', async () => {
+        const Service = require('../../../core/Service');
+        const service = new Service();
+
+        const plugin = service.plugins.find(item => item.id.includes('show'));
+        expect(typeof plugin).toEqual('object');
+
+        await service.init();
+
+        expect(plugin[Symbol.for('api')]).not.toBeUndefined();
+        plugin[Symbol.for('api')].changeCommandOption('show', oldOpts => {
+            Object.assign(oldOpts.options, {
+                test: 'list all test',
+            });
+            return oldOpts;
+        });
+        plugin[Symbol.for('api')].addCommandShow(() => {
+            return {
+                type: 'test',
+                info: {
+                    a: 'a',
+                    b: 'b',
+                    c: 'c',
+                },
+            };
+        });
+
+        await service.runCommand('show');
+        await service.runCommand('show', { _: [ 'test' ] });
+
+        expect(service.commands.show).not.toBeNull();
+        expect(service.commands.show).not.toBeUndefined();
+        expect(typeof service.commands.show).toEqual('object');
+    });
+
+
+    it('none', async () => {
+        const Service = require('../../../core/Service');
+        const service = new Service();
+
+        const plugin = service.plugins.find(item => item.id.includes('show'));
+        expect(typeof plugin).toEqual('object');
+
+        await service.init();
+
+        expect(plugin[Symbol.for('api')]).not.toBeUndefined();
+
+        await service.runCommand('show', { _: [ 'none' ] });
+
+        expect(service.commands.show).not.toBeNull();
+        expect(service.commands.show).not.toBeUndefined();
+        expect(typeof service.commands.show).toEqual('object');
     });
 
 });

@@ -90,8 +90,12 @@ class PluginAPI extends BaseAPI {
                     }, type);
                 } else if (type === this.API_TYPE.ADD) {
                     this.register(name, opts => {
-                        return (opts.last || []).concat(
-                            typeof args[0] === 'function' ? args[0](opts.last, opts.args) : args[0]
+                        let last = opts.last || [];
+                        if (!Array.isArray(last)) {
+                            last = [ last ];
+                        }
+                        return last.concat(
+                            typeof args[0] === 'function' ? args[0](last, opts.args) : args[0]
                         );
                     }, type);
                 } else if (type === this.API_TYPE.MODIFY) {

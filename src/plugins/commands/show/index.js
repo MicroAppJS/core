@@ -2,8 +2,10 @@
 
 module.exports = function showCommand(api) {
 
+    const registerMethods = require('./methods');
+    registerMethods(api);
+
     const { _, chalk, getPadLength, logger: { SPACE_CHAR } } = require('@micro-app/shared-utils');
-    const os = require('os');
 
     const details = `
 Examples:
@@ -124,14 +126,26 @@ Examples:
                     return obj;
                 }, {}));
             default:
+            {
                 // const envinfo = require('envinfo');
+                if (type) {
                 // TODO 这里应该支持扩展.
-                api.logger.error(`Not Support options: "${type}" !`);
+                    const otherShows = api.applyPluginHooks('addCommandShow', []) || [];
+                    const otherInfo = otherShows.find(item => (item.type === type));
+                    if (otherInfo && otherInfo.info) {
+                        const title = otherInfo.title || `Show ${otherInfo.type}`;
+                        return showAliasList(title, otherInfo.info);
+                    }
+
+                    api.logger.error(`Not Support options: "${type}" !`);
+                }
                 return api.runCommand('help', { _: [ 'show' ] });
+            }
         }
     });
 
     function showAliasList(title, obj) {
+        const os = require('os');
         const loggerStacks = [];
 
         if (_.isString(title)) {
@@ -140,6 +154,11 @@ Examples:
         } else if (!_.isPlainObject(obj)) {
             obj = title;
             title = undefined;
+        }
+        if (!_.isPlainObject(obj)) {
+            // error
+            api.logger.error('[Show]', 'Error infos !');
+            return;
         }
 
         const arrs = Object.keys(obj);

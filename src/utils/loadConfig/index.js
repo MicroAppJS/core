@@ -61,7 +61,8 @@ function loadConfigFile(rootPath, filename, exts) {
 module.exports = function(rootPath, filename, exts) {
     const [ _c, _p ] = loadConfigFile(rootPath, filename, exts);
     if (_c) {
-        _c.__filepath = _p;
+        _c.__filepath__ = _p;
+        _c[Symbol.for('filepath')] = _p;
     }
     return _c;
 };

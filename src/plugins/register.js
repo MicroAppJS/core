@@ -7,6 +7,7 @@ const commands = [
     'help',
     'show',
     'version',
+    'init',
 
 ].map(p => path.join('commands', p));
 
