@@ -143,6 +143,7 @@ class PluginAPI extends BaseAPI {
         return this.service.extendMethod(name, opts, fn);
     }
 
+    // ZAP 与 PluginService 相似
     registerPlugin(opts) {
         assert(_.isPlainObject(opts), `opts should be plain object, but got ${opts}`);
         opts = this.service.resolvePlugin(opts);

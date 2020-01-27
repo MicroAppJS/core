@@ -129,7 +129,7 @@ Examples:
             {
                 // const envinfo = require('envinfo');
                 if (type) {
-                // TODO 这里应该支持扩展.
+                    // 支持扩展.
                     const otherShows = api.applyPluginHooks('addCommandShow', []) || [];
                     const otherInfo = otherShows.find(item => (item.type === type));
                     if (otherInfo && otherInfo.info) {

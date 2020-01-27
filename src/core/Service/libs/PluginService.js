@@ -196,6 +196,7 @@ class PluginService extends MethodService {
         logger.debug('[Plugin]', '_initPlugins() End!');
     }
 
+    // ZAP 与 PluginAPI 相似
     registerPlugin(opts) {
         assert(_.isPlainObject(opts), `opts should be plain object, but got ${opts}`);
         opts = this.resolvePlugin(opts);

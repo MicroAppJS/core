@@ -64,14 +64,6 @@ class ExtraConfig {
         return this[EXTRA_CONFIG] || {};
     }
 
-    // ZAP 兼容，后面要去除
-    get scope() {
-        if (this.__isPro) {
-            return this.config.scope || '';
-        }
-        return CONSTANTS.SCOPE_NAME;
-    }
-
     get micros() {
         const { openSoftLink = false, openDisabledEntry = false } = this.context;
         const extraConfig = this.config || {};
@@ -94,15 +86,19 @@ class ExtraConfig {
                 result[key].disabled = false;
                 result[key].disable = false;
             }
-
-            // ZAP 兼容赋值（后面需要去除的）
-            if (!key.startsWith(this.scope) && _.isUndefined(result[`${this.scope}/${key}`])) {
-                result[`${this.scope}/${key}`] = result[key];
-            }
         });
         return _.cloneDeep(Object.assign({}, microsExtra, result));
     }
 
+    /**
+     * 附加配置
+     * {
+     *  command: {},
+     * }
+     *
+     * @readonly
+     * @memberof ExtraConfig
+     */
     get command() {
         // TODO 获取预先配置的参数
         return this.config.command || {};

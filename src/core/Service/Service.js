@@ -43,8 +43,10 @@ class Service extends PluginService {
             if (!microsConfig[key]) return {};
             return _.pick(microsConfig[key], [
                 'alias',
+                'aliasObj',
                 'resolveAlias',
                 'shared',
+                'sharedObj',
                 'resolveShared',
             ]);
         }), selfConfig);
@@ -110,7 +112,9 @@ class Service extends PluginService {
 
         // TODO 获取配置中的 options
         const commandOpts = this.extraConfig.command[rawName] || {};
-        rawArgs = smartMerge({}, commandOpts, rawArgs);
+        if (_.isPlainObject(commandOpts)) {
+            rawArgs = smartMerge({}, commandOpts, rawArgs);
+        }
 
         const { name = rawName, args = rawArgs } = this.applyPluginHooks('modifyCommand', {
             name: rawName,
@@ -143,8 +147,6 @@ class Service extends PluginService {
     }
 
     async run(name = 'help', args = { _: [] }) {
-        // TODO 可从这里判断全局变量， 如 mode
-
         await this.init();
         return this.runCommand(name, args);
     }
