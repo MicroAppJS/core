@@ -135,11 +135,17 @@ class PluginService extends MethodService {
 
     async _initPlugins() {
         this.plugins.push(...this._getPlugins());
+        const builtIn = Symbol.for('built-in');
 
+        const builtInPlugins = [];
         const prePlugins = [];
         const normalPlugins = [];
         const postPlugins = [];
         this.plugins.forEach(plugin => {
+            if (plugin[builtIn]) {
+                builtInPlugins.push(plugin);
+                return;
+            }
             switch (plugin.enforce) {
                 case 'pre':
                     prePlugins.push(plugin);
@@ -153,14 +159,19 @@ class PluginService extends MethodService {
             }
         });
 
-        await [].concat(
+        // 重新排序
+        this.plugins = [].concat(
+            // builtIn
+            builtInPlugins,
             // enforce: pre
             prePlugins,
             // normal
             normalPlugins,
             // enforce: post
             postPlugins
-        ).reduce((_chain, plugin) => _chain.then(() => this._initPlugin(plugin)), Promise.resolve());
+        );
+
+        await this.plugins.reduce((_chain, plugin) => _chain.then(() => this._initPlugin(plugin)), Promise.resolve());
 
         let count = 0;
         while (this.extraPlugins.length) {

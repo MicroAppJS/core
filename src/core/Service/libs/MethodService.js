@@ -29,19 +29,37 @@ class MethodService extends BaseService {
     }
 
     get configDir() {
-        return this.resolve(CONSTANTS.MICRO_APP_CONFIG_DIR);
+        const configDir = this.resolveWorkspace(CONSTANTS.MICRO_APP_CONFIG_NAME);
+        fs.ensureDirSync(configDir);
+        logger.debug('[core]', 'create configDir:', configDir);
+
+        Object.defineProperty(this, 'configDir', {
+            value: configDir,
+        });
+        return configDir;
     }
 
     get tempDir() {
-        return this.resolveWorkspace(CONSTANTS.MICRO_APP_TEMP_DIR);
+        const tempDir = this.resolveWorkspace(CONSTANTS.MICRO_APP_TEMP_DIR);
+        fs.ensureDirSync(tempDir);
+        logger.debug('[core]', 'create tempDir:', tempDir);
+
+        Object.defineProperty(this, 'tempDir', {
+            value: tempDir,
+        });
+        return tempDir;
     }
 
     get tempDirPackageGraph() {
         const pkgInfos = this.fileFinderTempDirNodeModules(CONSTANTS.PACKAGE_JSON, filePaths => {
             return filePaths.map(filePath => {
                 const packageJson = loadFile(filePath);
-                return new Package(packageJson, path.dirname(filePath), this.root);
-            });
+                try {
+                    return new Package(packageJson, path.dirname(filePath), this.root);
+                } catch (error) {
+                    return false;
+                }
+            }).filter(item => !!item);
         });
         logger.debug('[core > fileFinderTempDirNodeModules]', `packages length: '${pkgInfos.length}'`);
         const tempDirPackageGraph = new PackageGraph(pkgInfos, 'dependencies');

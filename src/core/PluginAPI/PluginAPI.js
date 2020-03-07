@@ -160,6 +160,10 @@ class PluginAPI extends BaseAPI {
             'api.registerPlugin() should not register plugin prefixed with built-in:'
         );
         assert(
+            opts[Symbol.for('built-in')] === undefined,
+            'api.registerPlugin() should not register plugin Symbol.for("built-in"): true'
+        );
+        assert(
             [ 'id', 'apply', 'opts' ].every(key => Object.keys(opts).includes(key)),
             'Only id, apply and opts is valid plugin properties'
         );

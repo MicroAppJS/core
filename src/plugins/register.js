@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+const builtIn = Symbol.for('built-in');
 
 const commands = [
 
@@ -19,5 +20,6 @@ module.exports = commands.map(p => {
             .toLowerCase(),
         link: require.resolve(`./${p}`),
         description: 'System Build-in',
+        [builtIn]: true,
     };
 });

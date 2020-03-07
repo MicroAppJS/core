@@ -87,11 +87,12 @@ class BaseService {
         load('.env.local');
 
         // default env
-        const context = this.context;
-        // 全局环境模式 production, development
-        process.env.NODE_ENV = context.mode || this.mode || 'development';
-
         const mode = this.mode;
+        if (mode) {
+            // 全局环境模式 production, development
+            process.env.NODE_ENV = mode;
+        }
+
         if (mode) {
             load(`.env.${mode}`);
             load(`.env.${mode}.local`);
@@ -142,7 +143,11 @@ class BaseService {
 
     get mode() {
         const ctxMode = this.context.mode; // 从参数中获取
-        return ctxMode || process.env.NODE_ENV || 'development'; // "production" | "development"
+        return ctxMode || process.env.NODE_ENV; // "production" | "development"
+    }
+
+    get isDev() {
+        return this.mode === 'development';
     }
 
     get self() {

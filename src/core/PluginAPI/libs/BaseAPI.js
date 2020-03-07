@@ -17,6 +17,10 @@ class BaseAPI {
         };
     }
 
+    get context() { // cmd
+        return this.service.context;
+    }
+
     get debug() {
         const _debug = debug(`microapp:plugin:${this.id}`);
         Object.defineProperty(this, 'debug', { value: _debug });

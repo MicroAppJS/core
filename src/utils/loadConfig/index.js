@@ -3,7 +3,7 @@
 const { _, logger, loadFile } = require('@micro-app/shared-utils');
 const path = require('path');
 
-const { SUPPOER_CONFIG_FILE_EXTS, MICRO_APP_DIR, MICRO_APP_CONFIG_DIR, CONFIG_NAME, EXTRAL_CONFIG_NAME, MICRO_APP_CONFIG_NAME, MICRO_APP_EXTRA_CONFIG_NAME } = require('../../core/Constants');
+const { SUPPOER_CONFIG_FILE_EXTS, MICRO_APP_DIR, CONFIG_NAME, EXTRAL_CONFIG_NAME, MICRO_APP_CONFIG_NAME, MICRO_APP_EXTRA_CONFIG_NAME } = require('../../core/Constants');
 
 function copyExts(exts) {
     return _.cloneDeep(exts || SUPPOER_CONFIG_FILE_EXTS);
@@ -32,7 +32,7 @@ function loadConfigFile(rootPath, filename, exts) {
     if (_filename === MICRO_APP_CONFIG_NAME) {
         _filename = 'index';
     }
-    const configRoot = path.resolve(rootPath, MICRO_APP_CONFIG_DIR);
+    const configRoot = path.resolve(rootPath, MICRO_APP_DIR, MICRO_APP_CONFIG_NAME);
     let _exts = copyExts(exts);
     while (!finalMicroConfig && _exts.length > 0) {
         finalFilePath = path.resolve(configRoot, `${_filename}${_exts.shift()}`);

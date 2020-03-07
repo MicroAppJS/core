@@ -117,14 +117,6 @@ class BaseConfig {
         return '';
     }
 
-    get mode() {
-        return process.env.NODE_ENV || 'production'; // "production" | "development"
-    }
-
-    get isDev() {
-        return this.mode === 'development';
-    }
-
     get strict() {
         return this.config.strict !== false;
     }
@@ -374,7 +366,6 @@ class BaseConfig {
             version: this.version,
             type: this.type,
             description: this.description,
-            mode: this.mode,
             root: this.root,
             originalRoot: this.originalRoot,
             hasSoftLink: this.hasSoftLink,

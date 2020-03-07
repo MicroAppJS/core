@@ -20,6 +20,10 @@ const config = {
     },
 };
 
+config.plugins = [
+    '@micro-app/plugin-deploy', // test
+];
+
 if (process.env.NODE_ENV === 'test') {
     config.micros = [
         'test', 'abab', '@micro-app/shared-utils',
