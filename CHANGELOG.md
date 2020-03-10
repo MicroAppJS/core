@@ -1,3 +1,10 @@
+## [0.3.7](https://github.com/MicroAppJS/core/compare/v0.3.6...v0.3.7) (2020-03-10)
+
+
+### Bug Fixes
+
+* add target ([66262ac](https://github.com/MicroAppJS/core/commit/66262ac9a1411133758dfcc4f43b8613734a88f6))
+
 ## [0.3.6](https://github.com/MicroAppJS/core/compare/v0.0.57...v0.3.6) (2020-03-07)
 
 
