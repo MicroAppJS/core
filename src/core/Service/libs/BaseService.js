@@ -146,6 +146,11 @@ class BaseService {
         return ctxMode || process.env.NODE_ENV; // "production" | "development"
     }
 
+    get target() {
+        const ctxTarget = this.context.target; // 从参数中获取
+        return ctxTarget || 'app'; // "app" | "web" | "lib"
+    }
+
     get isDev() {
         return this.mode === 'development';
     }

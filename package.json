@@ -9,7 +9,6 @@
         "lint:fix": "npm run lint -- --fix",
         "test": "jest",
         "docs:dev": "node bin/index.js vuepress dev",
-        "publish:next": "npm publish --tag next",
         "release": "node bin/index.js release",
         "release:alpha": "npm run release -- --preRelease=alpha",
         "release:next": "npm run release -- --preRelease=next"
@@ -38,15 +37,19 @@
         "email": "zyao89@gmail.com"
     },
     "license": "MIT",
+    "husky": {
+        "hooks": {
+            "pre-commit": "npm run test"
+        }
+    },
     "peerDependencies": {
         "@micro-app/shared-utils": ">=0.1.15"
     },
     "devDependencies": {
         "@micro-app/plugin-deploy": "^0.0.4",
         "@types/jest": "^24.9.1",
-        "babel-eslint": "^10.1.0",
-        "eslint": "^5.16.0",
-        "eslint-config-2o3t": "^1.1.17",
+        "eslint-config-2o3t": "^2.0.1",
+        "husky": "^3.1.0",
         "jest": "^24.9.0"
     },
     "dependencies": {

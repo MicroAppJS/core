@@ -128,7 +128,7 @@ class Service extends PluginService {
         }
 
         // 补充覆盖全局参数
-        for (const key of [ 'mode' ]) {
+        for (const key of [ 'mode', 'target' ]) {
             if (args[key] == null) {
                 args[key] = this[key];
             }

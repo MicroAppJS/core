@@ -36,7 +36,7 @@ class PluginService extends MethodService {
     }
 
     async _initPlugin(plugin) {
-        const { id, apply, opts = {}, mode, alias } = plugin;
+        const { id, apply, opts = {}, mode, alias, target } = plugin;
 
         // --skip-plugins
         const skipPlugins = this.context.skipPlugins;
@@ -57,6 +57,19 @@ class PluginService extends MethodService {
             if (!_mode.some(item => item === this.mode)) {
                 // 当前模式与插件不匹配
                 logger.warn('[Plugin]', `current mode: { ${this.mode} } - initPlugin() skip "${id}${alias ? ' (' + alias + ')' : ''}".`, `only support modes: { ${_mode.join(', ')} }`);
+                return;
+            }
+        }
+
+        if (target) { // 目标类型
+            let _target = target;
+            if (_.isFunction(_target)) { // 支持方法判断
+                _target = _target(this.target);
+            }
+            _target = [].concat(_target);
+            if (!_target.some(item => item === this.target)) {
+                // 当前模式与插件不匹配
+                logger.warn('[Plugin]', `current target: { ${this.target} } - initPlugin() skip "${id}${alias ? ' (' + alias + ')' : ''}".`, `only support targets: { ${_target.join(', ')} }`);
                 return;
             }
         }

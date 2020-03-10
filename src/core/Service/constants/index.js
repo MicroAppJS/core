@@ -8,6 +8,7 @@ const contants = {
     SharedProps: [
         'root',
         'mode',
+        'target',
         'type',
         'strictMode',
         'env',
