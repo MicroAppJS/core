@@ -111,7 +111,7 @@ class Service extends PluginService {
             return;
         }
 
-        this._initPlugins();
+        this._initPluginsSync();
 
         this.initialized = true; // 再此之前可重新 init
 
@@ -157,6 +157,7 @@ class Service extends PluginService {
         });
         logger.debug('[Plugin]', `run ${name} with args: `, args);
 
+        console.warn(this.commands);
         const command = this.commands[name];
         if (!command) {
             logger.throw('[core]', `Command "${name}" does not exists!`);
@@ -187,7 +188,7 @@ class Service extends PluginService {
     }
 
     runSync(name = 'help', args = { _: [] }) {
-        this.init();
+        this.initSync();
         return this.runCommand(name, args);
     }
 }

@@ -35,8 +35,8 @@ class PluginService extends MethodService {
         return pluginsObj;
     }
 
-    async _initPlugin(plugin) {
-        const { id, apply, opts = {}, mode, alias, target } = plugin;
+    _initPluginAPI(plugin) {
+        const { id, apply, mode, alias, target } = plugin;
 
         // --skip-plugins
         const skipPlugins = this.context.skipPlugins;
@@ -135,6 +135,12 @@ class PluginService extends MethodService {
             );
             plugin._onOptionChange = fn;
         };
+        return api;
+    }
+
+    async _initPlugin(plugin) {
+        const api = this._initPluginAPI(plugin);
+        const { apply, opts = {} } = plugin;
 
         if (apply.__isMicroAppCommand) {
             const _apply = new apply(api, opts);
@@ -146,7 +152,21 @@ class PluginService extends MethodService {
         plugin[Symbol.for('api')] = api;
     }
 
-    async _initPlugins() {
+    _initPluginSync(plugin) {
+        const api = this._initPluginAPI(plugin);
+        const { apply, opts = {} } = plugin;
+
+        if (apply.__isMicroAppCommand) {
+            const _apply = new apply(api, opts);
+            _apply.initialize(api, opts);
+        } else {
+            apply(api, opts);
+        }
+
+        plugin[Symbol.for('api')] = api;
+    }
+
+    _sortPlugins() {
         this.plugins.push(...this._getPlugins());
         const builtIn = Symbol.for('built-in');
 
@@ -183,6 +203,10 @@ class PluginService extends MethodService {
             // enforce: post
             postPlugins
         );
+    }
+
+    async _initPlugins() {
+        this._sortPlugins();
 
         await this.plugins.reduce((_chain, plugin) => _chain.then(() => this._initPlugin(plugin)), Promise.resolve());
 
@@ -194,6 +218,47 @@ class PluginService extends MethodService {
                 await this._initPlugin(plugin);
                 this.plugins.push(plugin);
             }));
+            count += 1;
+            assert(count <= 10, '插件注册死循环？');
+        }
+
+        // TODO 排序重组, reload();
+
+
+        // 过滤掉没有初始化的 plugin
+        this.plugins = this.plugins.filter(plugin => !!plugin[Symbol.for('api')]);
+
+        // Throw error for methods that can't be called after plugins is initialized
+        this.plugins.forEach(plugin => {
+            Object.keys(plugin[Symbol.for('api')]).forEach(method => {
+                if (/^register/i.test(method) || [
+                    'onOptionChange',
+                ].includes(method)) {
+                    plugin[Symbol.for('api')][method] = () => {
+                        logger.throw('[Plugin]', `api.${method}() should not be called after plugin is initialized.`);
+                    };
+                }
+            });
+        });
+
+        logger.debug('[Plugin]', '_initPlugins() End!');
+    }
+
+    _initPluginsSync() {
+        this._sortPlugins();
+
+        this.plugins.forEach(plugin => {
+            this._initPluginSync(plugin);
+        });
+
+        let count = 0;
+        while (this.extraPlugins.length) {
+            const extraPlugins = _.cloneDeep(this.extraPlugins);
+            this.extraPlugins = [];
+            extraPlugins.forEach(plugin => {
+                this._initPluginSync(plugin);
+                this.plugins.push(plugin);
+            });
             count += 1;
             assert(count <= 10, '插件注册死循环？');
         }

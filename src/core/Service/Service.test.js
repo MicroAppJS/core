@@ -78,4 +78,12 @@ describe('Service', () => {
         console.warn(service.microsPackageGraph.rawPackageList);
     });
 
+    it('new constructor runSync', () => {
+        const service = new Service();
+        service.runSync();
+
+        expect(service.version).not.toBeUndefined();
+        expect(service.version).not.toBeNull();
+    });
+
 });
