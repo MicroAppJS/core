@@ -7,6 +7,7 @@ const BaseService = require('./BaseService');
 describe('BaseService', () => {
 
     it('new constructor', () => {
+        process.env.NODE_ENV = 'test';
         const base = new BaseService();
 
         expect(base.pkg).not.toBeNull();
@@ -22,6 +23,7 @@ describe('BaseService', () => {
     });
 
     it('env', () => {
+        process.env.NODE_ENV = 'test';
         const base = new BaseService();
 
         expect(base.mode).not.toBeNull();

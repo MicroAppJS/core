@@ -7,6 +7,7 @@ const MethodService = require('./MethodService');
 describe('MethodService', () => {
 
     it('new constructor', () => {
+        process.env.NODE_ENV = 'test';
         const base = new MethodService();
 
         expect(base.pkg).not.toBeNull();

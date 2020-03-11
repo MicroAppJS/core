@@ -7,6 +7,7 @@ const PluginService = require('./PluginService');
 describe('PluginService', () => {
 
     it('new constructor', () => {
+        process.env.NODE_ENV = 'test';
         const base = new PluginService();
 
         expect(base.pkg).not.toBeNull();
