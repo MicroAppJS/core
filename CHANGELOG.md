@@ -1,3 +1,10 @@
+## [0.3.9](https://github.com/MicroAppJS/core/compare/v0.3.8...v0.3.9) (2020-03-11)
+
+
+### Bug Fixes
+
+* 修复同步方法调用异常 ([612d55b](https://github.com/MicroAppJS/core/commit/612d55bdb771ee5f39ee97982f16f128a750875e))
+
 ## [0.3.8](https://github.com/MicroAppJS/core/compare/v0.3.7...v0.3.8) (2020-03-11)
 
 
