@@ -140,6 +140,8 @@ class PluginService extends MethodService {
 
     async _initPlugin(plugin) {
         const api = this._initPluginAPI(plugin);
+        if (!api) return;
+
         const { apply, opts = {} } = plugin;
 
         if (apply.__isMicroAppCommand) {
@@ -154,6 +156,8 @@ class PluginService extends MethodService {
 
     _initPluginSync(plugin) {
         const api = this._initPluginAPI(plugin);
+        if (!api) return;
+
         const { apply, opts = {} } = plugin;
 
         if (apply.__isMicroAppCommand) {
