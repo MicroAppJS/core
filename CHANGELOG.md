@@ -1,3 +1,15 @@
+## [0.3.8](https://github.com/MicroAppJS/core/compare/v0.3.7...v0.3.8) (2020-03-11)
+
+
+### Bug Fixes
+
+* fixed env ([a3cbc3e](https://github.com/MicroAppJS/core/commit/a3cbc3e207d6973f7be9375f026a56b159dcc9ba))
+
+
+### Features
+
+* add method initSync & runSync ([d4c9683](https://github.com/MicroAppJS/core/commit/d4c9683479d2e71e9b1739c5cf4f588659610885))
+
 ## [0.3.7](https://github.com/MicroAppJS/core/compare/v0.3.6...v0.3.7) (2020-03-10)
 
 
