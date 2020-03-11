@@ -157,7 +157,6 @@ class Service extends PluginService {
         });
         logger.debug('[Plugin]', `run ${name} with args: `, args);
 
-        console.warn(this.commands);
         const command = this.commands[name];
         if (!command) {
             logger.throw('[core]', `Command "${name}" does not exists!`);
