@@ -226,7 +226,7 @@ class PluginService extends MethodService {
         opts = this.resolvePlugin(opts);
         if (!opts) return; // error
         if (Array.isArray(opts)) {
-            return opts.map(this.registerPlugin);
+            return opts.map(opt => this.registerPlugin(opt));
         }
         const { id, apply } = opts;
         assert(id && apply, 'id and apply must supplied');

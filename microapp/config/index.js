@@ -1,23 +1,7 @@
 'use strict';
 
 const config = {
-    name: '@micro-app/demo',
-    description: '',
-    version: '0.0.1',
     type: '', // types 类型
-
-    alias: { // 前端
-        api: 'abc',
-        config: {
-            link: 'abc',
-            description: '配置',
-        },
-        service: {
-            link: 'abc',
-            description: '接口',
-            type: 'server',
-        },
-    },
 };
 
 config.plugins = [

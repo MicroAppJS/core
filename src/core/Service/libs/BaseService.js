@@ -143,7 +143,7 @@ class BaseService {
 
     get mode() {
         const ctxMode = this.context.mode; // 从参数中获取
-        return ctxMode || process.env.NODE_ENV; // "production" | "development"
+        return ctxMode || process.env.NODE_ENV || 'development'; // "production" | "development"
     }
 
     get target() {

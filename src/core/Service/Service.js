@@ -106,6 +106,41 @@ class Service extends PluginService {
         return chain;
     }
 
+    initSync() {
+        if (this.initialized) {
+            return;
+        }
+
+        this._initPlugins();
+
+        this.initialized = true; // 再此之前可重新 init
+
+        this.applyPluginHooks('onPluginInitDone');
+
+        // modify  freeze!!!
+        Object.defineProperty(this, 'microsConfig', {
+            value: this.applyPluginHooks('modifyMicrosConfig', this.microsConfig),
+        });
+        Object.defineProperty(this, 'microsPackageGraph', {
+            value: new PackageGraph(this.microsPackages),
+        });
+
+        // merge config
+        this.applyPluginHooks('beforeMergeConfig', this.config);
+        Object.defineProperty(this, 'config', {
+            value: this.applyPluginHooks('modifyDefaultConfig', this._mergeConfig()),
+        });
+        this.applyPluginHooks('afterMergeConfig', this.config);
+
+        // 注入全局的别名
+        moduleAlias.add(this.config.resolveShared);
+
+        this.applyPluginHooks('onInitWillDone');
+
+        this.applyPluginHooks('onInitDone');
+        logger.debug('[Plugin]', 'init(); Done!');
+    }
+
     runCommand(rawName, rawArgs = {}) {
         rawArgs._ = rawArgs._ || [];
         logger.debug('[Plugin]', `raw command name: ${rawName}, args: `, rawArgs);
@@ -148,6 +183,11 @@ class Service extends PluginService {
 
     async run(name = 'help', args = { _: [] }) {
         await this.init();
+        return this.runCommand(name, args);
+    }
+
+    runSync(name = 'help', args = { _: [] }) {
+        this.init();
         return this.runCommand(name, args);
     }
 }
