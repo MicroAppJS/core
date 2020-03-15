@@ -17,6 +17,7 @@ const loadConfig = require('../../../utils/loadConfig');
 
 // 全局状态集
 const GLOBAL_STATE = {};
+const G_TEMP_CACHE = new Map();
 
 class MethodService extends BaseService {
 
@@ -304,6 +305,42 @@ class MethodService extends BaseService {
             // }
         }
         return null;
+    }
+
+    /**
+     * 异步写临时文件
+     * @param {String} file 文件名
+     * @param {String} content 内容
+     * @return {Promise<String>} destPath
+     */
+    async writeTempFile(file, content) {
+        const destPath = path.join(this.tempDir, file);
+        await fs.ensureDir(path.parse(destPath).dir);
+        // cache write to avoid hitting the dist if it didn't change
+        const cached = G_TEMP_CACHE.get(file);
+        if (cached !== content) {
+            await fs.writeFile(destPath, content);
+            G_TEMP_CACHE.set(file, content);
+        }
+        return destPath;
+    }
+
+    /**
+     * 同步写临时文件
+     * @param {String} file 文件名
+     * @param {String} content 内容
+     * @return {String} destPath
+     */
+    writeTempFileSync(file, content) {
+        const destPath = path.join(this.tempDir, file);
+        fs.ensureDirSync(path.parse(destPath).dir);
+        // cache write to avoid hitting the dist if it didn't change
+        const cached = G_TEMP_CACHE.get(file);
+        if (cached !== content) {
+            fs.writeFileSync(destPath, content);
+            G_TEMP_CACHE.set(file, content);
+        }
+        return destPath;
     }
 }
 
