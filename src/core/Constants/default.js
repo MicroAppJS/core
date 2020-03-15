@@ -18,15 +18,6 @@ module.exports = {
 
     // staticPath: [], // String | Array
 
-    // dlls: [
-    // { // dll 基本配置, [ 只支持子模块中使用 ]
-    //     disabled: false,
-    //     context: '',
-    //     manifest: '',
-    //     filepath: '',
-    // },
-    // ],
-
     alias: { // 共享别名
         // api: './client/api.js', // 默认为前后端通用
         // service: {

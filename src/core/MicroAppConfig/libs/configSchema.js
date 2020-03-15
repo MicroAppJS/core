@@ -27,19 +27,18 @@ module.exports = {
             description: '入口配置. ( object )',
             type: 'object',
         },
+        css: {
+            description: 'css配置. ( object )',
+            type: 'object',
+        },
+        devServer: {
+            description: '开发服务器配置. ( object )',
+            type: 'object',
+        },
         htmls: {
             description: '模版配置. ( array<object> )',
             items: {
                 required: [ 'template' ],
-                type: 'object',
-            },
-            minItems: 1,
-            type: 'array',
-        },
-        dlls: {
-            description: 'dll 配置. ( array<object> )',
-            items: {
-                required: [ 'context', 'manifest', 'filepath' ],
                 type: 'object',
             },
             minItems: 1,

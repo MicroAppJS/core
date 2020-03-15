@@ -41,7 +41,6 @@ describe('MicroAppConfig', () => {
         expect(config.webpack).toBeUndefined();
         expect(config.entry).toBeUndefined();
         expect(config.htmls).toBeUndefined();
-        expect(config.dlls).toBeUndefined();
         expect(config.staticPaths).toBeUndefined();
         expect(config.server).toBeUndefined();
         expect(config.toServerConfig).toBeUndefined();
@@ -56,13 +55,6 @@ describe('MicroAppConfig', () => {
 
             staticPath: [ 'abc' ],
 
-            dlls: [
-                {
-                    context: __dirname,
-                    manifest: __dirname,
-                    filepath: __filename,
-                },
-            ],
         }), {
             filePath: __dirname,
             originalRoot: __dirname,
@@ -80,8 +72,6 @@ describe('MicroAppConfig', () => {
         expect(config.entry).toBeUndefined();
         expect(config.html).toBeUndefined();
         expect(config.htmls).toBeUndefined();
-        expect(config.dll).toBeUndefined();
-        expect(config.dlls).toBeUndefined();
         expect(config.staticPaths).toBeUndefined();
         expect(config.server).toBeUndefined();
         expect(config.toServerConfig).toBeUndefined();
