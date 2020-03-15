@@ -8,7 +8,7 @@ module.exports = api => {
     });
     api.registerMethod('addCommandInit', {
         type: api.API_TYPE.ADD,
-        description: '初始化完毕后事件',
+        description: '增加初始化事件',
     });
     api.registerMethod('afterCommandInit', {
         type: api.API_TYPE.EVENT,

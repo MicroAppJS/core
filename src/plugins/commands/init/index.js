@@ -5,11 +5,15 @@ module.exports = function initCommand(api, opts) {
     const registerMethods = require('./methods');
     registerMethods(api);
 
-    const path = require('path');
-    const { _, chalk, fs, prompt, smartMerge } = require('@micro-app/shared-utils');
+    const { _, chalk, fs, prompt, smartMerge, path } = require('@micro-app/shared-utils');
 
-    // start
-    api.registerCommand('init', {
+    const details = `
+Examples:
+    ${chalk.gray('# init')}
+    micro-app init
+            `.trim();
+
+    const cmdOpt = {
         description: 'init micro app project.',
         usage: 'micro-app init [options]',
         options: {
@@ -17,12 +21,12 @@ module.exports = function initCommand(api, opts) {
             '--force': 'force create.',
             // '-n <name>': 'only init <name>.',
         },
-        details: `
-Examples:
-    ${chalk.gray('# init')}
-    micro-app init
-            `.trim(),
-    }, args => {
+        details,
+    };
+
+    // start
+    api.registerCommand('init', cmdOpt, args => {
+
         const logger = api.logger;
         const configDir = api.configDir;
         const configFilepath = path.resolve(configDir, 'index.js');
@@ -63,9 +67,11 @@ Examples:
 
         // version
         chain = chain.then(() => {
-            return prompt.input('Enter Version (0.0.1):').then(answer => {
+            const pkg = api.pkg;
+            const defaultVersion = pkg.version || '0.0.1';
+            return prompt.input(`Enter Version (${defaultVersion}):`).then(answer => {
                 const version = answer.trim();
-                info.version = version || '0.0.1';
+                info.version = version || defaultVersion;
             });
         });
 
@@ -125,6 +131,7 @@ module.exports = ${configJson};`);
             const msg = err && err.message || err;
             logger.error('[Init]', msg);
         });
+
     });
 };
 
