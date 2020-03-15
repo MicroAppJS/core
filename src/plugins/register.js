@@ -9,6 +9,7 @@ const commands = [
     'show',
     'version',
     'init',
+    'clean',
 
 ].map(p => path.join('commands', p));
 
