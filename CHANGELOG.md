@@ -1,3 +1,16 @@
+## [0.3.11](https://github.com/MicroAppJS/core/compare/v0.3.10...v0.3.11) (2020-03-16)
+
+
+### Bug Fixes
+
+* art init command ([ab8f37e](https://github.com/MicroAppJS/core/commit/ab8f37ef4d46b5ea0d5442bc34b8e60847c7406a))
+
+
+### Features
+
+* add clean command ([71f40a2](https://github.com/MicroAppJS/core/commit/71f40a2afb1d93e6961b946fa0f2542984809b69))
+* add writeTempFile method ([5d7c720](https://github.com/MicroAppJS/core/commit/5d7c720a700e571fa1208d763db6c9ac0058f0b2))
+
 ## [0.3.10](https://github.com/MicroAppJS/core/compare/v0.3.9...v0.3.10) (2020-03-11)
 
 
