@@ -30,6 +30,8 @@ Examples:
         const logger = api.logger;
         const configDir = api.configDir;
         const configFilepath = path.resolve(configDir, 'index.js');
+        const pkg = api.pkg;
+
         const info = {};
 
         let chain = Promise.resolve();
@@ -59,15 +61,15 @@ Examples:
 
         // description
         chain = chain.then(() => {
-            return prompt.input('Enter Description:').then(answer => {
+            const defaultDescription = pkg.description || '';
+            return prompt.input(`Enter Description (${defaultDescription}):`).then(answer => {
                 const description = answer.trim();
-                info.description = description;
+                info.description = description || defaultDescription;
             });
         });
 
         // version
         chain = chain.then(() => {
-            const pkg = api.pkg;
             const defaultVersion = pkg.version || '0.0.1';
             return prompt.input(`Enter Version (${defaultVersion}):`).then(answer => {
                 const version = answer.trim();
