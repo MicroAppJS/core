@@ -4,11 +4,16 @@ const { logger, _, assert, tryRequire, virtualFile, dedent } = require('@micro-a
 
 const MethodService = require('./MethodService');
 const PluginAPI = require('../../PluginAPI');
-const { PreLoadPlugins } = require('../constants');
+const DEFAULT_METHODS = require('../methods');
+const PreLoadPlugins = require('../../../plugins/register');
+const { API_TYPE } = require('../../Constants');
 
 class PluginService extends MethodService {
     constructor(context) {
         super(context);
+
+        // plugin methods
+        this.pluginMethods = {};
         // plugin hooks
         this.pluginHooks = {};
 
@@ -33,6 +38,35 @@ class PluginService extends MethodService {
             return arr.concat(this.resolvePlugin(item));
         }, []).filter(item => !!item);
         return pluginsObj;
+    }
+
+    _initPreloadPlugins() {
+        DEFAULT_METHODS.forEach(method => {
+            if (Array.isArray(method)) {
+                this.registerMethod(...method);
+            } else {
+                let type;
+                const isPrivate = /^_/i.test(method);
+                const slicedMethod = isPrivate ? method.slice(1) : method;
+                if (slicedMethod.indexOf('modify') === 0) {
+                    type = API_TYPE.MODIFY;
+                } else if (slicedMethod.indexOf('add') === 0) {
+                    type = API_TYPE.ADD;
+                } else if (
+                    slicedMethod.indexOf('on') === 0 ||
+                    slicedMethod.indexOf('before') === 0 ||
+                    slicedMethod.indexOf('after') === 0
+                ) {
+                    type = API_TYPE.EVENT;
+                } else {
+                    throw new Error(`unexpected method name ${method}`);
+                }
+                this.registerMethod(method, {
+                    type,
+                    description: 'System Build-in',
+                });
+            }
+        });
     }
 
     _initPluginAPI(plugin) {
@@ -209,6 +243,26 @@ class PluginService extends MethodService {
         );
     }
 
+    _filterPlugins() {
+        this.plugins = this.plugins.filter(plugin => !!plugin[Symbol.for('api')]);
+
+        // Throw error for methods that can't be called after plugins is initialized
+        this.plugins.forEach(plugin => {
+            Object.keys(plugin[Symbol.for('api')]).forEach(method => {
+                if (/^register/i.test(method) || [
+                    'onOptionChange',
+                ].includes(method)) {
+                    plugin[Symbol.for('api')][method] = () => {
+                        logger.throw('[Plugin]', `api.${method}() should not be called after plugin is initialized.`);
+                    };
+                }
+            });
+        });
+    }
+
+    /**
+     * 异步
+     */
     async _initPlugins() {
         this._sortPlugins();
 
@@ -228,26 +282,15 @@ class PluginService extends MethodService {
 
         // TODO 排序重组, reload();
 
-
         // 过滤掉没有初始化的 plugin
-        this.plugins = this.plugins.filter(plugin => !!plugin[Symbol.for('api')]);
-
-        // Throw error for methods that can't be called after plugins is initialized
-        this.plugins.forEach(plugin => {
-            Object.keys(plugin[Symbol.for('api')]).forEach(method => {
-                if (/^register/i.test(method) || [
-                    'onOptionChange',
-                ].includes(method)) {
-                    plugin[Symbol.for('api')][method] = () => {
-                        logger.throw('[Plugin]', `api.${method}() should not be called after plugin is initialized.`);
-                    };
-                }
-            });
-        });
+        this._filterPlugins();
 
         logger.debug('[Plugin]', '_initPlugins() End!');
     }
 
+    /**
+     * 同步
+     */
     _initPluginsSync() {
         this._sortPlugins();
 
@@ -269,24 +312,75 @@ class PluginService extends MethodService {
 
         // TODO 排序重组, reload();
 
-
         // 过滤掉没有初始化的 plugin
-        this.plugins = this.plugins.filter(plugin => !!plugin[Symbol.for('api')]);
+        this._filterPlugins();
 
-        // Throw error for methods that can't be called after plugins is initialized
-        this.plugins.forEach(plugin => {
-            Object.keys(plugin[Symbol.for('api')]).forEach(method => {
-                if (/^register/i.test(method) || [
-                    'onOptionChange',
-                ].includes(method)) {
-                    plugin[Symbol.for('api')][method] = () => {
-                        logger.throw('[Plugin]', `api.${method}() should not be called after plugin is initialized.`);
-                    };
-                }
-            });
+        logger.debug('[Plugin]', '_initPluginsSync() End!');
+    }
+
+    register(hook, fn, type) {
+        assert(
+            typeof hook === 'string',
+            `The first argument of api.register() must be string, but got ${hook}`
+        );
+        assert(
+            typeof fn === 'function',
+            `The second argument of api.register() must be function, but got ${fn}`
+        );
+        const pluginHooks = this.pluginHooks;
+        pluginHooks[hook] = pluginHooks[hook] || [];
+        pluginHooks[hook].push({
+            fn,
+            type,
         });
+    }
 
-        logger.debug('[Plugin]', '_initPlugins() End!');
+    registerMethod(name, opts) {
+        const extendObj = this.assertExtendOptions(name, opts, function() { /* none */ });
+        opts = extendObj.opts;
+        const {
+            type,
+            apply,
+        } = opts;
+        assert(!(type && apply), 'Only be one for type and apply.');
+        assert(type || apply, 'One of type and apply must supplied.');
+
+        const params = Object.keys(opts).reduce((obj, key) => {
+            if (key === 'apply' || key === 'fn') return obj;
+            obj[key] = opts[key];
+            return obj;
+        }, {});
+
+        this.pluginMethods[name] = {
+            fn: (...args) => {
+                if (apply) {
+                    this.register(name, opts => {
+                        return apply(opts, ...args);
+                    }, type);
+                } else if (type === API_TYPE.ADD) {
+                    this.register(name, opts => {
+                        let last = opts.last || [];
+                        if (!Array.isArray(last)) {
+                            last = [ last ];
+                        }
+                        return last.concat(
+                            typeof args[0] === 'function' ? args[0](last, opts.args) : args[0]
+                        );
+                    }, type);
+                } else if (type === API_TYPE.MODIFY) {
+                    this.register(name, opts => {
+                        return typeof args[0] === 'function' ? args[0](opts.last, opts.args) : args[0];
+                    }, type);
+                } else if (type === API_TYPE.EVENT) {
+                    this.register(name, opts => {
+                        return args[0](opts.args);
+                    }, type);
+                } else {
+                    throw new Error(`unexpected api type ${type}`);
+                }
+            },
+            ...params,
+        };
     }
 
     // ZAP 与 PluginAPI 相似
@@ -392,6 +486,7 @@ class PluginService extends MethodService {
         return last;
     }
 
+    // TODO 需要设计
     changePluginOption(id, newOpts = {}) {
         assert(id, 'id must supplied');
         const plugins = this.plugins.filter(p => p.id === id);
@@ -416,6 +511,10 @@ class PluginService extends MethodService {
     findPlugin(id) {
         assert(id, 'id must supplied');
         return this.plugins.find(p => id === p.id);
+    }
+
+    hasKey(name) {
+        return super.hasKey(name) || !!this.pluginMethods[name];
     }
 }
 

@@ -53,16 +53,26 @@ class Service extends PluginService {
         return Object.assign({}, _.cloneDeep(finalConfig));
     }
 
-    init() {
+    init(sync = false) {
         if (this.initialized) {
-            return Promise.resolve();
+            return sync ? true : Promise.resolve();
         }
 
-        let chain = Promise.resolve();
+        const fns = [];
 
-        chain = chain.then(() => this._initPlugins());
+        // preload
+        fns.push(() => this._initPreloadPlugins());
 
-        chain = chain.then(() => {
+        fns.push(() => {
+            if (sync) {
+                return this._initPluginsSync();
+            }
+            return this._initPlugins();
+        });
+
+        fns.push(() => {
+
+            this.applyPluginHooks('onPluginInitWillDone');
 
             this.initialized = true; // 再此之前可重新 init
 
@@ -70,7 +80,31 @@ class Service extends PluginService {
 
         });
 
-        chain = chain.then(() => {
+        // changeCommandOption
+        fns.push(() => {
+            const commandOptions = this.commandOptions || {};
+            Object.keys(commandOptions).forEach(name => {
+                const command = this.service.commands[name];
+                if (!command) {
+                    logger.warn('[Plugin]', `changeCommandOption( ${name} ); ${name} not found`);
+                    return;
+                }
+                const newOpts = commandOptions[name];
+                let nV = newOpts;
+                if (_.isFunction(nV)) {
+                    const oldOpts = command.opts;
+                    nV = newOpts(oldOpts);
+                }
+                if (nV && _.isPlainObject(nV)) {
+                    command.opts = nV;
+                    this.logger.debug('[Plugin]', `changeCommandOption( ${name} ); Success!`);
+                    return true;
+                }
+            });
+        });
+
+        fns.push(() => {
+
             // modify  freeze!!!
             Object.defineProperty(this, 'microsConfig', {
                 value: this.applyPluginHooks('modifyMicrosConfig', this.microsConfig),
@@ -78,67 +112,38 @@ class Service extends PluginService {
             Object.defineProperty(this, 'microsPackageGraph', {
                 value: new PackageGraph(this.microsPackages),
             });
-        });
 
-        chain = chain.then(() => {
             // merge config
             this.applyPluginHooks('beforeMergeConfig', this.config);
             Object.defineProperty(this, 'config', {
                 value: this.applyPluginHooks('modifyDefaultConfig', this._mergeConfig()),
             });
             this.applyPluginHooks('afterMergeConfig', this.config);
-        });
 
-        chain = chain.then(() => {
             // 注入全局的别名
             moduleAlias.add(this.config.resolveShared);
+
         });
 
-        chain = chain.then(() => {
-            this.applyPluginHooks('onInitWillDone');
+        fns.push(() => {
+            return this.applyPluginHooks('onInitWillDone');
         });
 
-        chain = chain.then(() => {
-            this.applyPluginHooks('onInitDone');
+        fns.push(() => {
+            return this.applyPluginHooks('onInitDone');
+        });
+
+        fns.push(() => {
             logger.debug('[Plugin]', 'init(); Done!');
         });
 
-        return chain;
+        return sync ? fns.map(fn => fn()) : fns.reduce((chain, fn) => {
+            return chain.then(() => fn());
+        }, Promise.resolve());
     }
 
     initSync() {
-        if (this.initialized) {
-            return;
-        }
-
-        this._initPluginsSync();
-
-        this.initialized = true; // 再此之前可重新 init
-
-        this.applyPluginHooks('onPluginInitDone');
-
-        // modify  freeze!!!
-        Object.defineProperty(this, 'microsConfig', {
-            value: this.applyPluginHooks('modifyMicrosConfig', this.microsConfig),
-        });
-        Object.defineProperty(this, 'microsPackageGraph', {
-            value: new PackageGraph(this.microsPackages),
-        });
-
-        // merge config
-        this.applyPluginHooks('beforeMergeConfig', this.config);
-        Object.defineProperty(this, 'config', {
-            value: this.applyPluginHooks('modifyDefaultConfig', this._mergeConfig()),
-        });
-        this.applyPluginHooks('afterMergeConfig', this.config);
-
-        // 注入全局的别名
-        moduleAlias.add(this.config.resolveShared);
-
-        this.applyPluginHooks('onInitWillDone');
-
-        this.applyPluginHooks('onInitDone');
-        logger.debug('[Plugin]', 'init(); Done!');
+        return this.init(true);
     }
 
     runCommand(rawName, rawArgs = {}) {

@@ -11,15 +11,22 @@ const { SharedProps } = require('../constants');
 
 const INIT_DEFAULT_ENV = Symbol('INIT_DEFAULT_ENV');
 const INIT_ENV = Symbol('INIT_ENV');
-const INIT_PARAMS = Symbol('INIT_PARAMS');
 
 class BaseService {
 
     constructor(context) {
         this.context = context || {};
 
+        this.sharedProps = SharedProps.reduce((obj, key) => {
+            obj[key] = {
+                key,
+            };
+            return obj;
+        }, {});
+
+        this.config = {};
+
         // 初始化
-        this[INIT_PARAMS]();
         this[INIT_ENV]();
         this[INIT_DEFAULT_ENV]();
 
@@ -33,26 +40,6 @@ class BaseService {
         const _debug = debug('microapp:core');
         Object.defineProperty(this, 'debug', { value: _debug });
         return _debug;
-    }
-
-    /**
-     * @private
-     *
-     * @memberof BaseService
-     */
-    [INIT_PARAMS]() {
-        this.extendConfigs = {};
-        this.extendMethods = {};
-        this.pluginMethods = {};
-
-        this.sharedProps = SharedProps.reduce((obj, key) => {
-            obj[key] = {
-                key,
-            };
-            return obj;
-        }, {});
-
-        this.config = {};
     }
 
     /**
@@ -195,6 +182,10 @@ class BaseService {
 
     get micros() {
         return this.selfConfig.micros;
+    }
+
+    hasKey(name) {
+        return !!this[name] || !!this.sharedProps[name];
     }
 }
 

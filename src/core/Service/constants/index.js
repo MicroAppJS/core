@@ -1,5 +1,7 @@
 'use strict';
 
+// ZAP 需要去除这个文件
+
 const contants = {
     PreLoadPlugins: require('../../../plugins/register'),
 

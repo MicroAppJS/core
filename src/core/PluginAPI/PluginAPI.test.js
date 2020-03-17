@@ -10,10 +10,10 @@ describe('PluginAPI', () => {
 
     it('new constructor', () => {
         const service = new Service();
-        const api = new PluginAPI('abc', service);
-        expect(api.id).toEqual('abc');
+        service.init(true);
 
         DEFAULT_METHODS.forEach(method => {
+            console.warn(method);
             expect(typeof method).toEqual('string');
             expect(service.pluginMethods[method]).not.toBeNull();
             expect(service.pluginMethods[method]).not.toBeUndefined();

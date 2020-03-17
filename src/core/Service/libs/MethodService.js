@@ -24,7 +24,10 @@ class MethodService extends BaseService {
     constructor(context) {
         super(context);
 
+        this.extendConfigs = {};
+        this.extendMethods = {};
         this.commands = {};
+        this.commandOptions = {};
 
         this.state = GLOBAL_STATE; // 状态集
     }
@@ -234,7 +237,7 @@ class MethodService extends BaseService {
     assertExtendOptions(name, opts, fn) {
         assert(typeof name === 'string', 'name must be string.');
         assert(name || /^_/i.test(name), `${name} cannot begin with '_'.`);
-        assert(!this[name] || !this.extendConfigs[name] || !this.extendMethods[name] || !this.pluginMethods[name] || !this.sharedProps[name], `api.${name} exists.`);
+        assert(!this.hasKey(name), `api.${name} exists.`);
         if (typeof opts === 'function') {
             fn = opts;
             opts = null;
@@ -272,6 +275,17 @@ class MethodService extends BaseService {
         opts = opts || {};
         this.commands[name] = { fn, opts };
         logger.debug('[Plugin]', `registerCommand( ${name} ); Success!`);
+    }
+
+    // 扩充 or 更改 Command Option
+    changeCommandOption(name, newOpts) {
+        assert(name, 'name must supplied');
+        assert(_.isPlainObject(newOpts) || _.isFunction(newOpts), 'newOpts must be object or function');
+        if (!Array.isArray(this.commandOptions[name])) {
+            this.commandOptions[name] = [];
+        }
+        this.commandOptions[name].push(newOpts);
+        logger.debug('[Plugin]', `changeCommandOption( ${name} ); Success!`);
     }
 
     /**
@@ -341,6 +355,10 @@ class MethodService extends BaseService {
             G_TEMP_CACHE.set(file, content);
         }
         return destPath;
+    }
+
+    hasKey(name) {
+        return super.hasKey(name) || !!this.extendConfigs[name] || !!this.extendMethods[name];
     }
 }
 

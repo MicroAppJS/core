@@ -4,17 +4,19 @@ const { _, semver, logger, validateSchema, getPadLength, debug } = require('@mic
 
 const CONSTANTS = require('../../Constants');
 
+/** @typedef {import("../../Service")} Service */
+
 class BaseAPI {
 
-    constructor(id, service) {
+    /**
+     * @param {string} id plugin id
+     * @param {Service} service service
+     */
+    constructor(id, service = {}) {
         this.id = id;
-        this.service = service || {};
+        this.service = service;
 
-        this.API_TYPE = {
-            ADD: Symbol('add'),
-            MODIFY: Symbol('modify'),
-            EVENT: Symbol('event'),
-        };
+        this.API_TYPE = _.cloneDeep(CONSTANTS.API_TYPE);
     }
 
     get context() { // cmd

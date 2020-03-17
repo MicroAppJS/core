@@ -1,7 +1,6 @@
 'use strict';
 
 const pkg = require('../../../package.json');
-const path = require('path');
 
 const constants = {
     NAME: 'Micro App',
@@ -22,6 +21,11 @@ const constants = {
     MICRO_APP_EXTRA_CONFIG_NAME: 'extra', // 不可更改
     MICRO_APP_DIR: 'microapp',
     MICRO_APP_TEMP_DIR: '.temp', // glob temp
+    API_TYPE: { // plugin api type
+        ADD: Symbol('add'),
+        MODIFY: Symbol('modify'),
+        EVENT: Symbol('event'),
+    },
 };
 
 module.exports = constants;
