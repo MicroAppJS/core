@@ -45,17 +45,17 @@
         }
     },
     "peerDependencies": {
-        "@micro-app/shared-utils": ">=0.1.15"
+        "@micro-app/shared-utils": ">=0.1.16"
     },
     "devDependencies": {
-        "@micro-app/plugin-deploy": "^0.0.4",
+        "@micro-app/plugin-deploy": "^0.0.6",
         "@types/jest": "^24.9.1",
         "eslint-config-2o3t": "^2.0.1",
         "husky": "^3.1.0",
         "jest": "^24.9.0"
     },
     "dependencies": {
-        "@micro-app/shared-utils": "^0.1.15",
+        "@micro-app/shared-utils": "^0.1.16",
         "dotenv": "^8.2.0",
         "dotenv-expand": "^5.1.0"
     },
