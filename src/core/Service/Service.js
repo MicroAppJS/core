@@ -82,7 +82,7 @@ class Service extends PluginService {
         fns.push(() => {
             const commandOptions = this.commandOptions || {};
             Object.keys(commandOptions).forEach(name => {
-                const command = this.service.commands[name];
+                const command = this.commands[name];
                 if (!command) {
                     logger.warn('[Plugin]', `changeCommandOption( ${name} ); ${name} not found`);
                     return;
@@ -95,7 +95,7 @@ class Service extends PluginService {
                 }
                 if (nV && _.isPlainObject(nV)) {
                     command.opts = nV;
-                    this.logger.debug('[Plugin]', `changeCommandOption( ${name} ); Success!`);
+                    logger.debug('[Plugin]', `changeCommandOption( ${name} ); Success!`);
                     return true;
                 }
             });

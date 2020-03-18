@@ -170,7 +170,7 @@ class PluginService extends MethodService {
                     return this.pluginMethods[prop].fn;
                 }
                 if (this.initialized) { // 已经初始化
-                    if (/^register/i.test(prop) || [
+                    if (_.isString(prop) && /^register/i.test(prop) || [
                         'onOptionChange',
                     ].includes(prop)) {
                         return () => {
