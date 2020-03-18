@@ -1,3 +1,10 @@
+## [0.3.13](https://github.com/MicroAppJS/core/compare/v0.3.12...v0.3.13) (2020-03-18)
+
+
+### Bug Fixes
+
+* fix some bugs ([0942019](https://github.com/MicroAppJS/core/commit/0942019a0e9247fa5fa884fa340be6039cf13719))
+
 ## [0.3.12](https://github.com/MicroAppJS/core/compare/v0.3.11...v0.3.12) (2020-03-18)
 
 
