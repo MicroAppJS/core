@@ -70,7 +70,7 @@ class PluginService extends MethodService {
     }
 
     _initPluginAPI(plugin) {
-        const { id, apply, mode, alias, target } = plugin;
+        const { id, apply, mode, alias, target, skipTarget } = plugin;
 
         // --skip-plugins
         const skipPlugins = this.context.skipPlugins;
@@ -102,8 +102,21 @@ class PluginService extends MethodService {
             }
             _target = [].concat(_target);
             if (!_target.some(item => item === this.target)) {
-                // 当前模式与插件不匹配
+                // 当前 target 与插件不匹配
                 logger.warn('[Plugin]', `current target: { ${this.target} } - initPlugin() skip "${id}${alias ? ' (' + alias + ')' : ''}".`, `only support targets: { ${_target.join(', ')} }`);
+                return;
+            }
+        }
+        // skipTarget
+        if (skipTarget) {
+            let _skipTarget = skipTarget;
+            if (_.isFunction(_skipTarget)) { // 支持方法判断
+                _skipTarget = _skipTarget(this.target);
+            }
+            _skipTarget = [].concat(_skipTarget);
+            if (_skipTarget.some(item => item === this.target)) {
+                // 当前 target 与插件不匹配，需要跳过
+                logger.warn('[Plugin]', `current target: { ${this.target} } - initPlugin() skip "${id}${alias ? ' (' + alias + ')' : ''}".`, `not support targets: { ${_skipTarget.join(', ')} }`);
                 return;
             }
         }
