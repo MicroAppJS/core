@@ -1,3 +1,11 @@
+## [0.3.12](https://github.com/MicroAppJS/core/compare/v0.3.11...v0.3.12) (2020-03-18)
+
+
+### Features
+
+* add skipTarget for built-in ([ca5264f](https://github.com/MicroAppJS/core/commit/ca5264fcd389348d1123fffad4ff05deef321a28))
+* optimize init command ([223a6ca](https://github.com/MicroAppJS/core/commit/223a6ca6ed780c67cfdc8cca67201576dda9a8e5))
+
 ## [0.3.11](https://github.com/MicroAppJS/core/compare/v0.3.10...v0.3.11) (2020-03-16)
 
 
