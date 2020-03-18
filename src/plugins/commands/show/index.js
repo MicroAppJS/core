@@ -26,7 +26,7 @@ Examples:
             micros: 'list all micros',
             'micros --link': 'list all micros and link',
             env: 'list all envs',
-            configs: 'list all configs',
+            api: 'list all Plugin API',
         },
         details,
     }, args => {
@@ -35,8 +35,9 @@ Examples:
         const pluginHooks = api.service.pluginHooks;
         const pluginMethods = api.service.pluginMethods;
         const extendMethods = api.service.extendMethods;
-        const sharedProps = api.service.sharedProps;
-        const extendConfigs = api.service.extendConfigs;
+        const sharedProps = Object.keys(api).reduce((obj, key) => { obj[key] = { key, description: typeof api[key] }; return obj; }, {});
+        const _extendConfigs = api.service.extendConfigs || {};
+        const extendConfigs = Object.keys(_extendConfigs).reduce((obj, key) => { obj[key] = { key, description: typeof _extendConfigs[key] }; return obj; }, {});
         const plugins = api.service.plugins;
         const info = api.self.toJSON();
         const env = api.env || {};
@@ -96,9 +97,9 @@ Examples:
             case 'methods':
                 showAliasList('Plugin Methods', pluginMethods);
                 return showAliasList('Plugin Extend Methods', extendMethods);
-            case 'configs':
-                showAliasList('Plugin Configs', sharedProps);
-                return showAliasList('Plugin Extend Configs', extendConfigs);
+            case 'api':
+                showAliasList('Plugin API', sharedProps);
+                return showAliasList('Plugin Extend API', extendConfigs);
             case 'plugins':
                 return showAliasList('Plugin List', plugins.reduce((obj, item) => {
                     const key = item.id;

@@ -116,6 +116,24 @@ class PluginService extends MethodService {
                     }`
         );
 
+        const api = this._createPluginAPIProxy(id);
+        api.onOptionChange = fn => {
+            logger.info('[core]', 'onOptionChange...');
+            assert(
+                typeof fn === 'function',
+                `The first argument for api.onOptionChange should be function in ${id}.`
+            );
+            plugin._onOptionChange = fn;
+        };
+        return api;
+    }
+
+    /**
+     * create api proxy
+     * @param {string} id plugin id
+     * @return {PluginAPI} api
+     */
+    _createPluginAPIProxy(id) {
         const api = new Proxy(new PluginAPI(id, this), {
             get: (target, prop) => {
                 if (typeof prop === 'string' && /^_/i.test(prop)) {
@@ -138,37 +156,18 @@ class PluginService extends MethodService {
                 if (this.pluginMethods[prop]) {
                     return this.pluginMethods[prop].fn;
                 }
-                if (this.sharedProps[prop]) {
-                    const val = this[prop];
-                    if (typeof val === 'function') {
-                        return val.bind(this);
+                if (this.initialized) { // 已经初始化
+                    if (/^register/i.test(prop) || [
+                        'onOptionChange',
+                    ].includes(prop)) {
+                        return () => {
+                            logger.throw('[Plugin]', `api.${prop}() should not be called after plugin is initialized.`);
+                        };
                     }
-                    if (prop === 'micros') {
-                        return [ ...val ];
-                    }
-                    return val;
-                }
-                if (prop === 'service') {
-                    return new Proxy(target[prop], {
-                        get: (_target, _prop) => {
-                            if (typeof _prop === 'string' && /^_/i.test(_prop)) {
-                                return; // ban private
-                            }
-                            return _target[_prop];
-                        },
-                    });
                 }
                 return target[prop];
             },
         });
-        api.onOptionChange = fn => {
-            logger.info('[core]', 'onOptionChange...');
-            assert(
-                typeof fn === 'function',
-                `The first argument for api.onOptionChange should be function in ${id}.`
-            );
-            plugin._onOptionChange = fn;
-        };
         return api;
     }
 
@@ -245,19 +244,6 @@ class PluginService extends MethodService {
 
     _filterPlugins() {
         this.plugins = this.plugins.filter(plugin => !!plugin[Symbol.for('api')]);
-
-        // Throw error for methods that can't be called after plugins is initialized
-        this.plugins.forEach(plugin => {
-            Object.keys(plugin[Symbol.for('api')]).forEach(method => {
-                if (/^register/i.test(method) || [
-                    'onOptionChange',
-                ].includes(method)) {
-                    plugin[Symbol.for('api')][method] = () => {
-                        logger.throw('[Plugin]', `api.${method}() should not be called after plugin is initialized.`);
-                    };
-                }
-            });
-        });
     }
 
     /**
@@ -335,13 +321,9 @@ class PluginService extends MethodService {
         });
     }
 
-    registerMethod(name, opts) {
-        const extendObj = this.assertExtendOptions(name, opts, function() { /* none */ });
-        opts = extendObj.opts;
-        const {
-            type,
-            apply,
-        } = opts;
+    registerMethod(name, opts = {}) {
+        this.assertExtendOptions(name, opts, function() { /* none */ });
+        const { type, apply } = opts;
         assert(!(type && apply), 'Only be one for type and apply.');
         assert(type || apply, 'One of type and apply must supplied.');
 
@@ -383,7 +365,6 @@ class PluginService extends MethodService {
         };
     }
 
-    // ZAP 与 PluginAPI 相似
     registerPlugin(opts) {
         assert(_.isPlainObject(opts), `opts should be plain object, but got ${opts}`);
         opts = this.resolvePlugin(opts);
@@ -404,7 +385,7 @@ class PluginService extends MethodService {
             'Only id, apply and opts is valid plugin properties'
         );
         this.plugins.push(opts);
-        logger.debug('[Plugin]', `registerPlugin( ${id} ); Success!`);
+        logger.debug('[Plugin]', `service.registerPlugin( ${id} ); Success!`);
     }
 
     /**
@@ -486,7 +467,7 @@ class PluginService extends MethodService {
         return last;
     }
 
-    // TODO 需要设计
+    // ZAP 需要设计
     changePluginOption(id, newOpts = {}) {
         assert(id, 'id must supplied');
         const plugins = this.plugins.filter(p => p.id === id);

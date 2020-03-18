@@ -1,8 +1,9 @@
 'use strict';
 
 const pkg = require('../../../package.json');
+const SHARED_PROPS = require('./SharedProps');
 
-const constants = {
+module.exports = {
     NAME: 'Micro App',
     VERSION: pkg.version,
     ROOT: process.env.MICRO_APP_ROOT || process.cwd(),
@@ -28,4 +29,5 @@ const constants = {
     },
 };
 
-module.exports = constants;
+// service 对 pluginAPI 暴露的所有方法
+module.exports.SHARED_PROPS = SHARED_PROPS;

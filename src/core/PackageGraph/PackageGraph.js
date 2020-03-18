@@ -3,8 +3,6 @@
 const { logger } = require('@micro-app/shared-utils');
 const PackageGraphNode = require('./libs/PackageGraphNode');
 
-// TODO 此块需要大范围修改。（支持别名 @micro-app，可提取依赖）
-
 /**
  * A PackageGraph.
  * @constructor

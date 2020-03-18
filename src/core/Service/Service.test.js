@@ -2,7 +2,7 @@
 
 /* global expect */
 
-const { PreLoadPlugins } = require('./constants');
+const PreLoadPlugins = require('../../plugins/register');
 const Service = require('./index');
 
 describe('Service', () => {
@@ -35,18 +35,17 @@ describe('Service', () => {
     });
 
     it('hasPlugin should be true', () => {
-        const Constants = require('./constants');
         const service = new Service();
-        expect(Constants.PreLoadPlugins[0]).not.toBeNull();
-        expect(Constants.PreLoadPlugins[0]).not.toBeUndefined();
-        expect(service.hasPlugin(Constants.PreLoadPlugins[0].id)).toBeTruthy();
+        expect(PreLoadPlugins[0]).not.toBeNull();
+        expect(PreLoadPlugins[0]).not.toBeUndefined();
+        expect(service.hasPlugin(PreLoadPlugins[0].id)).toBeTruthy();
 
-        const realLink = require.resolve(Constants.PreLoadPlugins[0].link);
-        expect(service.findPlugin(Constants.PreLoadPlugins[0].id).link).toEqual(realLink);
+        const realLink = require.resolve(PreLoadPlugins[0].link);
+        expect(service.findPlugin(PreLoadPlugins[0].id).link).toEqual(realLink);
 
-        expect(service.findPlugin(Constants.PreLoadPlugins[0].id)).toMatchObject({
+        expect(service.findPlugin(PreLoadPlugins[0].id)).toMatchObject({
             description: 'System Build-in',
-            id: Constants.PreLoadPlugins[0].id,
+            id: PreLoadPlugins[0].id,
             link: require.resolve(realLink),
         });
     });

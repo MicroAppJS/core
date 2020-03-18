@@ -3,6 +3,7 @@
 const { _, semver, logger, validateSchema, getPadLength, debug } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../../Constants');
+const PRIVATE_SERVICE = Symbol.for('PluginAPI#service');
 
 /** @typedef {import("../../Service")} Service */
 
@@ -13,14 +14,46 @@ class BaseAPI {
      * @param {Service} service service
      */
     constructor(id, service = {}) {
-        this.id = id;
-        this.service = service;
-
         this.API_TYPE = _.cloneDeep(CONSTANTS.API_TYPE);
+        this[PRIVATE_SERVICE] = service;
+
+        this.id = id;
+
+        CONSTANTS.SHARED_PROPS.forEach(key => {
+            Object.defineProperty(this, key, {
+                get: () => {
+                    if ([ 'micros' ].includes(key)) {
+                        return _.cloneDeep(service[key]);
+                    }
+                    const val = service[key];
+                    if (_.isFunction(val)) {
+                        return val.bind(service);
+                    }
+                    return val;
+                },
+                enumerable: true,
+            });
+        });
+    }
+
+    get service() {
+        const target = this[PRIVATE_SERVICE];
+        return new Proxy(target, {
+            get: (_target, _prop) => {
+                if (typeof _prop === 'string' && /^_/i.test(_prop)) {
+                    return; // ban private
+                }
+                return _target[_prop];
+            },
+        });
     }
 
     get context() { // cmd
-        return this.service.context;
+        return this[PRIVATE_SERVICE].context;
+    }
+
+    get version() {
+        return this[PRIVATE_SERVICE].version || CONSTANTS.VERSION;
     }
 
     get debug() {
@@ -38,16 +71,12 @@ class BaseAPI {
         return log;
     }
 
-    get version() {
-        return this.service.version || CONSTANTS.VERSION;
-    }
-
     setState(key, value) {
-        this.service.setState(key, value);
+        this[PRIVATE_SERVICE].setState(key, value);
     }
 
     getState(key, value) {
-        return this.service.getState(key, value);
+        return this[PRIVATE_SERVICE].getState(key, value);
     }
 
     validateSchema(schema, config) {

@@ -2,7 +2,7 @@
 
 /* global expect */
 
-const { PreLoadPlugins, SharedProps } = require('.');
+const PreLoadPlugins = require('./register');
 
 describe('Constants', () => {
 
@@ -20,20 +20,6 @@ describe('Constants', () => {
         });
 
         expect(Array.from(new Set(PreLoadPlugins.map(item => item.id))).length).toEqual(PreLoadPlugins.length);
-    });
-
-    it('check SharedProps length', () => {
-        expect(Array.from(new Set(SharedProps)).length).toEqual(SharedProps.length);
-    });
-
-    it('check SharedProps exist', () => {
-        const Service = require('../');
-        const service = new Service();
-        SharedProps.forEach(key => {
-            expect(service[key] === undefined && key).toBeFalsy();
-            expect(service[key]).not.toBeUndefined();
-            expect(service[key]).not.toBeNull();
-        });
     });
 
 });

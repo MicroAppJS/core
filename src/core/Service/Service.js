@@ -9,8 +9,6 @@ class Service extends PluginService {
     constructor(context) {
         super(context);
 
-        this.initialized = false;
-
         // fixed soft link - node_modules 不统一
         this.__initInjectAliasModule__();
     }

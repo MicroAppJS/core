@@ -7,23 +7,14 @@ const path = require('path');
 const CONSTANTS = require('../../Constants');
 const MicroAppConfig = require('../../MicroAppConfig');
 
-const { SharedProps } = require('../constants');
-
 const INIT_DEFAULT_ENV = Symbol('INIT_DEFAULT_ENV');
 const INIT_ENV = Symbol('INIT_ENV');
 
 class BaseService {
 
     constructor(context) {
+        this.initialized = false; // 是否已经初始化
         this.context = context || {};
-
-        this.sharedProps = SharedProps.reduce((obj, key) => {
-            obj[key] = {
-                key,
-            };
-            return obj;
-        }, {});
-
         this.config = {};
 
         // 初始化
@@ -184,8 +175,13 @@ class BaseService {
         return this.selfConfig.micros;
     }
 
+    /**
+     * @private
+     * @param {string} name key
+     * @return {boolean} true - exist key
+     */
     hasKey(name) {
-        return !!this[name] || !!this.sharedProps[name];
+        return !!this[name];
     }
 }
 
