@@ -69,7 +69,7 @@ describe('MethodService', () => {
         logger.level = 'silly';
         const base = new MethodService();
 
-        const tempDirPackageGraph = base.tempDirPackageGraph;
+        const tempDirPackageGraph = base.getTempDirPackageGraph();
 
         expect(tempDirPackageGraph).not.toBeUndefined();
         expect(tempDirPackageGraph).not.toBeNull();

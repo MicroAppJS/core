@@ -380,9 +380,9 @@ class BaseConfig {
             filePath: this.filePath,
             micros: this.micros,
             packagePath: this.packagePath,
-            package: this.package,
-            pluginOptions: this.pluginOptions,
-            options: this.options,
+            // package: this.package,
+            // pluginOptions: this.pluginOptions,
+            // options: this.options,
         };
     }
 

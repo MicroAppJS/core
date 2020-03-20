@@ -40,7 +40,7 @@ Examples:
         const extendConfigs = Object.keys(_extendConfigs).reduce((obj, key) => { obj[key] = { key, description: typeof _extendConfigs[key] }; return obj; }, {});
         const plugins = api.service.plugins;
         const selfConfig = api.selfConfig;
-        const info = Object.assign({}, selfConfig);
+        const info = Object.assign({}, selfConfig.toJSON());
         const env = api.env || {};
         const micros = api.micros;
         const microsConfig = api.microsConfig;

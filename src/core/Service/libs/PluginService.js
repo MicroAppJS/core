@@ -189,34 +189,34 @@ class PluginService extends MethodService {
         const api = this._initPluginAPI(plugin);
         if (!api) return;
 
-        plugin[Symbol.for('api')] = api;
-
         const { apply, opts = {} } = plugin;
 
-        return await apply(api, opts);
+        await apply(api, opts);
+
+        plugin[Symbol.for('api')] = api;
     }
 
     _initPluginSync(plugin) {
         const api = this._initPluginAPI(plugin);
         if (!api) return;
 
-        plugin[Symbol.for('api')] = api;
-
         const { apply, opts = {} } = plugin;
 
-        return apply(api, opts);
+        apply(api, opts);
+
+        plugin[Symbol.for('api')] = api;
     }
 
     _sortPlugins() {
         this.plugins.push(...this._getPlugins());
-        const builtIn = Symbol.for('built-in');
+        const BUILT_IN = Symbol.for('built-in');
 
         const builtInPlugins = [];
         const prePlugins = [];
         const normalPlugins = [];
         const postPlugins = [];
         this.plugins.forEach(plugin => {
-            if (plugin[builtIn]) {
+            if (plugin[BUILT_IN]) {
                 builtInPlugins.push(plugin);
                 return;
             }
@@ -508,8 +508,8 @@ module.exports = PluginService;
  * @return {Object} obj
  */
 function resolvePluginResult(item, { apply, link, opts }) {
-    const defaultConfig = apply.configuration || {};
     const _apply = apply.default || apply;
+    const defaultConfig = _apply.configuration || {};
     return Object.assign({}, defaultConfig, {
         ...item,
         link: link ? require.resolve(link) : null,

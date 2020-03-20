@@ -175,7 +175,7 @@ class Service extends PluginService {
 
         const { fn, opts } = command;
 
-        // TODO 分发引用，带优化
+        // TODO 分发引用，待优化
         this.applyPluginHooks('onRunCommand', {
             name,
             args,

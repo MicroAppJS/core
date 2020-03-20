@@ -43,8 +43,7 @@ module.exports = [
     'packages',
     'configDir',
     'tempDir',
-    'tempDirPackageGraph',
+    'getTempDirPackageGraph',
     'microsPackages',
-    'microsPackageGraph',
 
 ];

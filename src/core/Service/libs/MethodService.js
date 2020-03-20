@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const { logger, _, fs, assert, loadFile } = require('@micro-app/shared-utils');
+const { logger, _, fs, assert, loadFile, tryRequire } = require('@micro-app/shared-utils');
 
 const BaseService = require('./BaseService');
 const { parsePackageInfo } = require('./PackageInfo');
@@ -52,22 +52,6 @@ class MethodService extends BaseService {
             value: tempDir,
         });
         return tempDir;
-    }
-
-    get tempDirPackageGraph() {
-        const pkgInfos = this.fileFinderTempDirNodeModules(CONSTANTS.PACKAGE_JSON, filePaths => {
-            return filePaths.map(filePath => {
-                const packageJson = loadFile(filePath);
-                try {
-                    return new Package(packageJson, path.dirname(filePath), this.root);
-                } catch (error) {
-                    return false;
-                }
-            }).filter(item => !!item);
-        });
-        logger.debug('[core > fileFinderTempDirNodeModules]', `packages length: '${pkgInfos.length}'`);
-        const tempDirPackageGraph = new PackageGraph(pkgInfos, 'dependencies');
-        return tempDirPackageGraph;
     }
 
     /**
@@ -125,12 +109,16 @@ class MethodService extends BaseService {
         this.micros.forEach(key => {
             // @custom 开发模式软链接
             const extralConfig = microsExtraConfig[key];
-            const originalRootPath = path.join(this.root, CONSTANTS.NODE_MODULES_NAME, key);
+            let originalRootPath = tryRequire.resolve(path.join(key, CONSTANTS.PACKAGE_JSON));
+            originalRootPath = originalRootPath && path.parse(originalRootPath).dir || path.join(this.root, CONSTANTS.NODE_MODULES_NAME, key);
             let _rootPath = originalRootPath;
             if (extralConfig && extralConfig.link && fs.existsSync(extralConfig.link)) {
                 _rootPath = extralConfig.link;
             }
-            const microConfig = MicroAppConfig.createInstance(_rootPath, { originalRootPath });
+            let microConfig = null;
+            if (_rootPath) { // 子模块不应该不存在路径
+                microConfig = MicroAppConfig.createInstance(_rootPath, { originalRootPath });
+            }
             if (!microConfig) {
                 logger.warn('[core]', '[Micros]', `Not Found micros: "${key}"`);
             } else {
@@ -184,17 +172,6 @@ class MethodService extends BaseService {
         return Object.values(this.microsConfig).map(config => config.manifest);
     }
 
-    get microsPackageGraph() {
-        const microsPackageGraph = new PackageGraph(this.microsPackages);
-
-        Object.defineProperty(this, 'microsPackageGraph', {
-            writable: true,
-            value: microsPackageGraph,
-        });
-
-        return microsPackageGraph;
-    }
-
     get fileFinder() {
         const finder = makeFileFinder(this.root, [ '*', '*/*' ]);
 
@@ -206,6 +183,9 @@ class MethodService extends BaseService {
         return finder;
     }
 
+    /**
+     * @private
+     */
     get fileFinderTempDirNodeModules() {
         const tempDirNodeModules = path.resolve(this.tempDir, CONSTANTS.NODE_MODULES_NAME);
         const finder = makeFileFinder(tempDirNodeModules, [ '*', '*/*' ]);
@@ -315,6 +295,22 @@ class MethodService extends BaseService {
             }
         }
         return null;
+    }
+
+    getTempDirPackageGraph() {
+        const pkgInfos = this.fileFinderTempDirNodeModules(CONSTANTS.PACKAGE_JSON, filePaths => {
+            return filePaths.map(filePath => {
+                const packageJson = loadFile(filePath);
+                try {
+                    return new Package(packageJson, path.dirname(filePath), this.root);
+                } catch (error) {
+                    return false;
+                }
+            }).filter(item => !!item);
+        });
+        logger.debug('[core > fileFinderTempDirNodeModules]', `packages length: '${pkgInfos.length}'`);
+        const tempDirPackageGraph = new PackageGraph(pkgInfos, 'dependencies');
+        return tempDirPackageGraph;
     }
 
     /**
