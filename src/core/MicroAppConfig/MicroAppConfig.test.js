@@ -21,11 +21,17 @@ describe('MicroAppConfig', () => {
 
         expect(config.micros).toBeInstanceOf(Array);
 
-        expect(config.path).not.toBeNull();
-        expect(config.path).not.toBeUndefined();
+        expect(config.filePath).not.toBeNull();
+        expect(config.filePath).not.toBeUndefined();
 
         expect(config.plugins).not.toBeNull();
         expect(config.plugins).not.toBeUndefined();
+
+        expect(config.pluginOptions).not.toBeNull();
+        expect(config.pluginOptions).not.toBeUndefined();
+
+        expect(config.options).not.toBeNull();
+        expect(config.options).not.toBeUndefined();
     });
 
     it('new constructor Config', () => {

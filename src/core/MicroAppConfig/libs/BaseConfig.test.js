@@ -46,8 +46,8 @@ describe('BaseConfig', () => {
 
         expect(config.micros).toBeInstanceOf(Array);
 
-        expect(config.path).not.toBeNull();
-        expect(config.path).not.toBeUndefined();
+        expect(config.filePath).not.toBeNull();
+        expect(config.filePath).not.toBeUndefined();
 
         expect(config.plugins).not.toBeNull();
         expect(config.plugins).not.toBeUndefined();
@@ -61,9 +61,7 @@ describe('BaseConfig', () => {
             loadSuccess: true,
         });
 
-        expect(config.inspect).not.toBeNull();
-        expect(config.inspect).not.toBeUndefined();
-        config.inspect();
+        expect(config.inspect).toBeUndefined();
     });
 
 });

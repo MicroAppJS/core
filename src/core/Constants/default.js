@@ -7,17 +7,6 @@ module.exports = {
     type: '', // types 类型
     strict: true, // 是否为严格模式? 默认为 true - 强依赖
 
-    // entry: { // 入口
-    // },
-
-    // htmls: [
-    // {
-    //     template: '',
-    // },
-    // ], // 模版
-
-    // staticPath: [], // String | Array
-
     alias: { // 共享别名
         // api: './client/api.js', // 默认为前后端通用
         // service: {
@@ -29,6 +18,17 @@ module.exports = {
     // micros: [ // 需要注入的子模块
     // 'test'
     // ],
+
+    // entry: { // 入口
+    // },
+
+    // htmls: [
+    // {
+    //     template: '',
+    // },
+    // ], // 模版
+
+    // staticPath: [], // String | Array
 
     // 服务端配置
     // server: {

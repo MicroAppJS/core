@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const { getPadLength, _, validateSchema, loadFile, logger } = require('@micro-app/shared-utils');
+const { getPadLength, _, validateSchema, loadFile, logger, stringifyObject } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../../Constants');
 
@@ -41,22 +41,22 @@ class BaseConfig {
         this[OPTION_LOAD_SUCCESS] = opts.loadSuccess || false;
 
         // 校验 config
-        this._validateSchema(config);
+        this.validate(config);
         this[KEY_ORIGNAL_CONFIG] = config;
         this[INIT]();
     }
 
-    _validateSchema(config) {
-        const result = validateSchema(SCHEMA, config);
+    validate(config, schema = SCHEMA) {
+        const result = validateSchema(schema, config);
         const padLength = getPadLength(result.map(item => {
             return { name: item.keyword };
         }));
         if (!result.length) return;
 
         result.forEach(item => {
-            logger.warn('[core]', `${_.padEnd(item.keyword, padLength)} [ ${item.dataPath} ${item.message} ]`);
+            logger.warn('[validate]', `${_.padEnd(item.keyword, padLength)} [ ${item.dataPath} ${item.message} ]`);
         });
-        logger.throw('[core]', 'illegal configuration !!!');
+        logger.throw('[validate]', 'illegal configuration !!!');
     }
 
     [INIT]() {
@@ -105,7 +105,7 @@ class BaseConfig {
         return this.root !== this.originalRoot;
     }
 
-    get path() {
+    get filePath() {
         return this[OPTION_FILEPATH] || '';
     }
 
@@ -353,12 +353,18 @@ class BaseConfig {
         });
     }
 
-    inspect() {
-        return this.toJSON();
+    // 插件配置，不进行校验的对象（优先级最低）
+    get pluginOptions() {
+        return this.config.pluginOptions || {};
     }
 
-    toJSON(notSimple = false) {
-        const json = {
+    // 这是一个参与合并，不进行校验的对象（提供参数扩展使用）
+    get options() {
+        return this.config.options || {};
+    }
+
+    toJSON() {
+        return {
             key: this.key,
             name: this.name,
             packageName: this.packageName,
@@ -371,14 +377,21 @@ class BaseConfig {
             hasSoftLink: this.hasSoftLink,
             nodeModules: this.nodeModules,
             strict: this.strict,
+            filePath: this.filePath,
+            micros: this.micros,
+            packagePath: this.packagePath,
+            package: this.package,
+            pluginOptions: this.pluginOptions,
+            options: this.options,
         };
-        if (notSimple) {
-            json.path = this.path;
-            json.micros = this.micros;
-            json.packagePath = this.packagePath;
-            json.package = this.package;
-        }
-        return json;
+    }
+
+    toString() {
+        const config = this.toJSON();
+        return stringifyObject(config, {
+            indent: '  ',
+            singleQuotes: false,
+        });
     }
 }
 
