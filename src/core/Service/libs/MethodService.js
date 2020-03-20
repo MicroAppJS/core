@@ -136,7 +136,6 @@ class MethodService extends BaseService {
         config[selfKey] = this.self;
 
         Object.defineProperty(this, 'microsConfig', {
-            writable: true, // 提供修改
             value: config,
         });
 

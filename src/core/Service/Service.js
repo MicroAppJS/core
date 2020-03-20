@@ -3,7 +3,6 @@
 const { _, logger, moduleAlias, smartMerge } = require('@micro-app/shared-utils');
 
 const PluginService = require('./libs/PluginService');
-const PackageGraph = require('../PackageGraph');
 
 class Service extends PluginService {
     constructor(context) {
@@ -22,33 +21,32 @@ class Service extends PluginService {
         // 注入 custom node_modules
         const microsExtraConfig = this.microsExtraConfig;
         const microsConfig = this.microsConfig;
-        const micros = this.micros;
 
         // TODO 可优化, 则不需要走 alias, 直接 symlinks
         // 先判断是否存在 symlink, 如果存在则不需要走这个.
-        const microsPaths = micros
-            .map(key => microsConfig[key])
+        const microsPaths = Object.values(microsConfig)
             .filter(item => item.hasSoftLink && microsExtraConfig[item.key] && !!microsExtraConfig[item.key].link)
             .map(item => item.nodeModules);
         moduleAlias.addPaths(microsPaths);
     }
 
+    // 合并基本信息，以及 options 中的信息
     _mergeConfig() {
         const selfConfig = this.selfConfig;
-        const micros = this.micros;
         const microsConfig = this.microsConfig;
-        const finalConfig = smartMerge({}, ...micros.map(key => {
-            if (!microsConfig[key]) return {};
-            return _.pick(microsConfig[key], [
+        const finalConfig = smartMerge({}, ... Object.values(microsConfig).map(item => {
+            if (!item) return {};
+            return _.pick(item, [
                 'alias',
                 'aliasObj',
                 'resolveAlias',
                 'shared',
                 'sharedObj',
                 'resolveShared',
+                'options',
             ]);
-        }), selfConfig);
-        return Object.assign({}, _.cloneDeep(finalConfig));
+        }), selfConfig.toJSON());
+        return Object.assign({}, finalConfig);
     }
 
     init(sync = false) {
@@ -57,6 +55,13 @@ class Service extends PluginService {
         }
 
         const fns = [];
+
+        // init config，已提前，后面所有配置都在 this.config 上
+        fns.push(() => {
+            this.config = this._mergeConfig();
+            // 注入全局的别名
+            moduleAlias.add(this.config.resolveShared);
+        });
 
         // preload
         fns.push(() => this._initPreloadPlugins());
@@ -99,29 +104,6 @@ class Service extends PluginService {
                     return true;
                 }
             });
-        });
-
-        // init config
-        fns.push(() => {
-
-            // modify  freeze!!!
-            Object.defineProperty(this, 'microsConfig', {
-                value: this.applyPluginHooks('modifyMicrosConfig', this.microsConfig),
-            });
-            Object.defineProperty(this, 'microsPackageGraph', {
-                value: new PackageGraph(this.microsPackages),
-            });
-
-            // merge config
-            this.applyPluginHooks('beforeMergeConfig', this.config);
-            Object.defineProperty(this, 'config', {
-                value: this.applyPluginHooks('modifyDefaultConfig', this._mergeConfig()),
-            });
-            this.applyPluginHooks('afterMergeConfig', this.config);
-
-            // 注入全局的别名
-            moduleAlias.add(this.config.resolveShared);
-
         });
 
         fns.push(() => {

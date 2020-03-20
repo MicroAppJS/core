@@ -48,8 +48,8 @@ module.exports = {
             },
             ],
         },
-        pluginOptions: {
-            description: '一些插件配置项. ( object )',
+        options: {
+            description: '一些需要合并的配置项. ( object )',
             type: 'object',
         },
         plugins: {

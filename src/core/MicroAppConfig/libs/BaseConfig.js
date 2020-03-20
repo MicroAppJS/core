@@ -353,11 +353,6 @@ class BaseConfig {
         });
     }
 
-    // 插件配置，不进行校验的对象（优先级最低）
-    get pluginOptions() {
-        return this.config.pluginOptions || {};
-    }
-
     // 这是一个参与合并，不进行校验的对象（提供参数扩展使用）
     get options() {
         return this.config.options || {};
@@ -381,7 +376,6 @@ class BaseConfig {
             micros: this.micros,
             packagePath: this.packagePath,
             // package: this.package,
-            // pluginOptions: this.pluginOptions,
             // options: this.options,
         };
     }

@@ -27,9 +27,6 @@ describe('MicroAppConfig', () => {
         expect(config.plugins).not.toBeNull();
         expect(config.plugins).not.toBeUndefined();
 
-        expect(config.pluginOptions).not.toBeNull();
-        expect(config.pluginOptions).not.toBeUndefined();
-
         expect(config.options).not.toBeNull();
         expect(config.options).not.toBeUndefined();
     });

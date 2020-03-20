@@ -4,10 +4,6 @@
 module.exports = [
     'onPluginInitWillDone',
     'onPluginInitDone',
-    'modifyMicrosConfig',
-    'beforeMergeConfig',
-    'modifyDefaultConfig',
-    'afterMergeConfig',
     'onInitWillDone',
     'onInitDone',
 ];

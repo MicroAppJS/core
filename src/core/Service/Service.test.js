@@ -66,23 +66,25 @@ describe('Service', () => {
         expect(service.version).not.toBeNull();
     });
 
-    it('microsPackageGraph', async () => {
-        const service = new Service();
-        await service.init();
-
-        expect(service.microsPackageGraph).not.toBeUndefined();
-        expect(service.microsPackageGraph).not.toBeNull();
-
-        console.warn(service.microsPackageGraph);
-        console.warn(service.microsPackageGraph.rawPackageList);
-    });
-
     it('new constructor runSync', () => {
         const service = new Service();
         service.runSync();
 
         expect(service.version).not.toBeUndefined();
         expect(service.version).not.toBeNull();
+    });
+
+    it('new constructor runSync config', () => {
+        const service = new Service();
+        service.runSync();
+
+        expect(service.config).not.toBeUndefined();
+        expect(service.config).not.toBeNull();
+
+        expect(service.config.name).not.toBeUndefined();
+        expect(service.config.name).not.toBeNull();
+
+        console.info(service.config);
     });
 
 });
