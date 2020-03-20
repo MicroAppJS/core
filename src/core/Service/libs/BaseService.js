@@ -9,12 +9,14 @@ const MicroAppConfig = require('../../MicroAppConfig');
 
 const INIT_DEFAULT_ENV = Symbol('INIT_DEFAULT_ENV');
 const INIT_ENV = Symbol('INIT_ENV');
+const SELF_KEY = Symbol('SELF');
 
 class BaseService {
 
     constructor(context) {
         this.initialized = false; // 是否已经初始化
-        this.context = context || {};
+
+        this.context = getContext(context); // 优先使用 context 下配置
         this.config = {};
 
         // 初始化
@@ -126,7 +128,7 @@ class BaseService {
 
     get target() {
         const ctxTarget = this.context.target; // 从参数中获取
-        return ctxTarget || 'app'; // "app" | "web" | "lib"
+        return ctxTarget || process.env.MICRO_APP_TARGET || 'app'; // "app" | "web" | "lib"
     }
 
     get isDev() {
@@ -135,8 +137,7 @@ class BaseService {
 
     get self() {
         // 加载自己
-        const { ROOT } = CONSTANTS;
-        const _self = MicroAppConfig.createInstance(ROOT, { key: Symbol.for('self') });
+        const _self = MicroAppConfig.createInstance(this.root, { key: SELF_KEY });
         if (!_self) {
             logger.throw('[core]', 'Not Found Config!!!'); // 一般不会出现
         }
@@ -147,6 +148,12 @@ class BaseService {
         return _self;
     }
 
+    /**
+     * self alias
+     *
+     * @readonly
+     * @memberof BaseService
+     */
     get selfConfig() {
         return _.cloneDeep(this.self) || {};
     }
@@ -164,7 +171,7 @@ class BaseService {
     }
 
     get selfKey() {
-        return this.selfConfig.key;
+        return this.selfConfig.key || SELF_KEY;
     }
 
     get nodeModulesPath() {
@@ -186,3 +193,18 @@ class BaseService {
 }
 
 module.exports = BaseService;
+
+/**
+ * fixed args
+ * @param {Object} context args
+ * @return {Object} right context
+ */
+function getContext(context = {}) {
+    if (!_.isPlainObject(context)) {
+        context = {};
+    }
+    if (!Array.isArray(context._)) {
+        context._ = [];
+    }
+    return context;
+}

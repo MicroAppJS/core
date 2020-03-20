@@ -95,7 +95,7 @@ class PluginService extends MethodService {
             }
         }
 
-        if (target) { // 目标类型
+        if (target) { // 仅支持的目标类型
             let _target = target;
             if (_.isFunction(_target)) { // 支持方法判断
                 _target = _target(this.target);
@@ -107,7 +107,8 @@ class PluginService extends MethodService {
                 return;
             }
         }
-        // skipTarget
+
+        // 用一种方式去跳过不需要的配置插件！！！
         if (skipTarget) {
             let _skipTarget = skipTarget;
             if (_.isFunction(_skipTarget)) { // 支持方法判断
@@ -188,32 +189,22 @@ class PluginService extends MethodService {
         const api = this._initPluginAPI(plugin);
         if (!api) return;
 
+        plugin[Symbol.for('api')] = api;
+
         const { apply, opts = {} } = plugin;
 
-        if (apply.__isMicroAppCommand) {
-            const _apply = new apply(api, opts);
-            await _apply.initialize(api, opts);
-        } else {
-            await apply(api, opts);
-        }
-
-        plugin[Symbol.for('api')] = api;
+        return await apply(api, opts);
     }
 
     _initPluginSync(plugin) {
         const api = this._initPluginAPI(plugin);
         if (!api) return;
 
+        plugin[Symbol.for('api')] = api;
+
         const { apply, opts = {} } = plugin;
 
-        if (apply.__isMicroAppCommand) {
-            const _apply = new apply(api, opts);
-            _apply.initialize(api, opts);
-        } else {
-            apply(api, opts);
-        }
-
-        plugin[Symbol.for('api')] = api;
+        return apply(api, opts);
     }
 
     _sortPlugins() {
@@ -242,7 +233,7 @@ class PluginService extends MethodService {
             }
         });
 
-        // 重新排序
+        // sort
         this.plugins = [].concat(
             // builtIn
             builtInPlugins,
@@ -378,12 +369,19 @@ class PluginService extends MethodService {
         };
     }
 
+    /**
+     * 注册插件
+     * @param {Object | Array} opts options
+     * @return {boolean} success flag
+     */
     registerPlugin(opts) {
         assert(_.isPlainObject(opts), `opts should be plain object, but got ${opts}`);
         opts = this.resolvePlugin(opts);
-        if (!opts) return; // error
+        if (!opts) return false; // error
         if (Array.isArray(opts)) {
-            return opts.map(opt => this.registerPlugin(opt));
+            return opts.map(opt => { // 这个插件是多层的，需要通过一些手段进一步区分 id
+                return this.registerPlugin(opt);
+            });
         }
         const { id, apply } = opts;
         assert(id && apply, 'id and apply must supplied');
@@ -399,6 +397,7 @@ class PluginService extends MethodService {
         );
         this.plugins.push(opts);
         logger.debug('[Plugin]', `service.registerPlugin( ${id} ); Success!`);
+        return true;
     }
 
     /**
@@ -425,24 +424,12 @@ class PluginService extends MethodService {
             if (Array.isArray(_apply)) { // 支持数组模式
                 return _apply.map(_applyItem => {
                     if (_applyItem) {
-                        const defaultConfig = _applyItem.configuration || {};
-                        return Object.assign({}, defaultConfig, {
-                            ...item,
-                            link: link ? require.resolve(link) : null,
-                            apply: _applyItem,
-                            opts,
-                        });
+                        return resolvePluginResult(item, { apply: _applyItem, link, opts });
                     }
                     return false;
                 }).filter(_it => !!_it);
             }
-            const defaultConfig = apply.configuration || {};
-            return Object.assign({}, defaultConfig, {
-                ...item,
-                link: link ? require.resolve(link) : null,
-                apply: _apply,
-                opts,
-            });
+            return resolvePluginResult(item, { apply, link, opts });
         }
         logger.warn('[Plugin]', `Not Found plugin: "${id || item}"\n   --> link: "${link}"`);
         return false;
@@ -513,3 +500,20 @@ class PluginService extends MethodService {
 }
 
 module.exports = PluginService;
+
+/**
+ * plugin options to object
+ * @param {*} item opt
+ * @param {*} param apply, link, opts
+ * @return {Object} obj
+ */
+function resolvePluginResult(item, { apply, link, opts }) {
+    const defaultConfig = apply.configuration || {};
+    const _apply = apply.default || apply;
+    return Object.assign({}, defaultConfig, {
+        ...item,
+        link: link ? require.resolve(link) : null,
+        apply: _apply,
+        opts,
+    });
+}

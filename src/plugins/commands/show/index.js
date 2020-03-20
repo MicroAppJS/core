@@ -39,10 +39,10 @@ Examples:
         const _extendConfigs = api.service.extendConfigs || {};
         const extendConfigs = Object.keys(_extendConfigs).reduce((obj, key) => { obj[key] = { key, description: typeof _extendConfigs[key] }; return obj; }, {});
         const plugins = api.service.plugins;
-        const info = api.self.toJSON();
+        const selfConfig = api.selfConfig;
+        const info = Object.assign({}, selfConfig);
         const env = api.env || {};
         const micros = api.micros;
-        const selfConfig = api.selfConfig;
         const microsConfig = api.microsConfig;
         const alias = aliasMerge(selfConfig, {
             type: 'aliasObj',

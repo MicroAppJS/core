@@ -18,7 +18,7 @@ class Service extends PluginService {
     }
 
     __initInjectAliasModule__() {
-        moduleAlias.addPath(this.self.nodeModules);
+        moduleAlias.addPath(this.nodeModulesPath);
         // 注入 custom node_modules
         const microsExtraConfig = this.microsExtraConfig;
         const microsConfig = this.microsConfig;
@@ -101,6 +101,7 @@ class Service extends PluginService {
             });
         });
 
+        // init config
         fns.push(() => {
 
             // modify  freeze!!!
@@ -145,7 +146,7 @@ class Service extends PluginService {
     }
 
     runCommand(rawName, rawArgs = {}) {
-        rawArgs._ = rawArgs._ || [];
+        rawArgs._ = Array.isArray(rawArgs._) && rawArgs._ || []; // fixed args
         logger.debug('[Plugin]', `raw command name: ${rawName}, args: `, rawArgs);
 
         // TODO 获取配置中的 options

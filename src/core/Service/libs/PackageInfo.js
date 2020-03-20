@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const { assert, _, npa, parseGitUrl, tryRequire, fs } = require('@micro-app/shared-utils');
+const { assert, _, npa, parseGitUrl, tryRequire, fs, stringifyObject } = require('@micro-app/shared-utils');
 const CONSTANTS = require('../../Constants');
 
 const PKG_INFO = Symbol('PackageInfo#pkgInfo');
@@ -97,11 +97,7 @@ class PackageInfo {
         return this;
     }
 
-    inspect() {
-        return this.toString();
-    }
-
-    toString() {
+    toJSON() {
         return {
             name: this.name,
             type: this.type,
@@ -111,6 +107,14 @@ class PackageInfo {
             escapedName: this.escapedName,
             pkgInfo: this.pkgInfo,
         };
+    }
+
+    toString() {
+        const config = this.toJSON();
+        return stringifyObject(config, {
+            indent: '  ',
+            singleQuotes: false,
+        });
     }
 }
 

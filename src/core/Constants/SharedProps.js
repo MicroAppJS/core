@@ -20,7 +20,7 @@ module.exports = [
     'resolvePlugin',
     'config',
     'micros',
-    'self',
+    // 'self', // 不对外提供
     'selfConfig',
     'microsConfig',
     'changePluginOption',

@@ -303,20 +303,16 @@ class MethodService extends BaseService {
         const microConfig = microsConfig[key];
         if (microConfig && microConfig.__isMicroAppConfig) {
             const root = microConfig.root;
+            // 单独配置文件
             const _config = loadConfig(root, name);
             if (!_.isEmpty(_config)) {
                 return _config;
             }
-            // 附加配置中
+            // 附加配置文件中
             const _extraConfig = this.extraConfig || {};
             if (!_.isEmpty(_extraConfig[name])) {
                 return _extraConfig[name];
             }
-            // 以下可能会冲突，不考虑
-            // const _originalConfig = microConfig.originalConfig || {};
-            // if (!_.isEmpty(_originalConfig[name])) {
-            //     return _originalConfig[name];
-            // }
         }
         return null;
     }

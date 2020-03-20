@@ -27,6 +27,8 @@ module.exports = {
         MODIFY: Symbol('modify'),
         EVENT: Symbol('event'),
     },
+    // 内置插件标识
+    BUILT_IN: Symbol.for('built-in'),
 };
 
 // service 对 pluginAPI 暴露的所有方法

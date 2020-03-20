@@ -1,7 +1,6 @@
 'use strict';
 
-const path = require('path');
-const { fs, _, npa, assert } = require('@micro-app/shared-utils');
+const { fs, _, npa, assert, stringifyObject, path } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../../Constants');
 
@@ -74,14 +73,6 @@ class BasePackage {
     }
 
     /**
-     * Provide shallow copy for munging elsewhere
-     * @return {Object} json
-     */
-    toJSON() {
-        return _.cloneDeep(this.pkg);
-    }
-
-    /**
      * Refresh internal state from disk (e.g., changed by external lifecycles)
      * @return {Promise} resolves when refresh finished
      */
@@ -101,11 +92,7 @@ class BasePackage {
         return fs.writeJSON(this.manifestLocation, this.pkg).then(() => this);
     }
 
-    inspect() {
-        return this.toString();
-    }
-
-    toString() {
+    toJSON() {
         return _.pick(this, [
             'name',
             'private',
@@ -116,6 +103,15 @@ class BasePackage {
             'nodeModulesLocation',
             'binLocation',
         ]);
+    }
+
+
+    toString() {
+        const config = this.toJSON();
+        return stringifyObject(config, {
+            indent: '  ',
+            singleQuotes: false,
+        });
     }
 }
 
