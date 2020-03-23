@@ -1,7 +1,6 @@
 'use strict';
 
-const path = require('path');
-const { logger, _, fs, assert, loadFile, tryRequire } = require('@micro-app/shared-utils');
+const { logger, _, fs, assert, loadFile, tryRequire, path } = require('@micro-app/shared-utils');
 
 const BaseService = require('./BaseService');
 const { parsePackageInfo } = require('./PackageInfo');
@@ -14,6 +13,7 @@ const CONSTANTS = require('../../Constants');
 const makeFileFinder = require('../../../utils/makeFileFinder');
 
 const loadConfig = require('../../../utils/loadConfig');
+const validateSchema = require('../../../utils/validateSchema');
 
 // 全局状态集
 const GLOBAL_STATE = {};
@@ -348,8 +348,16 @@ class MethodService extends BaseService {
         return destPath;
     }
 
+    /**
+     * @override
+     * @param {String} name key
+     */
     hasKey(name) {
         return super.hasKey(name) || !!this.extendConfigs[name] || !!this.extendMethods[name];
+    }
+
+    validateSchema(config, schema) {
+        return validateSchema(config, schema);
     }
 }
 

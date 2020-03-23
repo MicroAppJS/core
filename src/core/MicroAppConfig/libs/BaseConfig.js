@@ -1,12 +1,8 @@
 'use strict';
 
-const path = require('path');
-const { getPadLength, _, validateSchema, loadFile, logger, stringifyObject } = require('@micro-app/shared-utils');
-
+const { _, loadFile, logger, stringifyObject, path } = require('@micro-app/shared-utils');
 const CONSTANTS = require('../../Constants');
-
-// 默认配置
-// const DEFAULT_CONFIG = require('../../Constants/default');
+const validateSchema = require('../../../utils/validateSchema');
 
 const SCHEMA = require('./configSchema');
 
@@ -46,17 +42,8 @@ class BaseConfig {
         this[INIT]();
     }
 
-    validate(config, schema = SCHEMA) {
-        const result = validateSchema(schema, config);
-        const padLength = getPadLength(result.map(item => {
-            return { name: item.keyword };
-        }));
-        if (!result.length) return;
-
-        result.forEach(item => {
-            logger.warn('[validate]', `${_.padEnd(item.keyword, padLength)} [ ${item.dataPath} ${item.message} ]`);
-        });
-        logger.throw('[validate]', 'illegal configuration !!!');
+    validate(config) {
+        return validateSchema(config, SCHEMA);
     }
 
     [INIT]() {
