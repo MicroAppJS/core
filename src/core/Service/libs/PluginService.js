@@ -69,8 +69,80 @@ class PluginService extends MethodService {
         });
     }
 
+    /**
+     * 检测插件有效性
+     * @param {Object} plugin info
+     * @return {Boolean} true-enabled, false-disabled
+     */
+    _checkPluginEnabled(plugin) {
+        const { id, alias, mode, target, skipTarget, dependencies } = plugin;
+        const key = `${id}${alias ? ' (' + alias + ')' : ''}`;
+
+        const params = { // function params
+            id, alias,
+            mode: this.mode,
+            target: this.target,
+        };
+
+        // 判断依赖插件库是否存在
+        if (dependencies) {
+            let _dependencies = dependencies;
+            if (_.isFunction(_dependencies)) { // 支持方法判断
+                _dependencies = _dependencies(params);
+            }
+            _dependencies = [].concat(_dependencies);
+            if (!_dependencies.some(_id => this.hasPlugin(_id))) {
+                // 当前模式与插件不匹配
+                logger.warn('[Plugin]', `Not Found dependencies - initPlugin() skip "${key}".`, `must be depend on: { ${_dependencies.join(', ')} }`);
+                return false;
+            }
+        }
+
+        if (mode) { // 默认为全支持
+            let _mode = mode;
+            if (_.isFunction(_mode)) { // 支持方法判断
+                _mode = _mode(params);
+            }
+            _mode = [].concat(_mode);
+            if (!_mode.some(item => item === this.mode)) {
+                // 当前模式与插件不匹配
+                logger.warn('[Plugin]', `current mode: { ${this.mode} } - initPlugin() skip "${key}".`, `only support modes: { ${_mode.join(', ')} }`);
+                return false;
+            }
+        }
+
+        if (target) { // 仅支持的目标类型
+            let _target = target;
+            if (_.isFunction(_target)) { // 支持方法判断
+                _target = _target(params);
+            }
+            _target = [].concat(_target);
+            if (!_target.some(item => item === this.target)) {
+                // 当前 target 与插件不匹配
+                logger.warn('[Plugin]', `current target: { ${this.target} } - initPlugin() skip "${key}".`, `only support targets: { ${_target.join(', ')} }`);
+                return false;
+            }
+        }
+
+        // 用一种方式去跳过不需要的配置插件！！！
+        if (skipTarget) {
+            let _skipTarget = skipTarget;
+            if (_.isFunction(_skipTarget)) { // 支持方法判断
+                _skipTarget = _skipTarget(params);
+            }
+            _skipTarget = [].concat(_skipTarget);
+            if (_skipTarget.some(item => item === this.target)) {
+                // 当前 target 与插件不匹配，需要跳过
+                logger.warn('[Plugin]', `current target: { ${this.target} } - initPlugin() skip "${key}".`, `not support targets: { ${_skipTarget.join(', ')} }`);
+                return false;
+            }
+        }
+
+        return true; // OK
+    }
+
     _initPluginAPI(plugin) {
-        const { id, apply, mode, alias, target, skipTarget } = plugin;
+        const { id, apply, alias } = plugin;
 
         // --skip-plugins
         const skipPlugins = this.context.skipPlugins;
@@ -82,44 +154,8 @@ class PluginService extends MethodService {
             }
         }
 
-        if (mode) { // 默认为全支持
-            let _mode = mode;
-            if (_.isFunction(_mode)) { // 支持方法判断
-                _mode = _mode(this.mode);
-            }
-            _mode = [].concat(_mode);
-            if (!_mode.some(item => item === this.mode)) {
-                // 当前模式与插件不匹配
-                logger.warn('[Plugin]', `current mode: { ${this.mode} } - initPlugin() skip "${id}${alias ? ' (' + alias + ')' : ''}".`, `only support modes: { ${_mode.join(', ')} }`);
-                return;
-            }
-        }
-
-        if (target) { // 仅支持的目标类型
-            let _target = target;
-            if (_.isFunction(_target)) { // 支持方法判断
-                _target = _target(this.target);
-            }
-            _target = [].concat(_target);
-            if (!_target.some(item => item === this.target)) {
-                // 当前 target 与插件不匹配
-                logger.warn('[Plugin]', `current target: { ${this.target} } - initPlugin() skip "${id}${alias ? ' (' + alias + ')' : ''}".`, `only support targets: { ${_target.join(', ')} }`);
-                return;
-            }
-        }
-
-        // 用一种方式去跳过不需要的配置插件！！！
-        if (skipTarget) {
-            let _skipTarget = skipTarget;
-            if (_.isFunction(_skipTarget)) { // 支持方法判断
-                _skipTarget = _skipTarget(this.target);
-            }
-            _skipTarget = [].concat(_skipTarget);
-            if (_skipTarget.some(item => item === this.target)) {
-                // 当前 target 与插件不匹配，需要跳过
-                logger.warn('[Plugin]', `current target: { ${this.target} } - initPlugin() skip "${id}${alias ? ' (' + alias + ')' : ''}".`, `not support targets: { ${_skipTarget.join(', ')} }`);
-                return;
-            }
+        if (!this._checkPluginEnabled) {
+            return;
         }
 
         assert(typeof apply === 'function',
