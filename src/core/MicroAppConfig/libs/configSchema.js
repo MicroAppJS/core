@@ -70,53 +70,6 @@ module.exports = {
             minItems: 1,
             type: 'array',
         },
-        // ZAP 以下配置将迁移
-        entry: {
-            description: '入口配置. ( object )',
-            type: 'object',
-        },
-        htmls: {
-            description: '模版配置. ( array<object> )',
-            items: {
-                required: [ 'template' ],
-                type: 'object',
-            },
-            minItems: 1,
-            type: 'array',
-        },
-        staticPath: {
-            description: 'static resource path. ( stirng | array<string> )',
-            anyOf: [{
-                items: {
-                    type: 'string',
-                },
-                minItems: 1,
-                type: 'array',
-            },
-            {
-                type: 'string',
-            }],
-        },
-        webpack: {
-            description: 'webpack 配置, 只针对自己有效. ( object )',
-            type: 'object',
-        },
-        css: {
-            description: 'css配置. ( object )',
-            type: 'object',
-        },
-        devServer: {
-            description: '开发服务器配置. ( object )',
-            type: 'object',
-        },
-        publicPath: {
-            description: 'public resource path. ( stirng )',
-            type: 'string',
-        },
-        server: {
-            description: '服务端配置. ( object )',
-            type: 'object',
-        },
     },
     type: 'object',
 };

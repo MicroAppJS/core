@@ -103,7 +103,11 @@ class BaseAPI {
             this.logger.throw('[core] ', 'Expected string or integer value.');
         }
 
-        const version = this.version;
+        let version = this.version;
+        // 忽略 alpha、next、rc
+        [ /-alpha.*/i, /-next.*/i, /-rc.*/i ].forEach(regex => {
+            version = version.replace(regex, '');
+        });
 
         if (semver.satisfies(version, range)) return;
 
