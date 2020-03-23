@@ -154,7 +154,7 @@ class PluginService extends MethodService {
             }
         }
 
-        if (!this._checkPluginEnabled) {
+        if (!this._checkPluginEnabled(plugin)) {
             return;
         }
 
