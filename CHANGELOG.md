@@ -1,3 +1,11 @@
+## [0.3.15](https://github.com/MicroAppJS/core/compare/v0.3.14...v0.3.15) (2020-03-23)
+
+
+### Features
+
+* add api.validateSchema() & assertVersion ignore alpha/next/rc ([2a30822](https://github.com/MicroAppJS/core/commit/2a30822deed1a7487a966d0e1c75af93654fc266))
+* update api.validateSchema() ([9ba84fb](https://github.com/MicroAppJS/core/commit/9ba84fb0e0a4dcf178c75ea3d4f3718231a75a43))
+
 ## [0.3.14](https://github.com/MicroAppJS/core/compare/v0.3.13...v0.3.14) (2020-03-20)
 
 ## [0.3.13](https://github.com/MicroAppJS/core/compare/v0.3.12...v0.3.13) (2020-03-18)
