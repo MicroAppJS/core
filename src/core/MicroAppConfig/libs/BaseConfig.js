@@ -96,7 +96,7 @@ class BaseConfig {
         return this[OPTION_FILEPATH] || '';
     }
 
-    get nodeModules() {
+    get nodeModulesPath() {
         if (this.root) {
             const nodeModules = CONSTANTS.NODE_MODULES_NAME || 'node_modules';
             return path.join(this.root, nodeModules);
@@ -357,7 +357,7 @@ class BaseConfig {
             root: this.root,
             originalRoot: this.originalRoot,
             hasSoftLink: this.hasSoftLink,
-            nodeModules: this.nodeModules,
+            nodeModulesPath: this.nodeModulesPath,
             strict: this.strict,
             filePath: this.filePath,
             micros: this.micros,

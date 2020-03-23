@@ -26,7 +26,7 @@ class Service extends PluginService {
         // 先判断是否存在 symlink, 如果存在则不需要走这个.
         const microsPaths = Object.values(microsConfig)
             .filter(item => item.hasSoftLink && microsExtraConfig[item.key] && !!microsExtraConfig[item.key].link)
-            .map(item => item.nodeModules);
+            .map(item => item.nodeModulesPath);
         moduleAlias.addPaths(microsPaths);
     }
 

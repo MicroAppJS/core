@@ -175,7 +175,7 @@ class BaseService {
     }
 
     get nodeModulesPath() {
-        return this.selfConfig.nodeModules;
+        return this.selfConfig.nodeModulesPath;
     }
 
     get micros() {

@@ -34,8 +34,6 @@ class MethodService extends BaseService {
 
     get configDir() {
         const configDir = this.resolveWorkspace(CONSTANTS.MICRO_APP_CONFIG_NAME);
-        fs.ensureDirSync(configDir);
-        logger.debug('[core]', 'create configDir:', configDir);
 
         Object.defineProperty(this, 'configDir', {
             value: configDir,
@@ -45,8 +43,6 @@ class MethodService extends BaseService {
 
     get tempDir() {
         const tempDir = this.resolveWorkspace(CONSTANTS.MICRO_APP_TEMP_DIR);
-        fs.ensureDirSync(tempDir);
-        logger.debug('[core]', 'create tempDir:', tempDir);
 
         Object.defineProperty(this, 'tempDir', {
             value: tempDir,
