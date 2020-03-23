@@ -1,3 +1,10 @@
+## [0.3.17](https://github.com/MicroAppJS/core/compare/v0.3.16...v0.3.17) (2020-03-23)
+
+
+### Features
+
+* add `dependencies` option for initPlugins ([53bb852](https://github.com/MicroAppJS/core/commit/53bb852c7124508b98c7694495d40969a8cd7d97))
+
 ## [0.3.16](https://github.com/MicroAppJS/core/compare/v0.3.15...v0.3.16) (2020-03-23)
 
 ## [0.3.15](https://github.com/MicroAppJS/core/compare/v0.3.14...v0.3.15) (2020-03-23)
