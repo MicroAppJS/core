@@ -43,7 +43,7 @@ class BaseConfig {
     }
 
     validate(config) {
-        return validateSchema(config, SCHEMA);
+        return validateSchema(SCHEMA, config);
     }
 
     [INIT]() {

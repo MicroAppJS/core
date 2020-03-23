@@ -356,8 +356,8 @@ class MethodService extends BaseService {
         return super.hasKey(name) || !!this.extendConfigs[name] || !!this.extendMethods[name];
     }
 
-    validateSchema(config, schema) {
-        return validateSchema(config, schema);
+    validateSchema(schema, config) {
+        return validateSchema(schema, config);
     }
 }
 

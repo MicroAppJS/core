@@ -1,8 +1,10 @@
 'use strict';
 
-const { _, semver, logger, validateSchema, getPadLength, debug } = require('@micro-app/shared-utils');
+const { _, semver, logger, getPadLength, debug } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../../Constants');
+const validateSchema = require('../../../utils/validateSchema');
+
 const PRIVATE_SERVICE = Symbol.for('PluginAPI#service');
 
 /** @typedef {import("../../Service")} Service */
@@ -80,16 +82,7 @@ class BaseAPI {
     }
 
     validateSchema(schema, config) {
-        const result = validateSchema(schema, config);
-        const padLength = getPadLength(result.map(item => {
-            return { name: item.keyword };
-        }));
-        if (!result.length) return;
-
-        result.forEach(item => {
-            this.logger.warn('[core]', `${_.padEnd(item.keyword, padLength)} [ ${item.dataPath} ${item.message} ]`);
-        });
-        this.logger.throw('[core]', 'illegal configuration !!!');
+        return validateSchema(schema, config);
     }
 
     assertVersion(range) {
