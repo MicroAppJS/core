@@ -106,7 +106,7 @@ class PluginService extends MethodService {
             _mode = [].concat(_mode);
             if (!_mode.some(item => item === this.mode)) {
                 // 当前模式与插件不匹配
-                logger.warn('[Plugin]', `current mode: { ${this.mode} } - initPlugin() skip "${key}".`, `only support modes: { ${_mode.join(', ')} }`);
+                logger.info('[Plugin]', `current mode: { ${this.mode} } - initPlugin() skip "${key}".`, `only support modes: { ${_mode.join(', ')} }`);
                 return false;
             }
         }
@@ -119,7 +119,7 @@ class PluginService extends MethodService {
             _target = [].concat(_target);
             if (!_target.some(item => item === this.target)) {
                 // 当前 target 与插件不匹配
-                logger.warn('[Plugin]', `current target: { ${this.target} } - initPlugin() skip "${key}".`, `only support targets: { ${_target.join(', ')} }`);
+                logger.info('[Plugin]', `current target: { ${this.target} } - initPlugin() skip "${key}".`, `only support targets: { ${_target.join(', ')} }`);
                 return false;
             }
         }
@@ -133,7 +133,7 @@ class PluginService extends MethodService {
             _skipTarget = [].concat(_skipTarget);
             if (_skipTarget.some(item => item === this.target)) {
                 // 当前 target 与插件不匹配，需要跳过
-                logger.warn('[Plugin]', `current target: { ${this.target} } - initPlugin() skip "${key}".`, `not support targets: { ${_skipTarget.join(', ')} }`);
+                logger.info('[Plugin]', `current target: { ${this.target} } - initPlugin() skip "${key}".`, `not support targets: { ${_skipTarget.join(', ')} }`);
                 return false;
             }
         }

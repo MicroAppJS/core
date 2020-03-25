@@ -5,13 +5,6 @@ const { _, logger, moduleAlias, smartMerge } = require('@micro-app/shared-utils'
 const PluginService = require('./libs/PluginService');
 
 class Service extends PluginService {
-    constructor(context) {
-        super(context);
-
-        // fixed soft link - node_modules 不统一
-        this.__initInjectAliasModule__();
-    }
-
     get __isMicroAppService() {
         return true;
     }
@@ -55,6 +48,11 @@ class Service extends PluginService {
         }
 
         const fns = [];
+
+        // fixed soft link - node_modules 不统一
+        fns.push(() => {
+            this.__initInjectAliasModule__();
+        });
 
         // init config，已提前，后面所有配置都在 this.config 上
         fns.push(() => {

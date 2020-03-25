@@ -101,8 +101,16 @@ class MethodService extends BaseService {
         const config = {};
         const microsExtraConfig = this.microsExtraConfig || {};
 
+        // [兼容] 在 context 中增加变量判断是否要加 scope，后期可去除
+        const autoPrefixScope = this.context.autoPrefixScope || false;
         // 已优化
         this.micros.forEach(key => {
+            if (autoPrefixScope) {
+                // 这里可以对 key 做 scope 兼容
+                if (!key.startsWith('@micro-app/')) {
+                    key = `@micro-app/${key}`;
+                }
+            }
             // @custom 开发模式软链接
             const extralConfig = microsExtraConfig[key];
             let originalRootPath = tryRequire.resolve(path.join(key, CONSTANTS.PACKAGE_JSON));
