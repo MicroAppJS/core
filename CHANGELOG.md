@@ -1,3 +1,10 @@
+## [0.3.19](https://github.com/MicroAppJS/core/compare/v0.3.18...v0.3.19) (2020-03-25)
+
+
+### Features
+
+* add 'autoPrefixScope' context option ([5a80c61](https://github.com/MicroAppJS/core/commit/5a80c61414b316e77beed840471e1acb87fe4e49))
+
 ## [0.3.18](https://github.com/MicroAppJS/core/compare/v0.3.17...v0.3.18) (2020-03-23)
 
 
