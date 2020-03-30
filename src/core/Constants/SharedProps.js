@@ -46,5 +46,6 @@ module.exports = [
     'getTempDirPackageGraph',
     'microsPackages',
     'API_TYPE',
+    'hasKey',
 
 ];
