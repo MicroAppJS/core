@@ -1,3 +1,10 @@
+## [0.3.21](https://github.com/MicroAppJS/core/compare/v0.3.20...v0.3.21) (2020-03-30)
+
+
+### Features
+
+* `hasKey` shared ([a4a7294](https://github.com/MicroAppJS/core/commit/a4a72944eafe924bb23fdbb51e41cb4879f7d135))
+
 ## [0.3.20](https://github.com/MicroAppJS/core/compare/v0.3.19...v0.3.20) (2020-03-30)
 
 ## [0.3.19](https://github.com/MicroAppJS/core/compare/v0.3.18...v0.3.19) (2020-03-25)
