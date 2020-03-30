@@ -408,10 +408,10 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^13.0.0"
 
-"@micro-app/plugin-deploy@^0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@micro-app/plugin-deploy/-/plugin-deploy-0.0.6.tgz#75a0b435a8f6b12252c7204642383511f66521b7"
-  integrity sha512-zvCqaKRTxwFx9A+A2p/RxdBJSDhYClpOJyQPmlx16RQwhqpFNUVdbR17qa7uaWCPyC11OM1IWAPiz10UA+XHeQ==
+"@micro-app/plugin-deploy@^0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@micro-app/plugin-deploy/-/plugin-deploy-0.0.7.tgz#cc413f4a98b700db8e84a8a3137c6ee41ae71642"
+  integrity sha512-LcVQ3k3RSdsVaVd0HiBZJIF7RAZUAMHESekNt38xW4ZOPs9caU1UUhxVLNFo9ea5nCxqzvF/Ueo5e8iCQKW+WQ==
   dependencies:
     "@release-it/conventional-changelog" "^1.1.0"
     release-it "^13.1.1"

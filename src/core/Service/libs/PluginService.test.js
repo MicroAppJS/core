@@ -39,4 +39,16 @@ describe('PluginService', () => {
         base.applyPluginHooks(hook, { a: 'abc' }, ctx);
     });
 
+    it('API_TYPE', () => {
+        const base = new PluginService();
+
+        expect(base.API_TYPE).not.toBeNull();
+        expect(base.API_TYPE).not.toBeUndefined();
+
+        expect(Object.keys(base.API_TYPE)).toContain('ADD');
+        expect(Object.keys(base.API_TYPE)).toContain('MODIFY');
+        expect(Object.keys(base.API_TYPE)).toContain('EVENT');
+
+    });
+
 });

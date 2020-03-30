@@ -1,10 +1,11 @@
 'use strict';
 
-const { _, semver, logger, getPadLength, debug } = require('@micro-app/shared-utils');
+const { _, semver, logger, debug } = require('@micro-app/shared-utils');
 
-const CONSTANTS = require('../../Constants');
 const validateSchema = require('../../../utils/validateSchema');
+const CONSTANTS = require('../../Constants');
 
+const { SHARED_PROPS } = CONSTANTS;
 const PRIVATE_SERVICE = Symbol.for('PluginAPI#service');
 
 /** @typedef {import("../../Service")} Service */
@@ -16,12 +17,11 @@ class BaseAPI {
      * @param {Service} service service
      */
     constructor(id, service = {}) {
-        this.API_TYPE = _.cloneDeep(CONSTANTS.API_TYPE);
         this[PRIVATE_SERVICE] = service;
 
         this.id = id;
 
-        CONSTANTS.SHARED_PROPS.forEach(key => {
+        SHARED_PROPS.forEach(key => {
             Object.defineProperty(this, key, {
                 get: () => {
                     if ([ 'micros' ].includes(key)) {

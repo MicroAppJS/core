@@ -11,6 +11,7 @@ const { API_TYPE } = require('../../Constants');
 class PluginService extends MethodService {
     constructor(context) {
         super(context);
+        this.API_TYPE = API_TYPE;
 
         // plugin methods
         this.pluginMethods = {};
@@ -49,15 +50,15 @@ class PluginService extends MethodService {
                 const isPrivate = /^_/i.test(method);
                 const slicedMethod = isPrivate ? method.slice(1) : method;
                 if (slicedMethod.indexOf('modify') === 0) {
-                    type = API_TYPE.MODIFY;
+                    type = this.API_TYPE.MODIFY;
                 } else if (slicedMethod.indexOf('add') === 0) {
-                    type = API_TYPE.ADD;
+                    type = this.API_TYPE.ADD;
                 } else if (
                     slicedMethod.indexOf('on') === 0 ||
                     slicedMethod.indexOf('before') === 0 ||
                     slicedMethod.indexOf('after') === 0
                 ) {
-                    type = API_TYPE.EVENT;
+                    type = this.API_TYPE.EVENT;
                 } else {
                     throw new Error(`unexpected method name ${method}`);
                 }
@@ -379,7 +380,7 @@ class PluginService extends MethodService {
                     this.register(name, opts => {
                         return apply(opts, ...args);
                     }, type);
-                } else if (type === API_TYPE.ADD) {
+                } else if (type === this.API_TYPE.ADD) {
                     this.register(name, opts => {
                         let last = opts.last || [];
                         if (!Array.isArray(last)) {
@@ -389,11 +390,11 @@ class PluginService extends MethodService {
                             typeof args[0] === 'function' ? args[0](last, opts.args) : args[0]
                         );
                     }, type);
-                } else if (type === API_TYPE.MODIFY) {
+                } else if (type === this.API_TYPE.MODIFY) {
                     this.register(name, opts => {
                         return typeof args[0] === 'function' ? args[0](opts.last, opts.args) : args[0];
                     }, type);
-                } else if (type === API_TYPE.EVENT) {
+                } else if (type === this.API_TYPE.EVENT) {
                     this.register(name, opts => {
                         return args[0](opts.args);
                     }, type);
