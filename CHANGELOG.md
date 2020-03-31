@@ -1,3 +1,10 @@
+## [0.3.22](https://github.com/MicroAppJS/core/compare/v0.3.21...v0.3.22) (2020-03-31)
+
+
+### Bug Fixes
+
+* fixed autoPrefixScope config ([bb258c1](https://github.com/MicroAppJS/core/commit/bb258c1296efff06729325cb611d34521ca28ecf))
+
 ## [0.3.21](https://github.com/MicroAppJS/core/compare/v0.3.20...v0.3.21) (2020-03-30)
 
 
