@@ -1,7 +1,7 @@
 'use strict';
 
 const os = require('os');
-const { logger, _, semverRegex, debug } = require('@micro-app/shared-utils');
+const { logger, _, semverRegex, debug, yParser, smartMerge } = require('@micro-app/shared-utils');
 const path = require('path');
 
 const CONSTANTS = require('../../Constants');
@@ -205,6 +205,16 @@ function getContext(context = {}) {
     }
     if (!Array.isArray(context._)) {
         context._ = [];
+    }
+    context = _.cloneDeep(context);
+    if (process.env.MICRO_APP_CONTEXT) {
+        const _ctx = process.env.MICRO_APP_CONTEXT.split(','); // 环境变量中的上下文,分割
+        try {
+            const args = yParser(_ctx);
+            smartMerge(context, args);
+        } catch (e) {
+            // nothing...
+        }
     }
     return context;
 }

@@ -546,7 +546,7 @@ module.exports = PluginService;
  */
 function resolvePluginResult(item, { apply, link, opts }) {
     const _apply = apply.default || apply;
-    const defaultConfig = _apply.configuration || {};
+    const defaultConfig = apply.configuration || {};
     return Object.assign({}, defaultConfig, {
         ...item,
         link: link ? require.resolve(link) : null,
