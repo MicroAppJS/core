@@ -107,8 +107,8 @@ class MethodService extends BaseService {
         this.micros.forEach(key => {
             if (autoPrefixScope) {
                 // 这里可以对 key 做 scope 兼容
-                if (!key.startsWith('@micro-app/')) {
-                    key = `@micro-app/${key}`;
+                if (!key.startsWith(`${CONSTANTS.SCOPE_NAME}/`)) {
+                    key = `${CONSTANTS.SCOPE_NAME}/${key}`;
                 }
             }
             // @custom 开发模式软链接

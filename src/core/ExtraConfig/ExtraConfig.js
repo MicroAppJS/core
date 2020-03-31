@@ -65,13 +65,13 @@ class ExtraConfig {
     }
 
     get micros() {
-        const { openSoftLink = false, openDisabledEntry = false } = this.context;
+        const { openSoftLink = false, openDisabledEntry = false, autoPrefixScope = false } = this.context;
         const extraConfig = this.config || {};
         // 兼容旧版本
         const microsExtra = this.__isPro ? extraConfig.micros : extraConfig;
 
         const result = {};
-        Object.keys(microsExtra).forEach(key => {
+        Object.keys(microsExtra).filter(key => !/^_/.test(key)).forEach(key => {
             result[key] = Object.assign({}, microsExtra[key] || {
                 disabled: false, // 禁用入口
                 disable: false, // 开启禁用指定模块入口, 优化开发速度, 同 disabled
@@ -87,7 +87,18 @@ class ExtraConfig {
                 result[key].disable = false;
             }
         });
-        return _.cloneDeep(Object.assign({}, microsExtra, result));
+        Object.keys(result).forEach(key => {
+            // [兼容] 在 context 中增加变量判断是否要加 scope，后期可去除
+            if (autoPrefixScope) {
+                const item = result[key];
+                // 这里可以对 key 做 scope 兼容
+                if (!key.startsWith(`${CONSTANTS.SCOPE_NAME}/`)) {
+                    key = `${CONSTANTS.SCOPE_NAME}/${key}`;
+                }
+                result[key] = item;
+            }
+        });
+        return result;
     }
 
     /**

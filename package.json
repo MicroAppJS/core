@@ -52,7 +52,7 @@
         "jest": "^24.9.0"
     },
     "dependencies": {
-        "@micro-app/shared-utils": "^0.1.16",
+        "@micro-app/shared-utils": "^0.1.17",
         "dotenv": "^8.2.0",
         "dotenv-expand": "^5.1.0"
     },
