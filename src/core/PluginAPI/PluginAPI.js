@@ -6,7 +6,7 @@ const BaseAPI = require('./libs/BaseAPI');
 
 class PluginAPI extends BaseAPI {
 
-    get __isMicroAppPluginAPI() {
+    get $isMicroAppPluginAPI() {
         return true;
     }
 

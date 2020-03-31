@@ -108,4 +108,16 @@ describe('PluginAPI', () => {
         expect(service.extendMethods.a.description).toEqual('abc');
     });
 
+    it('isMicroAppPluginAPI', () => {
+        const service = new Service();
+        service.initSync();
+        const plugin = service.plugins[0];
+        expect(plugin).not.toBeUndefined();
+        expect(plugin).not.toBeNull();
+        const api = plugin[Symbol.for('api')];
+        expect(api).not.toBeUndefined();
+        expect(api).not.toBeNull();
+
+        expect(api.$isMicroAppPluginAPI).toBeTruthy();
+    });
 });
