@@ -38,7 +38,20 @@ class PluginService extends MethodService {
             }
             return arr.concat(this.resolvePlugin(item));
         }, []).filter(item => !!item);
-        return pluginsObj;
+        const collection = new Set();
+        const result = pluginsObj.filter(item => {
+            // 去除已经注册的插件
+            const id = item.id;
+            if (this.hasPlugin(id)) {
+                collection.add(id);
+                return false;
+            }
+            return true;
+        });
+        collection.forEach(id => {
+            logger.warn('[Plugin]', `"${id}" has registered!`);
+        });
+        return result;
     }
 
     _initPreloadPlugins() {
@@ -120,7 +133,7 @@ class PluginService extends MethodService {
             _target = [].concat(_target);
             if (!_target.some(item => item === this.target)) {
                 // 当前 target 与插件不匹配
-                logger.info('[Plugin]', `current target: { ${this.target} } - initPlugin() skip "${key}".`, `only support targets: { ${_target.join(', ')} }`);
+                logger.debug('[Plugin]', `current target: { ${this.target} } - initPlugin() skip "${key}".`, `only support targets: { ${_target.join(', ')} }`);
                 return false;
             }
         }
