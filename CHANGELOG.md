@@ -1,3 +1,10 @@
+## [0.3.25](https://github.com/MicroAppJS/core/compare/v0.3.24...v0.3.25) (2020-04-09)
+
+
+### Features
+
+* unique plugins ([8a8d01f](https://github.com/MicroAppJS/core/commit/8a8d01f5a6620923b7be4adaea0a0f2ba51ded45))
+
 ## [0.3.24](https://github.com/MicroAppJS/core/compare/v0.3.23...v0.3.24) (2020-04-09)
 
 
