@@ -220,10 +220,15 @@ class MethodService extends BaseService {
     assertExtendOptions(name, opts, fn) {
         assert(typeof name === 'string', 'name must be string.');
         assert(name || /^_/i.test(name), `${name} cannot begin with '_'.`);
-        assert(!this.hasKey(name), `api.${name} exists.`);
+        let override = false;
         if (typeof opts === 'function') {
             fn = opts;
             opts = null;
+        } else if (opts && opts.override === true) {
+            override = true;
+        }
+        if (!override) { // 强制覆盖
+            assert(!this.hasKey(name), `api.${name} exists.`);
         }
         assert(typeof fn === 'function', 'fn must be function.');
         opts = opts || {};

@@ -8,9 +8,9 @@ module.exports = [
     'mode',
     'target',
     'type',
-    'strictMode',
+    'strictMode', // 暂无用
     'env',
-    // 'version', // pluginAPI 中已有
+    // 'version', // pluginAPI 中已有，且是 core 的版本信息
     'pkg',
     'extraConfig',
     'microsExtraConfig',
