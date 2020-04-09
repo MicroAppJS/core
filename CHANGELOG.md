@@ -1,3 +1,10 @@
+## [0.3.24](https://github.com/MicroAppJS/core/compare/v0.3.23...v0.3.24) (2020-04-09)
+
+
+### Features
+
+* add `override` option ([9d7c4bc](https://github.com/MicroAppJS/core/commit/9d7c4bce68a0b0e12681574ed98d2198286407ec))
+
 ## [0.3.23](https://github.com/MicroAppJS/core/compare/v0.3.22...v0.3.23) (2020-03-31)
 
 ## [0.3.22](https://github.com/MicroAppJS/core/compare/v0.3.21...v0.3.22) (2020-03-31)
