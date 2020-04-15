@@ -1,3 +1,11 @@
+## [0.3.26](https://github.com/MicroAppJS/core/compare/v0.3.25...v0.3.26) (2020-04-15)
+
+
+### Features
+
+* enhance `assertVersion` ([4741d20](https://github.com/MicroAppJS/core/commit/4741d20b209f1791c1b15a47440ca0a4858d7d9b))
+* enhance `resolve`、`tempDir` ([cdbc6b2](https://github.com/MicroAppJS/core/commit/cdbc6b20b01664bf9743f6092481c7a9091a6f96))
+
 ## [0.3.25](https://github.com/MicroAppJS/core/compare/v0.3.24...v0.3.25) (2020-04-09)
 
 
