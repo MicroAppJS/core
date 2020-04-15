@@ -1,6 +1,6 @@
 'use strict';
 
-const { _, semver, logger, debug } = require('@micro-app/shared-utils');
+const { _, semver, logger, debug, tryRequire } = require('@micro-app/shared-utils');
 
 const validateSchema = require('../../../utils/validateSchema');
 const CONSTANTS = require('../../Constants');
@@ -74,7 +74,7 @@ class BaseAPI {
     }
 
     setState(key, value) {
-        this[PRIVATE_SERVICE].setState(key, value);
+        return this[PRIVATE_SERVICE].setState(key, value);
     }
 
     getState(key, value) {
@@ -85,18 +85,25 @@ class BaseAPI {
         return validateSchema(schema, config);
     }
 
-    assertVersion(range) {
+    assertVersion(range, pkgName) {
         if (typeof range === 'number') {
             if (!Number.isInteger(range)) {
-                this.logger.throw('[core]', 'Expected string or integer value.');
+                this.logger.throw('[assertVersion]', 'Expected string or integer value.');
             }
             range = `^${range}.0.0-0`;
         }
         if (typeof range !== 'string') {
-            this.logger.throw('[core] ', 'Expected string or integer value.');
+            this.logger.throw('[assertVersion] ', 'Expected string or integer value.');
         }
 
         let version = this.version;
+        if (pkgName && typeof pkgName === 'string') {
+            const pkg = tryRequire(`${pkgName}/${CONSTANTS.PACKAGE_JSON}`);
+            if (!pkg) {
+                this.logger.throw('[assertVersion]', `Not Found ${pkgName}.`);
+            }
+            version = pkg.version;
+        }
         // 忽略 alpha、next、rc
         [ /-alpha.*/i, /-next.*/i, /-rc.*/i ].forEach(regex => {
             version = version.replace(regex, '');
@@ -109,7 +116,7 @@ class BaseAPI {
             return;
         }
 
-        this.logger.throw('[core]', `Require ${CONSTANTS.SCOPE_NAME}/core "${range}", but was loaded with "${version}".`);
+        this.logger.throw('[assertVersion]', `Require ${pkgName} "${range}", but was loaded with "${version}".`);
     }
 }
 

@@ -4,6 +4,7 @@ const pkg = require('../../../package.json');
 const SHARED_PROPS = require('./SharedProps');
 
 module.exports = {
+    PKG: pkg,
     NAME: 'Micro App',
     VERSION: pkg.version,
     ROOT: process.env.MICRO_APP_ROOT || process.cwd(),

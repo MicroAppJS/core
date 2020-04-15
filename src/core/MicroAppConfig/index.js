@@ -5,12 +5,18 @@ const { logger, loadFile } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../Constants');
 const MicroAppConfig = require('./MicroAppConfig');
-
 const loadConfig = require('../../utils/loadConfig').carryPath;
 
 module.exports = MicroAppConfig;
+module.exports.createInstance = createInstance;
 
-module.exports.createInstance = (rootPath = process.cwd(), { originalRootPath = rootPath } = {}) => {
+/**
+ * createInstance
+ * @param {string} rootPath root
+ * @param {Object} param param
+ * @return {MicroAppConfig} config
+ */
+function createInstance(rootPath = process.cwd(), { originalRootPath = rootPath } = {}) {
     const { MICRO_APP_CONFIG_NAME, PACKAGE_JSON, SCOPE_NAME } = CONSTANTS;
     let [ microConfig, filePath ] = loadConfig(rootPath, MICRO_APP_CONFIG_NAME);
     if (microConfig) {
@@ -36,4 +42,4 @@ module.exports.createInstance = (rootPath = process.cwd(), { originalRootPath = 
         return _microAppConfig;
     }
     return null;
-};
+}

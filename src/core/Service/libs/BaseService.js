@@ -135,6 +135,13 @@ class BaseService {
         return this.mode === 'development';
     }
 
+    /**
+     * self
+     * @return {MicroAppConfig} self
+     * @readonly
+     * @memberof BaseService
+     * @private
+     */
     get self() {
         // 加载自己
         const _self = MicroAppConfig.createInstance(this.root, { key: SELF_KEY });
@@ -150,7 +157,7 @@ class BaseService {
 
     /**
      * self alias
-     *
+     * @return {MicroAppConfig} clone self
      * @readonly
      * @memberof BaseService
      */
