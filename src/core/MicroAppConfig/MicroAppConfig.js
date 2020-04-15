@@ -1,7 +1,6 @@
 'use strict';
 
-const path = require('path');
-const { globby } = require('@micro-app/shared-utils');
+const { globby, path, _ } = require('@micro-app/shared-utils');
 
 const BaseConfig = require('./libs/BaseConfig');
 const Package = require('../Package');
@@ -64,6 +63,12 @@ class MicroAppConfig extends BaseConfig {
         }
 
         return licensePath;
+    }
+
+    get(key) {
+        if (_.isUndefined(key)) return;
+        const originalConfig = this.originalConfig || {};
+        return originalConfig[key];
     }
 }
 

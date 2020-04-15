@@ -87,3 +87,6 @@ dist
 *.njsproj
 *.sln
 *.sw*
+
+# temp
+.temp

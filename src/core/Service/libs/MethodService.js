@@ -41,8 +41,8 @@ class MethodService extends BaseService {
         return configDir;
     }
 
-    get tempDir() {
-        const tempDir = this.resolveWorkspace(CONSTANTS.MICRO_APP_TEMP_DIR);
+    get tempDir() { // {{ root }}/.temp
+        const tempDir = path.resolve(__dirname, '../../../', CONSTANTS.MICRO_APP_TEMP_DIR);
 
         Object.defineProperty(this, 'tempDir', {
             value: tempDir,
@@ -209,12 +209,12 @@ class MethodService extends BaseService {
         return this.state[key] || value;
     }
 
-    resolve(_path) {
-        return path.resolve(this.root, _path);
+    resolve(..._paths) {
+        return path.resolve(this.root, ..._paths);
     }
 
-    resolveWorkspace(_path) {
-        return path.resolve(this.root, CONSTANTS.MICRO_APP_DIR, _path);
+    resolveWorkspace(..._paths) {
+        return this.resolve(CONSTANTS.MICRO_APP_DIR, ..._paths);
     }
 
     assertExtendOptions(name, opts, fn) {
