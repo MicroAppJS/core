@@ -1,3 +1,11 @@
+## [0.3.27](https://github.com/MicroAppJS/core/compare/v0.3.26...v0.3.27) (2020-04-17)
+
+
+### Features
+
+* add `mergeContext` method ([740b8bb](https://github.com/MicroAppJS/core/commit/740b8bbdf3d20a31eb428cf2d440c16895be319e))
+* add before register ([efc19f5](https://github.com/MicroAppJS/core/commit/efc19f5e956c9e140d7b7fb45b331cc8ad765bd2))
+
 ## [0.3.26](https://github.com/MicroAppJS/core/compare/v0.3.25...v0.3.26) (2020-04-15)
 
 
