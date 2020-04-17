@@ -197,6 +197,17 @@ class BaseService {
     hasKey(name) {
         return !!this[name];
     }
+
+    /**
+     * 扩充合并 context
+     * @param {Array|String} ctx 上下文
+     * @return {Object} context
+     */
+    mergeContext(ctx = []) {
+        const args = [].concat(ctx);
+        const newCtx = yParser(args);
+        return smartMerge(this.context, newCtx);
+    }
 }
 
 module.exports = BaseService;

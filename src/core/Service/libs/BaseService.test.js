@@ -36,4 +36,13 @@ describe('BaseService', () => {
 
     });
 
+    it('mergeContext', () => {
+        process.env.NODE_ENV = 'test';
+        const base = new BaseService();
+        const newCtx = base.mergeContext([ '--abc', '--abc-bc' ]);
+
+        expect(newCtx.abc).toBeTruthy();
+        expect(newCtx.abcBc).toBeTruthy();
+    });
+
 });
