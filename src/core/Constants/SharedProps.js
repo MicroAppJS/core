@@ -1,8 +1,18 @@
 'use strict';
 
-// TODO 可以增加注释
 // service 对 pluginAPI 暴露的所有方法
-module.exports = [
+
+// 关于注册的方法
+const registerKeys = [
+    'registerCommand',
+    'registerMethod',
+];
+const extendKeys = [
+    'extendConfig',
+    'extendMethod',
+];
+
+module.exports = [].concat(registerKeys, extendKeys, [
 
     'root',
     'mode',
@@ -29,11 +39,7 @@ module.exports = [
     'findPlugin',
     // plugin method
     'register',
-    'registerMethod',
-    'registerCommand',
     'changeCommandOption',
-    'extendConfig',
-    'extendMethod',
     // new v0.3
     'resolve',
     'resolveWorkspace',
@@ -48,4 +54,7 @@ module.exports = [
     'API_TYPE',
     'hasKey',
 
-];
+]);
+
+module.exports.REGISTER_KEYS = registerKeys;
+module.exports.EXTEND_KEYS = extendKeys;

@@ -21,4 +21,15 @@ module.exports = function(api, opts) {
     api.onInitDone(() => {
         console.log('init Done2', api.getState('webpackConfig'));
     });
+
+    api.runCommand('test');
+};
+
+module.exports.registerCommand = {
+    test: {
+        ccc: '123',
+        fn: async arg => {
+            console.warn('arg: ', arg);
+        },
+    },
 };

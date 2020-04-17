@@ -203,10 +203,15 @@ class MethodService extends BaseService {
 
     setState(key, value) {
         this.state[key] = value;
+        return value;
     }
 
     getState(key, value) {
-        return this.state[key] || value;
+        const v = this.state[key];
+        if (_.isUndefined(v)) {
+            return value;
+        }
+        return v;
     }
 
     resolve(..._paths) {
@@ -215,6 +220,10 @@ class MethodService extends BaseService {
 
     resolveWorkspace(..._paths) {
         return this.resolve(CONSTANTS.MICRO_APP_DIR, ..._paths);
+    }
+
+    resolveTemp(..._paths) {
+        return this.resolve(this.tempDir, ..._paths);
     }
 
     assertExtendOptions(name, opts, fn) {

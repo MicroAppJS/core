@@ -1,12 +1,14 @@
 'use strict';
 
-const { logger, _, assert, tryRequire, virtualFile, dedent } = require('@micro-app/shared-utils');
+const { logger, _, assert, tryRequire, virtualFile, dedent, yUnParser } = require('@micro-app/shared-utils');
 
 const MethodService = require('./MethodService');
 const PluginAPI = require('../../PluginAPI');
 const DEFAULT_METHODS = require('../methods');
 const PreLoadPlugins = require('../../../plugins/register');
-const { API_TYPE } = require('../../Constants');
+const { API_TYPE, SHARED_PROPS: { REGISTER_KEYS, EXTEND_KEYS } } = require('../../Constants');
+const BEFORE_INIT_METHODS = [].concat(REGISTER_KEYS, EXTEND_KEYS);
+const BEFORE_INIT_METHODS_SYMBOL = Symbol('$$beforeInitMethods$$');
 
 class PluginService extends MethodService {
     constructor(context) {
@@ -89,13 +91,14 @@ class PluginService extends MethodService {
      * @return {Boolean} true-enabled, false-disabled
      */
     _checkPluginEnabled(plugin) {
-        const { id, alias, mode, target, skipTarget, dependencies } = plugin;
+        const { id, alias, mode, target, skipTarget, dependencies, skipContext } = plugin;
         const key = `${id}${alias ? ' (' + alias + ')' : ''}`;
 
         const params = { // function params
             id, alias,
             mode: this.mode,
             target: this.target,
+            context: this.context,
         };
 
         // 判断依赖插件库是否存在
@@ -152,6 +155,22 @@ class PluginService extends MethodService {
             }
         }
 
+        // 某个 context 为 true 时，跳过此插件
+        if (skipContext) {
+            let _skipContext = skipContext;
+            if (_.isFunction(_skipContext)) { // 支持方法判断
+                _skipContext = _skipContext(params);
+            }
+            _skipContext = [].concat(_skipContext);
+            const unCtx = yUnParser(this.context); // 解压
+            const args = _skipContext.find(item => unCtx.includes(item));
+            if (args) {
+                // 当前 target 与插件不匹配，需要跳过
+                logger.info('[Plugin]', `has args: { ${args} } - initPlugin() skip "${key}".`);
+                return false;
+            }
+        }
+
         return true; // OK
     }
 
@@ -172,6 +191,26 @@ class PluginService extends MethodService {
             return;
         }
 
+        // 收集提前注册的内容
+        const _register = {};
+        BEFORE_INIT_METHODS.forEach(method => {
+            _register[method] = _register[method] || [];
+            const item = plugin[BEFORE_INIT_METHODS_SYMBOL][method];
+            if (item && _.isPlainObject(item)) {
+                Object.keys(item).forEach(key => {
+                    const opts = Object.assign({}, item[key] || {});
+                    let fn;
+                    if (_.isFunction(opts.fn)) {
+                        fn = opts.fn;
+                        delete opts.fn;
+                    }
+                    // 参数依次为：name,opts,fn
+                    _register[method].push([ key, opts, fn ]);
+                });
+            }
+        });
+
+
         assert(typeof apply === 'function',
             dedent`plugin "${id}" must export a function,
                 e.g.
@@ -189,6 +228,15 @@ class PluginService extends MethodService {
             );
             plugin._onOptionChange = fn;
         };
+
+        // 将收集的内容进行分销
+        Object.keys(_register).forEach(method => {
+            const _argss = _register[method];
+            _argss.forEach(args => {
+                api[method].apply(api, args);
+            });
+        });
+
         return api;
     }
 
@@ -560,8 +608,10 @@ module.exports = PluginService;
 function resolvePluginResult(item, { apply, link, opts }) {
     const _apply = apply.default || apply;
     const defaultConfig = apply.configuration || {};
+    const beforeInitMethods = _.pick(apply, BEFORE_INIT_METHODS) || {};
     return Object.assign({}, defaultConfig, {
         ...item,
+        [BEFORE_INIT_METHODS_SYMBOL]: beforeInitMethods, // 内部方法提前
         link: link ? require.resolve(link) : null,
         apply: _apply,
         opts,
