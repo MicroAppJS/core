@@ -416,10 +416,10 @@
     "@release-it/conventional-changelog" "^1.1.0"
     release-it "^13.1.1"
 
-"@micro-app/shared-utils@^0.1.17":
-  version "0.1.17"
-  resolved "https://registry.yarnpkg.com/@micro-app/shared-utils/-/shared-utils-0.1.17.tgz#e99b9aa4385cf4eefe5f96f0f553162ab9342743"
-  integrity sha512-XI1uFnvjPaFZvLLMoARZeUqUya2i2z4aJ1oT23bahQL+5dHgXj2p1o/1agJ7G0K1KStasLRjPXNuHEpBpK1Weg==
+"@micro-app/shared-utils@^0.1.18":
+  version "0.1.18"
+  resolved "https://registry.yarnpkg.com/@micro-app/shared-utils/-/shared-utils-0.1.18.tgz#73dce4d27bd535da0d6204c1cc5df2d8afcbafe9"
+  integrity sha512-ckkDKcR7yWLvy5+cqp89Ea946WhknU9/FwDs+H6SYr0Bs14o2e8mXctcvTPDWx85KXsinLu3ID1vHrHHyYenDg==
   dependencies:
     ajv "^6.10.2"
     ajv-keywords "^3.4.1"
