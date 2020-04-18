@@ -1,3 +1,10 @@
+## [0.3.28](https://github.com/MicroAppJS/core/compare/v0.3.27...v0.3.28) (2020-04-18)
+
+
+### Features
+
+* enhance `type` options ([2aa664d](https://github.com/MicroAppJS/core/commit/2aa664dc32d90378b54c87fd60cf9e9fe327786b))
+
 ## [0.3.27](https://github.com/MicroAppJS/core/compare/v0.3.26...v0.3.27) (2020-04-17)
 
 
