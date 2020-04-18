@@ -301,7 +301,10 @@ class MethodService extends BaseService {
         if (microConfig && microConfig.__isMicroAppConfig) {
             const root = microConfig.root;
             // 单独配置文件
-            const _config = loadConfig(root, name);
+            let _config = loadConfig(root, name);
+            if (_.isFunction(_config)) {
+                _config = _config();
+            }
             if (!_.isEmpty(_config)) {
                 return _config;
             }

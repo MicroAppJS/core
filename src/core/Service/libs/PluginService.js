@@ -247,12 +247,12 @@ class PluginService extends MethodService {
      */
     _createPluginAPIProxy(id) {
         const api = new Proxy(new PluginAPI(id, this), {
-            get: (target, prop) => {
-                if (typeof prop === 'string' && /^_/i.test(prop)) {
+            get: (target, name, property) => {
+                if (typeof name === 'string' && /^_/i.test(name)) {
                     return; // ban private
                 }
-                if (this.extendConfigs[prop]) { // 立即执行, 返回结果(支持 cache 缓存).
-                    const obj = this.extendConfigs[prop];
+                if (name in this.extendConfigs) { // 立即执行, 返回结果(支持 cache 缓存).
+                    const obj = this.extendConfigs[name];
                     if (obj.cache === true && !_.isUndefined(obj.__cache__)) {
                         return obj.__cache__;
                     }
@@ -262,22 +262,30 @@ class PluginService extends MethodService {
                     }
                     return _result;
                 }
-                if (this.extendMethods[prop]) {
-                    return this.extendMethods[prop].fn;
+                if (name in this.extendMethods) {
+                    // return this.extendMethods[name].fn;
+                    return Reflect.get(this.extendMethods[name], 'fn', property);
                 }
-                if (this.pluginMethods[prop]) {
-                    return this.pluginMethods[prop].fn;
+                if (name in this.pluginMethods) {
+                    // return this.pluginMethods[name].fn;
+                    return Reflect.get(this.pluginMethods[name], 'fn', property);
                 }
                 if (this.initialized) { // 已经初始化
-                    if (_.isString(prop) && /^register/i.test(prop) || [
+                    if (_.isString(name) && /^register/i.test(name) || [
                         'onOptionChange',
-                    ].includes(prop)) {
+                    ].includes(name)) {
                         return () => {
-                            logger.throw('[Plugin]', `api.${prop}() should not be called after plugin is initialized.`);
+                            logger.throw('[Plugin]', `api.${name}() should not be called after plugin is initialized.`);
                         };
                     }
                 }
-                return target[prop];
+                return Reflect.get(target, name, property);
+            },
+            set: (target, name, value, property) => {
+                if (typeof name === 'string' && /^_/i.test(name)) {
+                    return; // ban private
+                }
+                return Reflect.set(target, name, value, property);
             },
         });
         return api;
@@ -406,6 +414,33 @@ class PluginService extends MethodService {
         logger.debug('[Plugin]', '_initPluginsSync() End!');
     }
 
+    /**
+     * plugin options to object
+     * @param {*} item opt
+     * @param {*} param apply, link, opts
+     * @return {Object} obj
+     * @private
+     */
+    _resolvePluginResult(item, { apply, link, opts }) {
+        const _apply = apply.default || apply;
+        const defaultConfig = apply.configuration || {};
+        const beforeInitMethods = _.pick(apply, BEFORE_INIT_METHODS) || {};
+        // load config merge opts
+        if (item.configName && _.isString(item.configName)) {
+            const config = this.parseConfig(item.configName); // 这个操作只加载当前环境下的配置，用于二次更改内置配置
+            if (config) {
+                opts = Object.assign({}, opts || {}, config);
+            }
+        }
+        return Object.assign({}, defaultConfig, {
+            ...item,
+            [BEFORE_INIT_METHODS_SYMBOL]: beforeInitMethods, // 内部方法提前
+            link: link ? require.resolve(link) : null,
+            apply: _apply,
+            opts,
+        });
+    }
+
     register(hook, fn, type) {
         assert(
             typeof hook === 'string',
@@ -522,12 +557,12 @@ class PluginService extends MethodService {
             if (Array.isArray(_apply)) { // 支持数组模式
                 return _apply.map(_applyItem => {
                     if (_applyItem) {
-                        return resolvePluginResult(item, { apply: _applyItem, link, opts });
+                        return this._resolvePluginResult(item, { apply: _applyItem, link, opts });
                     }
                     return false;
                 }).filter(_it => !!_it);
             }
-            return resolvePluginResult(item, { apply, link, opts });
+            return this._resolvePluginResult(item, { apply, link, opts });
         }
         logger.warn('[Plugin]', `Not Found plugin: "${id || item}"\n   --> link: "${link}"`);
         return false;
@@ -598,22 +633,3 @@ class PluginService extends MethodService {
 }
 
 module.exports = PluginService;
-
-/**
- * plugin options to object
- * @param {*} item opt
- * @param {*} param apply, link, opts
- * @return {Object} obj
- */
-function resolvePluginResult(item, { apply, link, opts }) {
-    const _apply = apply.default || apply;
-    const defaultConfig = apply.configuration || {};
-    const beforeInitMethods = _.pick(apply, BEFORE_INIT_METHODS) || {};
-    return Object.assign({}, defaultConfig, {
-        ...item,
-        [BEFORE_INIT_METHODS_SYMBOL]: beforeInitMethods, // 内部方法提前
-        link: link ? require.resolve(link) : null,
-        apply: _apply,
-        opts,
-    });
-}

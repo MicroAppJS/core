@@ -9,7 +9,6 @@ const MicroAppConfig = require('../../MicroAppConfig');
 
 const INIT_DEFAULT_ENV = Symbol('INIT_DEFAULT_ENV');
 const INIT_ENV = Symbol('INIT_ENV');
-const SELF_KEY = Symbol('SELF');
 
 class BaseService {
 
@@ -144,7 +143,7 @@ class BaseService {
      */
     get self() {
         // 加载自己
-        const _self = MicroAppConfig.createInstance(this.root, { key: SELF_KEY });
+        const _self = MicroAppConfig.createInstance(this.root, { type: 'master' });
         if (!_self) {
             logger.throw('[core]', 'Not Found Config!!!'); // 一般不会出现
         }
@@ -178,7 +177,7 @@ class BaseService {
     }
 
     get selfKey() {
-        return this.selfConfig.key || SELF_KEY;
+        return this.selfConfig.key || this.pkg.name;
     }
 
     get nodeModulesPath() {

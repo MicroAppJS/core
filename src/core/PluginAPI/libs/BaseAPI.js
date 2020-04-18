@@ -41,11 +41,8 @@ class BaseAPI {
     get service() {
         const target = this[PRIVATE_SERVICE];
         return new Proxy(target, {
-            get: (_target, _prop) => {
-                if (typeof _prop === 'string' && /^_/i.test(_prop)) {
-                    return; // ban private
-                }
-                return _target[_prop];
+            get: (_target, name, property) => {
+                return Reflect.get(_target, name, property);
             },
         });
     }

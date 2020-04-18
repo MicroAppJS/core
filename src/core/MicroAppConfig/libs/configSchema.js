@@ -53,22 +53,29 @@ module.exports = {
             type: 'object',
         },
         plugins: {
-            description: 'micro app 插件集. ( array<array | object> )',
-            items: {
-                anyOf: [{
+            description: 'micro app 插件集. ( array<array | object> | booelan )',
+            oneOf: [
+                {
+                    items: {
+                        anyOf: [{
+                            minItems: 1,
+                            type: 'array',
+                        },
+                        {
+                            type: 'object',
+                        },
+                        {
+                            type: 'string',
+                        },
+                        ],
+                    },
                     minItems: 1,
                     type: 'array',
                 },
                 {
-                    type: 'object',
+                    type: 'boolean',
                 },
-                {
-                    type: 'string',
-                },
-                ],
-            },
-            minItems: 1,
-            type: 'array',
+            ],
         },
     },
     type: 'object',

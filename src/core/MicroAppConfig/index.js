@@ -16,11 +16,12 @@ module.exports.createInstance = createInstance;
  * @param {Object} param param
  * @return {MicroAppConfig} config
  */
-function createInstance(rootPath = process.cwd(), { originalRootPath = rootPath } = {}) {
+function createInstance(rootPath = process.cwd(), { originalRootPath = rootPath, ...opts } = {}) {
     const { MICRO_APP_CONFIG_NAME, PACKAGE_JSON, SCOPE_NAME } = CONSTANTS;
     let [ microConfig, filePath ] = loadConfig(rootPath, MICRO_APP_CONFIG_NAME);
     if (microConfig) {
         const _microAppConfig = new MicroAppConfig(microConfig, {
+            ...opts,
             root: rootPath,
             filePath,
             originalRoot: originalRootPath,
@@ -34,6 +35,7 @@ function createInstance(rootPath = process.cwd(), { originalRootPath = rootPath 
         logger.debug('[loadFile]', `try load "${PACKAGE_JSON}"`);
         const filePath = path.resolve(rootPath, PACKAGE_JSON);
         const _microAppConfig = new MicroAppConfig(microConfig[SCOPE_NAME] || {}, {
+            ...opts,
             root: rootPath,
             filePath,
             originalRoot: originalRootPath,

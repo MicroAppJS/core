@@ -64,4 +64,30 @@ describe('BaseConfig', () => {
         expect(config.inspect).toBeUndefined();
     });
 
+    it('auto load plugins', () => {
+        const config = new BaseConfig({
+            plugins: true,
+        }, {
+            root: process.cwd(),
+            filePath: __dirname,
+            originalRoot: __dirname,
+            loadSuccess: true,
+        });
+
+        console.warn('config.plugins: ', config.plugins);
+        expect(config.plugins.length > 0).toBeTruthy();
+    });
+
+    it('type: master', () => {
+        const config = new BaseConfig({}, {
+            root: process.cwd(),
+            filePath: __dirname,
+            originalRoot: __dirname,
+            loadSuccess: true,
+            type: 'master',
+        });
+
+        expect(config.type).toEqual('master');
+    });
+
 });

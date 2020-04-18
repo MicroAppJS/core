@@ -1,6 +1,6 @@
 'use strict';
 
-const { _, loadFile, logger, stringifyObject, path } = require('@micro-app/shared-utils');
+const { _, loadFile, logger, stringifyObject, path, pluginResolution } = require('@micro-app/shared-utils');
 const CONSTANTS = require('../../Constants');
 const validateSchema = require('../../../utils/validateSchema');
 
@@ -17,6 +17,7 @@ const OPTION_FILENAME = Symbol('@MicroAppConfig#FILENAME');
 const OPTION_DIRNAME = Symbol('@MicroAppConfig#DIRNAME');
 const OPTION_ORIGINAL_ROOT = Symbol('@MicroAppConfig#ORIGINAL_ROOT');
 const OPTION_LOAD_SUCCESS = Symbol('@MicroAppConfig#LOAD_SUCCESS');
+const OPTION_TYPE = Symbol('@MicroAppConfig#TYPE');
 
 class BaseConfig {
 
@@ -35,6 +36,7 @@ class BaseConfig {
         this[OPTION_DIRNAME] = opts.dirname || path.basename(this.root);
 
         this[OPTION_LOAD_SUCCESS] = opts.loadSuccess || false;
+        this[OPTION_TYPE] = opts.type || 'slave';
 
         // 校验 config
         this.validate(config);
@@ -149,8 +151,11 @@ class BaseConfig {
     }
 
     get type() {
-        const config = this.config;
-        return config.type || ''; // 默认类型为空
+        return this[OPTION_TYPE] || 'slave'; // master/slave
+    }
+
+    get isMaster() {
+        return this.type === 'master';
     }
 
     get packages() {
@@ -308,7 +313,16 @@ class BaseConfig {
 
     get plugins() {
         const config = this.config;
-        const _plugins = config.plugins || [];
+        let _plugins = config.plugins || [];
+        // 支持自动加载 pkg.dependencies 中的插件
+        // 如果 type = master 则同时加载 devDependencies 中的插件
+        if (_plugins === true) {
+            const pkg = this.package || {};
+            const deps = Object.assign({},
+                (this.isMaster ? pkg.devDependencies : {}) || {},
+                pkg.devDependencies || {});
+            _plugins = Object.keys(deps).filter(pluginResolution.isPlugin);
+        }
         return _plugins.map(p => {
             let opts;
             let id;

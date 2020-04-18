@@ -8,7 +8,9 @@
         "lint": "eslint .",
         "lint:fix": "npm run lint -- --fix",
         "test": "jest",
-        "docs:dev": "node bin/index.js vuepress dev",
+        "docs:dev": "micro-app-vuepress dev",
+        "docs:build": "micro-app-vuepress build",
+        "docs:info": "micro-app-vuepress info",
         "release": "node bin/index.js release",
         "release:alpha": "npm run release -- --preRelease=alpha",
         "release:next": "npm run release -- --preRelease=next",
@@ -46,13 +48,14 @@
     },
     "devDependencies": {
         "@micro-app/plugin-deploy": "^0.0.7",
+        "@micro-app/plugin-vuepress": "^0.1.23",
         "@types/jest": "^24.9.1",
         "eslint-config-2o3t": "^2.0.1",
         "husky": "^3.1.0",
         "jest": "^24.9.0"
     },
     "dependencies": {
-        "@micro-app/shared-utils": "^0.1.18",
+        "@micro-app/shared-utils": "^0.1.19",
         "dotenv": "^8.2.0",
         "dotenv-expand": "^5.1.0"
     },
