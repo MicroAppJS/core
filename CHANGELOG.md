@@ -1,3 +1,10 @@
+## [0.3.29](https://github.com/MicroAppJS/core/compare/v0.3.28...v0.3.29) (2020-04-18)
+
+
+### Features
+
+* Improving `extendConfig` and `extendMethod` ([aea8ab2](https://github.com/MicroAppJS/core/commit/aea8ab24cf4d387f064178ed6ebaf438e53c2f46))
+
 ## [0.3.28](https://github.com/MicroAppJS/core/compare/v0.3.27...v0.3.28) (2020-04-18)
 
 
