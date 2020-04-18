@@ -6,9 +6,8 @@ const MethodService = require('./MethodService');
 const PluginAPI = require('../../PluginAPI');
 const DEFAULT_METHODS = require('../methods');
 const PreLoadPlugins = require('../../../plugins/register');
-const { API_TYPE, SHARED_PROPS: { REGISTER_KEYS, EXTEND_KEYS } } = require('../../Constants');
-const BEFORE_INIT_METHODS = [].concat(REGISTER_KEYS, EXTEND_KEYS);
-const BEFORE_INIT_METHODS_SYMBOL = Symbol('$$beforeInitMethods$$');
+const { API_TYPE, SHARED_PROPS: { BEFORE_INIT_METHODS } } = require('../../Constants');
+const SYMBOL_BEFORE_INIT_METHODS = Symbol('$$beforeInitMethods$$');
 
 class PluginService extends MethodService {
     constructor(context) {
@@ -195,21 +194,19 @@ class PluginService extends MethodService {
         const _register = {};
         BEFORE_INIT_METHODS.forEach(method => {
             _register[method] = _register[method] || [];
-            const item = plugin[BEFORE_INIT_METHODS_SYMBOL][method];
-            if (item && _.isPlainObject(item)) {
-                Object.keys(item).forEach(key => {
-                    const opts = Object.assign({}, item[key] || {});
-                    let fn;
-                    if (_.isFunction(opts.fn)) {
-                        fn = opts.fn;
-                        delete opts.fn;
-                    }
-                    // 参数依次为：name,opts,fn
-                    _register[method].push([ key, opts, fn ]);
-                });
+            const item = plugin[SYMBOL_BEFORE_INIT_METHODS][method];
+            if (item) {
+                if (_.isPlainObject(item)) {
+                    Object.keys(item).forEach(key => {
+                        const opts = Object.assign({}, item[key] || {});
+                        // 参数依次为：name,opts
+                        _register[method].push([ key, opts ]);
+                    });
+                } else if (_.isFunction(item)) {
+                    // not support
+                }
             }
         });
-
 
         assert(typeof apply === 'function',
             dedent`plugin "${id}" must export a function,
@@ -251,24 +248,20 @@ class PluginService extends MethodService {
                 if (typeof name === 'string' && /^_/i.test(name)) {
                     return; // ban private
                 }
-                if (name in this.extendConfigs) { // 立即执行, 返回结果(支持 cache 缓存).
-                    const obj = this.extendConfigs[name];
-                    if (obj.cache === true && !_.isUndefined(obj.__cache__)) {
-                        return obj.__cache__;
-                    }
-                    const _result = obj.fn.call(this);
-                    if (obj.cache === true) {
-                        obj.__cache__ = _result;
-                    }
-                    return _result;
-                }
-                if (name in this.extendMethods) {
-                    // return this.extendMethods[name].fn;
-                    return Reflect.get(this.extendMethods[name], 'fn', property);
-                }
                 if (name in this.pluginMethods) {
+                    const obj = this.pluginMethods[name];
+                    if (obj.$$configFlag$$ === true) { // 立即执行, 返回结果(支持 cache 缓存).
+                        if (obj.cache === true && !_.isUndefined(obj.__cache__)) {
+                            return obj.__cache__;
+                        }
+                        const _result = obj.fn.call(this);
+                        if (obj.cache === true) {
+                            obj.__cache__ = _result;
+                        }
+                        return _result;
+                    }
                     // return this.pluginMethods[name].fn;
-                    return Reflect.get(this.pluginMethods[name], 'fn', property);
+                    return Reflect.get(obj, 'fn', property);
                 }
                 if (this.initialized) { // 已经初始化
                     if (_.isString(name) && /^register/i.test(name) || [
@@ -434,14 +427,14 @@ class PluginService extends MethodService {
         }
         return Object.assign({}, defaultConfig, {
             ...item,
-            [BEFORE_INIT_METHODS_SYMBOL]: beforeInitMethods, // 内部方法提前
+            [SYMBOL_BEFORE_INIT_METHODS]: beforeInitMethods, // 内部方法提前
             link: link ? require.resolve(link) : null,
             apply: _apply,
             opts,
         });
     }
 
-    register(hook, fn, type) {
+    register(hook, fn, opts) {
         assert(
             typeof hook === 'string',
             `The first argument of api.register() must be string, but got ${hook}`
@@ -453,16 +446,22 @@ class PluginService extends MethodService {
         const pluginHooks = this.pluginHooks;
         pluginHooks[hook] = pluginHooks[hook] || [];
         pluginHooks[hook].push({
+            ...opts,
             fn,
-            type,
         });
     }
 
     registerMethod(name, opts = {}) {
         this.assertExtendOptions(name, opts, function() { /* none */ });
-        const { type, apply } = opts;
+        let { type, apply } = opts;
         assert(!(type && apply), 'Only be one for type and apply.');
         assert(type || apply, 'One of type and apply must supplied.');
+
+        if (type && _.isString(type)) {
+            const _type = this.API_TYPE[type.toUpperCase()];
+            assert(_type, `Not Support api type: ${type}.`);
+            type = _type;
+        }
 
         const params = Object.keys(opts).reduce((obj, key) => {
             if (key === 'apply' || key === 'fn') return obj;
@@ -475,7 +474,7 @@ class PluginService extends MethodService {
                 if (apply) {
                     this.register(name, opts => {
                         return apply(opts, ...args);
-                    }, type);
+                    }, { type });
                 } else if (type === this.API_TYPE.ADD) {
                     this.register(name, opts => {
                         let last = opts.last || [];
@@ -485,21 +484,45 @@ class PluginService extends MethodService {
                         return last.concat(
                             typeof args[0] === 'function' ? args[0](last, opts.args) : args[0]
                         );
-                    }, type);
+                    }, { type });
                 } else if (type === this.API_TYPE.MODIFY) {
                     this.register(name, opts => {
                         return typeof args[0] === 'function' ? args[0](opts.last, opts.args) : args[0];
-                    }, type);
+                    }, { type });
                 } else if (type === this.API_TYPE.EVENT) {
                     this.register(name, opts => {
                         return args[0](opts.args);
-                    }, type);
+                    }, { type });
+                } else if (type === this.API_TYPE.EXTEND) {
+                    if (_.isFunction(opts.fn)) {
+                        return opts.fn.apply(this, args);
+                    }
+                    return opts.fn;
                 } else {
                     throw new Error(`unexpected api type ${type}`);
                 }
             },
             ...params,
         };
+    }
+
+    extendConfig(name, opts, fn) {
+        const extendObj = this.assertExtendOptions(name, opts, fn);
+        this.registerMethod(extendObj.name, Object.assign({}, extendObj.opts, {
+            fn: extendObj.fn,
+            type: this.API_TYPE.EXTEND,
+            $$configFlag$$: true,
+        }));
+        logger.debug('[Plugin]', `extendConfig( ${extendObj.name} ); Success!`);
+    }
+
+    extendMethod(name, opts, fn) {
+        const extendObj = this.assertExtendOptions(name, opts, fn);
+        this.registerMethod(extendObj.name, Object.assign({}, extendObj.opts, {
+            fn: extendObj.fn,
+            type: this.API_TYPE.EXTEND,
+        }));
+        logger.debug('[Plugin]', `extendMethod( ${extendObj.name} ); Success!`);
     }
 
     /**

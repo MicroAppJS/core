@@ -1,8 +1,6 @@
 'use strict';
 
 module.exports = function HelpCommand(api, opts) {
-    const registerMethods = require('./methods');
-    registerMethods(api);
 
     api.registerCommand('help', {
         hide: true,
@@ -22,6 +20,8 @@ module.exports = function HelpCommand(api, opts) {
         }
     });
 };
+
+module.exports.registerMethod = require('./registerMethod');
 
 function logMainHelp(api, helpInfo) {
     const os = require('os');

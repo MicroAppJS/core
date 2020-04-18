@@ -27,6 +27,7 @@ module.exports = {
         ADD: Symbol('add'),
         MODIFY: Symbol('modify'),
         EVENT: Symbol('event'),
+        EXTEND: Symbol('extend'),
     },
     // 内置插件标识
     BUILT_IN: Symbol.for('built-in'),

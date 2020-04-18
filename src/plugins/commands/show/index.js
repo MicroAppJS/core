@@ -34,10 +34,7 @@ Examples:
 
         const pluginHooks = api.service.pluginHooks;
         const pluginMethods = api.service.pluginMethods;
-        const extendMethods = api.service.extendMethods;
         const sharedProps = Object.keys(api).reduce((obj, key) => { obj[key] = { key, description: typeof api[key] }; return obj; }, {});
-        const _extendConfigs = api.service.extendConfigs || {};
-        const extendConfigs = Object.keys(_extendConfigs).reduce((obj, key) => { obj[key] = { key, description: typeof _extendConfigs[key] }; return obj; }, {});
         const plugins = api.service.plugins;
         const selfConfig = api.selfConfig;
         const info = Object.assign({}, selfConfig.toJSON());
@@ -95,11 +92,9 @@ Examples:
                     return obj;
                 }, {}));
             case 'methods':
-                showAliasList('Plugin Methods', pluginMethods);
-                return showAliasList('Plugin Extend Methods', extendMethods);
+                return showAliasList('Plugin Methods', pluginMethods);
             case 'api':
-                showAliasList('Plugin API', sharedProps);
-                return showAliasList('Plugin Extend API', extendConfigs);
+                return showAliasList('Plugin API', sharedProps);
             case 'plugins':
                 return showAliasList('Plugin List', plugins.reduce((obj, item) => {
                     const key = item.id;

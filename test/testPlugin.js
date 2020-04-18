@@ -21,6 +21,10 @@ module.exports = function(api, opts) {
         console.log('init Done2', api.getState('webpackConfig'));
     });
 
+    api.test(() => {
+        console.log('init Done2', api.getState('webpackConfig'));
+    });
+
     api.runCommand('test');
 };
 

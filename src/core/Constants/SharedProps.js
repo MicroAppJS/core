@@ -2,18 +2,7 @@
 
 // service 对 pluginAPI 暴露的所有方法
 
-// 关于注册的方法
-const registerKeys = [
-    'registerCommand',
-    'registerMethod',
-];
-const extendKeys = [
-    'extendConfig',
-    'extendMethod',
-];
-
-module.exports = [].concat(registerKeys, extendKeys, [
-
+const BaseServiceKeys = [
     'root',
     'mode',
     'target',
@@ -22,39 +11,64 @@ module.exports = [].concat(registerKeys, extendKeys, [
     'env',
     // 'version', // pluginAPI 中已有，且是 core 的版本信息
     'pkg',
-    'extraConfig',
-    'microsExtraConfig',
-    'parseConfig',
-    'applyPluginHooks',
-    'applyPluginHooksAsync',
-    'resolvePlugin',
     'config',
     'micros',
     // 'self', // 不对外提供
     'selfConfig',
+    // new v0.3
+    'selfKey',
+    'nodeModulesPath',
+    'hasKey',
+];
+
+const MethodServiceKeys = [
     'microsConfig',
-    'changePluginOption',
-    'runCommand',
-    'hasPlugin',
-    'findPlugin',
-    // plugin method
-    'register',
+    'extraConfig',
+    'microsExtraConfig',
+    'parseConfig',
+    // method
+    'registerCommand',
     'changeCommandOption',
     // new v0.3
     'resolve',
     'resolveWorkspace',
-    'selfKey',
-    'nodeModulesPath',
     'fileFinder',
     'packages',
     'configDir',
     'tempDir',
     'getTempDirPackageGraph',
     'microsPackages',
+];
+
+// 关于注册的方法
+const registerKeys = [
+    'registerMethod',
+    'extendConfig',
+    'extendMethod',
+];
+const PluginServiceKeys = [
+    // plugin method
+    'changePluginOption',
+    'register',
+    'hasPlugin',
+    'findPlugin',
+    'resolvePlugin',
+    'applyPluginHooks',
+    'applyPluginHooksAsync',
     'API_TYPE',
-    'hasKey',
+].concat(registerKeys);
 
-]);
+module.exports = [].concat(
+    BaseServiceKeys,
+    MethodServiceKeys,
+    PluginServiceKeys,
+    [
+        'runCommand',
+    ]);
 
-module.exports.REGISTER_KEYS = registerKeys;
-module.exports.EXTEND_KEYS = extendKeys;
+module.exports.BaseServiceKeys = BaseServiceKeys;
+module.exports.MethodServiceKeys = MethodServiceKeys;
+module.exports.PluginServiceKeys = PluginServiceKeys;
+
+// 提供提前注册
+module.exports.BEFORE_INIT_METHODS = [].concat(registerKeys);

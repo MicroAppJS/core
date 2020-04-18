@@ -2,9 +2,6 @@
 
 module.exports = function cleanCommand(api) {
 
-    const registerMethods = require('./methods');
-    registerMethods(api);
-
     const { _, chalk, fs, prompt, logger: { SPACE_CHAR } } = require('@micro-app/shared-utils');
 
     const details = `
@@ -88,3 +85,5 @@ Examples:
         });
     });
 };
+
+module.exports.registerMethod = require('./registerMethod');

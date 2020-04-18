@@ -24,8 +24,6 @@ class MethodService extends BaseService {
     constructor(context) {
         super(context);
 
-        this.extendConfigs = {};
-        this.extendMethods = {};
         this.commands = {};
         this.commandOptions = {};
 
@@ -244,25 +242,6 @@ class MethodService extends BaseService {
         assert(_.isPlainObject(opts), 'opts must be object.');
         return { name, opts, fn };
     }
-
-    extendConfig(name, opts, fn) {
-        const extendObj = this.assertExtendOptions(name, opts, fn);
-        this.extendConfigs[extendObj.name] = {
-            ...extendObj.opts,
-            fn: extendObj.fn,
-        };
-        logger.debug('[Plugin]', `extendConfig( ${extendObj.name} ); Success!`);
-    }
-
-    extendMethod(name, opts, fn) {
-        const extendObj = this.assertExtendOptions(name, opts, fn);
-        this.extendMethods[extendObj.name] = {
-            ...extendObj.opts,
-            fn: extendObj.fn,
-        };
-        logger.debug('[Plugin]', `extendMethod( ${extendObj.name} ); Success!`);
-    }
-
     registerCommand(name, opts, fn) {
         assert(!this.commands[name], `Command ${name} exists, please select another one.`);
         if (typeof opts === 'function') {
@@ -367,14 +346,6 @@ class MethodService extends BaseService {
             G_TEMP_CACHE.set(file, content);
         }
         return destPath;
-    }
-
-    /**
-     * @override
-     * @param {String} name key
-     */
-    hasKey(name) {
-        return super.hasKey(name) || !!this.extendConfigs[name] || !!this.extendMethods[name];
     }
 
     validateSchema(schema, config) {

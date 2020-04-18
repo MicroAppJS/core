@@ -63,49 +63,78 @@ describe('PluginAPI', () => {
 
     it('test extendConfig', () => {
         const service = new Service();
-        const api = new PluginAPI('abc', service);
+        service.registerPlugin({
+            id: 'getA',
+            apply(api) {
+                api.extendConfig('getA', () => 'a3');
+                expect(api.service.pluginMethods.getA).not.toBeUndefined();
+                expect(api.service.pluginMethods.getA).not.toBeNull();
+                expect(api.service.pluginMethods.getA).toMatchObject({});
+                expect(api.getA).toEqual('a3');
+            },
+        });
 
-        const fn = args => {
-            console.log(args);
-            return 'abc';
-        };
-        api.extendConfig('getA', fn);
-        expect(service.extendConfigs.getA).not.toBeUndefined();
-        expect(service.extendConfigs.getA).not.toBeNull();
-        expect(service.extendConfigs.getA).toMatchObject({});
-        expect(service.extendConfigs.getA.fn).toEqual(fn);
-        expect(service.extendConfigs.getA.fn()).toEqual('abc');
+        service.initSync();
+    });
+
+    it('test extendConfig - 2', () => {
+        const service = new Service();
+        service.registerPlugin({
+            id: 'getB',
+            apply(api) {
+                api.extendConfig('getB', {
+                    description: 'getB',
+                }, () => 'a3B');
+                expect(api.service.pluginMethods.getB).not.toBeUndefined();
+                expect(api.service.pluginMethods.getB).not.toBeNull();
+                expect(api.service.pluginMethods.getB).toMatchObject({});
+                expect(api.service.pluginMethods.getB.description).toEqual('getB');
+                expect(api.getB).toEqual('a3B');
+            },
+        });
+
+        service.initSync();
     });
 
     it('test extendMethod', () => {
         const service = new Service();
-        const api = new PluginAPI('abc', service);
+        service.registerPlugin({
+            id: 'abc',
+            apply(api) {
+                const fn = () => {
+                    return 'a';
+                };
+                api.extendMethod('abc', fn);
+                expect(api.service.pluginMethods.abc).not.toBeUndefined();
+                expect(api.service.pluginMethods.abc).not.toBeNull();
+                expect(api.service.pluginMethods.abc).toMatchObject({});
+                expect(api.abc()).toEqual('a');
+            },
+        });
 
-        const fn = args => {
-            console.log(args);
-        };
-        api.extendMethod('a', fn);
-        expect(service.extendMethods.a).not.toBeUndefined();
-        expect(service.extendMethods.a).not.toBeNull();
-        expect(service.extendMethods.a).toMatchObject({});
-        expect(service.extendMethods.a.fn).toEqual(fn);
+        service.initSync();
     });
 
     it('test extendMethod - 2', () => {
         const service = new Service();
-        const api = new PluginAPI('abc', service);
+        service.registerPlugin({
+            id: 'abc2',
+            apply(api) {
+                const fn = () => {
+                    return 'a2';
+                };
+                api.extendMethod('abc2', {
+                    description: 'abc2',
+                }, fn);
+                expect(api.service.pluginMethods.abc2).not.toBeUndefined();
+                expect(api.service.pluginMethods.abc2).not.toBeNull();
+                expect(api.service.pluginMethods.abc2).toMatchObject({});
+                expect(api.service.pluginMethods.abc2.description).toEqual('abc2');
+                expect(api.abc2()).toEqual('a2');
+            },
+        });
 
-        const fn = args => {
-            console.log(args);
-        };
-        api.extendMethod('a', {
-            description: 'abc',
-        }, fn);
-        expect(service.extendMethods.a).not.toBeUndefined();
-        expect(service.extendMethods.a).not.toBeNull();
-        expect(service.extendMethods.a).toMatchObject({});
-        expect(service.extendMethods.a.fn).toEqual(fn);
-        expect(service.extendMethods.a.description).toEqual('abc');
+        service.initSync();
     });
 
     it('isMicroAppPluginAPI', () => {

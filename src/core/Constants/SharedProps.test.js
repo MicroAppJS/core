@@ -20,4 +20,34 @@ describe('Constants', () => {
         });
     });
 
+    it('check base', () => {
+        const Service = require('../Service/libs/BaseService');
+        const service = new Service();
+        SHARED_PROPS.BaseServiceKeys.forEach(key => {
+            expect(service[key] === undefined && key).toBeFalsy();
+            expect(service[key]).not.toBeUndefined();
+            expect(service[key]).not.toBeNull();
+        });
+    });
+
+    it('check method', () => {
+        const Service = require('../Service/libs/MethodService');
+        const service = new Service();
+        SHARED_PROPS.MethodServiceKeys.forEach(key => {
+            expect(service[key] === undefined && key).toBeFalsy();
+            expect(service[key]).not.toBeUndefined();
+            expect(service[key]).not.toBeNull();
+        });
+    });
+
+    it('check plugin', () => {
+        const Service = require('../Service/libs/PluginService');
+        const service = new Service();
+        SHARED_PROPS.PluginServiceKeys.forEach(key => {
+            expect(service[key] === undefined && key).toBeFalsy();
+            expect(service[key]).not.toBeUndefined();
+            expect(service[key]).not.toBeNull();
+        });
+    });
+
 });

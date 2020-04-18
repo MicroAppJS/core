@@ -2,9 +2,6 @@
 
 module.exports = function initCommand(api, opts) {
 
-    const registerMethods = require('./methods');
-    registerMethods(api);
-
     const { _, chalk, fs, prompt, smartMerge, path } = require('@micro-app/shared-utils');
 
     const details = `
@@ -136,6 +133,8 @@ module.exports = ${configJson};`);
 
     });
 };
+
+module.exports.registerMethod = require('./registerMethod');
 
 module.exports.configuration = {
     description: '初始化命令行',
