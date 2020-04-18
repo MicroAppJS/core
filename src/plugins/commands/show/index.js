@@ -2,9 +2,6 @@
 
 module.exports = function showCommand(api) {
 
-    const registerMethods = require('./methods');
-    registerMethods(api);
-
     const { _, chalk, getPadLength, logger: { SPACE_CHAR } } = require('@micro-app/shared-utils');
 
     const details = `
@@ -184,3 +181,5 @@ Examples:
         }
     }
 };
+
+module.exports.registerMethod = require('./registerMethod');

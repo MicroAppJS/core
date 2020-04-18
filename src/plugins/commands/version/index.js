@@ -2,9 +2,6 @@
 
 module.exports = function(api) {
 
-    const registerMethods = require('./methods');
-    registerMethods(api);
-
     api.registerCommand('version', {
         description: 'show version',
         usage: 'micro-app version',
@@ -72,3 +69,5 @@ module.exports = function(api) {
         }
     });
 };
+
+module.exports.registerMethod = require('./registerMethod');
