@@ -50,9 +50,10 @@ Examples:
 
         // name
         chain = chain.then(() => {
-            return prompt.input('Enter Name (demo):').then(answer => {
+            const defaultName = pkg.name || '';
+            return prompt.input(`Enter Name (${defaultName}):`).then(answer => {
                 const name = answer.trim();
-                info.name = name || 'demo';
+                info.name = name || defaultName;
             });
         });
 
@@ -134,7 +135,7 @@ module.exports = ${configJson};`);
     });
 };
 
-module.exports.registerMethod = require('./registerMethod');
+module.exports.registerMethod = require('./methods');
 
 module.exports.configuration = {
     description: '初始化命令行',

@@ -21,7 +21,7 @@ module.exports = function HelpCommand(api, opts) {
     });
 };
 
-module.exports.registerMethod = require('./registerMethod');
+module.exports.registerMethod = require('./methods');
 
 function logMainHelp(api, helpInfo) {
     const os = require('os');

@@ -107,7 +107,7 @@ class PluginService extends MethodService {
                 _dependencies = _dependencies(params);
             }
             _dependencies = [].concat(_dependencies);
-            if (!_dependencies.some(_id => this.hasPlugin(_id))) {
+            if (!_dependencies.some(_id => !!tryRequire.resolve(_id))) {
                 // 当前模式与插件不匹配
                 logger.warn('[Plugin]', `Not Found dependencies - initPlugin() skip "${key}".`, `must be depend on: { ${_dependencies.join(', ')} }`);
                 return false;

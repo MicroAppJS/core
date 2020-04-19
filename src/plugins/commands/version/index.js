@@ -70,4 +70,4 @@ module.exports = function(api) {
     });
 };
 
-module.exports.registerMethod = require('./registerMethod');
+module.exports.registerMethod = require('./methods');

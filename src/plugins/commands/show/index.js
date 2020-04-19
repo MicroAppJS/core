@@ -182,4 +182,4 @@ Examples:
     }
 };
 
-module.exports.registerMethod = require('./registerMethod');
+module.exports.registerMethod = require('./methods');
