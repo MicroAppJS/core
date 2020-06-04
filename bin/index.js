@@ -1,5 +1,7 @@
 'use strict';
 
+// 测试使用
+
 const { yParser } = require('@micro-app/shared-utils');
 const name = process.argv[2];
 const argv = yParser(process.argv.slice(3));

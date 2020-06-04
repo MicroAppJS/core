@@ -38,6 +38,8 @@ const MethodServiceKeys = [
     'tempDir',
     'getTempDirPackageGraph',
     'microsPackages',
+    'writeTempFileSync',
+    'writeTempFile',
 ];
 
 // 关于注册的方法

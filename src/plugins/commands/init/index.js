@@ -75,13 +75,13 @@ Examples:
             });
         });
 
-        // type
-        chain = chain.then(() => {
-            return prompt.input('Enter Type:').then(answer => {
-                const type = answer.trim();
-                info.type = type;
-            });
-        });
+        // type (不让用户输入，可忽略)
+        // chain = chain.then(() => {
+        //     return prompt.input('Enter Type:').then(answer => {
+        //         const type = answer.trim();
+        //         info.type = type;
+        //     });
+        // });
 
         // others
         chain = chain.then(() => {
