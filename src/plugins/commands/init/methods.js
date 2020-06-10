@@ -13,4 +13,8 @@ module.exports = {
         type: 'EVENT',
         description: '初始化完毕后事件',
     },
+    otherCommandInit: {
+        type: 'EVENT',
+        description: '其它初始化事件, 根据参数判断',
+    },
 };

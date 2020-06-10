@@ -607,6 +607,7 @@ class PluginService extends MethodService {
         }, opts);
     }
 
+    // Notice: 对 ADD 模式无异步效果
     async applyPluginHooksAsync(key, opts = {}, ctx) {
         logger.debug('[Plugin]', `applyPluginHooksAsync( ${key} )`);
         const defaultOpts = ctx || opts;

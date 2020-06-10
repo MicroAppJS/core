@@ -16,17 +16,45 @@ Examples:
         options: {
             '-': 'init default.',
             '--force': 'force create.',
-            // '-n <name>': 'only init <name>.',
+            '--name <name>': 'only init <name>.',
         },
         details,
     };
 
     // start
     api.registerCommand('init', cmdOpt, args => {
+        const logger = api.logger;
 
+        let chain = Promise.resolve();
+
+        chain = chain.then(() => {
+            logger.info('[Init]', 'Starting init...');
+            return api.applyPluginHooks('beforeCommandInit', { args });
+        });
+
+        if (!args.name) {
+            chain = chain.then(() => defaultInit(args));
+        } else {
+            // others
+            chain = chain.then(() => api.applyPluginHooksAsync('otherCommandInit', { args }));
+        }
+
+        chain = chain.then(info => {
+            return api.applyPluginHooks('afterCommandInit', { args, info });
+        });
+
+        return chain.catch(err => {
+            const msg = err && err.message || err;
+            logger.error('[Init]', msg);
+        });
+
+    });
+
+    function defaultInit(args) {
         const logger = api.logger;
         const configDir = api.configDir;
-        const configFilepath = path.resolve(configDir, 'index.js');
+        const configJsFilepath = path.resolve(configDir, 'index.js');
+        const configJsonFilepath = path.resolve(configDir, 'index.json');
         const pkg = api.pkg;
 
         const info = {};
@@ -34,22 +62,20 @@ Examples:
         let chain = Promise.resolve();
 
         chain = chain.then(() => {
-            logger.info('[Init]', 'Starting init...');
             if (!args.force) {
-                if (fs.pathExistsSync(configFilepath)) {
-                    logger.warn('[Init]', `check path: ${chalk.gray.underline(configFilepath)}`);
+                if (fs.pathExistsSync(configJsFilepath)) {
+                    logger.warn('[Init]', `check path: ${chalk.gray.underline(configJsFilepath)}`);
+                    return Promise.reject('config already exsits! please use "--force"');
+                } else if (fs.pathExistsSync(configJsonFilepath)) {
+                    logger.warn('[Init]', `check path: ${chalk.gray.underline(configJsonFilepath)}`);
                     return Promise.reject('config already exsits! please use "--force"');
                 }
             }
         });
 
-        chain = chain.then(() => {
-            logger.info('[Init]', 'Please enter config:');
-            return api.applyPluginHooks('beforeCommandInit', { args });
-        });
-
         // name
         chain = chain.then(() => {
+            logger.info('[Init]', 'Please enter config:');
             const defaultName = pkg.name || '';
             return prompt.input(`Enter Name (${defaultName}):`).then(answer => {
                 const name = answer.trim();
@@ -87,52 +113,58 @@ Examples:
         chain = chain.then(() => {
             const copyInfo = _.cloneDeep(info);
             const otherInfos = api.applyPluginHooks('addCommandInit', [], copyInfo) || [];
-            const otherInfo = otherInfos.reduce((obj, item) => {
-                if (item && _.isPlainObject(item)) {
-                    return smartMerge(obj, item || {});
-                }
-                return obj;
-            }, {});
-            return smartMerge({}, copyInfo, otherInfo, info);
+            const otherInfo = otherInfos.reduce((c, item) => {
+                return c.then(obj => {
+                    if (item && _.isPlainObject(item)) {
+                        return smartMerge(obj, item || {});
+                    } else if (item && _.isFunction(item)) {
+                        const r = item();
+                        if (r && _.isFunction(r.then)) {
+                            return r.then(o => {
+                                return smartMerge(obj, o || {});
+                            });
+                        }
+                        return smartMerge(obj, r || {});
+                    }
+                    return obj;
+                });
+            }, Promise.resolve({}));
+            return otherInfo.then(oinfos => {
+                return smartMerge({}, copyInfo, oinfos, info);
+            });
         });
 
         // show
         chain = chain.then(finalInfo => {
             const configJson = JSON.stringify(finalInfo, false, 4);
             logger.logo(`\n${chalk.grey('Config')}: ${chalk.green(configJson)}`);
-            return configJson;
+            return finalInfo;
         });
 
         // confirm
-        chain = chain.then(configJson => {
+        chain = chain.then(finalInfo => {
             return prompt.confirm('Are you ok?').then(answer => {
                 if (answer) {
-                    return Promise.resolve(configJson);
+                    return Promise.resolve(finalInfo);
                 }
                 return Promise.reject('Cancel !!!');
             });
         });
 
         // create config
-        chain = chain.then(configJson => {
+        chain = chain.then(finalInfo => {
             fs.ensureDirSync(configDir);
-            fs.writeFileSync(configFilepath, `
-'use strict';
-
-module.exports = ${configJson};`);
-            logger.success('[Init]', `Fnished, Path: ${chalk.gray.underline(configFilepath)}`);
+            // delete old file
+            fs.removeSync(configJsFilepath);
+            fs.removeSync(configJsonFilepath);
+            // writer new file
+            fs.writeJSONSync(configJsonFilepath, finalInfo, { encoding: 'utf8', spaces: 4 });
+            logger.success('[Init]', `Fnished, Path: ${chalk.gray.underline(configJsonFilepath)}`);
+            return finalInfo;
         });
 
-        chain = chain.then(() => {
-            return api.applyPluginHooks('afterCommandInit', { args });
-        });
-
-        return chain.catch(err => {
-            const msg = err && err.message || err;
-            logger.error('[Init]', msg);
-        });
-
-    });
+        return chain;
+    }
 };
 
 module.exports.registerMethod = require('./methods');

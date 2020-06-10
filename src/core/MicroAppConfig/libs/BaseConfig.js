@@ -132,10 +132,18 @@ class BaseConfig {
         return this.package.name || '';
     }
 
+    get namespace() {
+        const config = this.config;
+        return config.namespace || '';
+    }
+
     get aliasName() {
-        let aliasName = this.name || '';
-        if (!aliasName.startsWith(CONSTANTS.SCOPE_NAME)) { // 加入作用域，并去除原 scope 的 @ 开头符
-            aliasName = `${CONSTANTS.SCOPE_NAME}/${aliasName.replace(/^@/ig, '')}`;
+        let aliasName = this.namespace;
+        if (!aliasName) {
+            aliasName = this.name || 'alias';
+            if (!aliasName.startsWith(CONSTANTS.SCOPE_NAME)) { // 加入作用域，并去除原 scope 的 @ 开头符
+                aliasName = `${CONSTANTS.SCOPE_NAME}/${aliasName.replace(/^@/ig, '')}`;
+            }
         }
         return aliasName.startsWith('@') ? aliasName : `@${aliasName}`;
     }
