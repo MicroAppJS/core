@@ -1,3 +1,15 @@
+# [0.4.0](https://github.com/MicroAppJS/core/compare/v0.3.30...v0.4.0) (2020-06-10)
+
+
+### Bug Fixes
+
+* fix some bug ([79c3a7d](https://github.com/MicroAppJS/core/commit/79c3a7d7d5113abdc8b31bb0756734a3049f9fdb))
+
+
+### Features
+
+* 增加 `namespace` 参数配置，增强 `init` 方法 ([8e8285c](https://github.com/MicroAppJS/core/commit/8e8285cd91ebcd807d0c961550110bcc841b05d9))
+
 ## [0.3.30](https://github.com/MicroAppJS/core/compare/v0.3.29...v0.3.30) (2020-04-21)
 
 
