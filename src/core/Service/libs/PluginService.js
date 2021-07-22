@@ -7,6 +7,8 @@ const PluginAPI = require('../../PluginAPI');
 const DEFAULT_METHODS = require('../methods');
 const PreLoadPlugins = require('../../../plugins/register');
 const { API_TYPE, SHARED_PROPS: { BEFORE_INIT_METHODS } } = require('../../Constants');
+const parsePlugin = require('../../../utils/parsePlugin');
+
 const SYMBOL_BEFORE_INIT_METHODS = Symbol('$$beforeInitMethods$$');
 
 class PluginService extends MethodService {
@@ -31,14 +33,18 @@ class PluginService extends MethodService {
         const allplugins = micros.map(key => {
             return this.microsConfig[key].plugins || [];
         }).concat(plugins);
-        const pluginsObj = allplugins.reduce((arr, item) => {
-            if (Array.isArray(item)) {
-                return arr.concat(item.reduce((_arr, _item) => {
-                    return _arr.concat(this.resolvePlugin(_item));
-                }, []));
+        const pluginsObj = [];
+        while (allplugins.length) {
+            const item = allplugins.shift();
+            if (Array.isArray(item)) { // presets
+                allplugins.unshift(...item);
+            } else {
+                const res = this.resolvePlugin(item);
+                if (res) {
+                    pluginsObj.push(...[].concat(res));
+                }
             }
-            return arr.concat(this.resolvePlugin(item));
-        }, []).filter(item => !!item);
+        }
         const collection = new Set();
         const result = pluginsObj.filter(item => {
             // 去除已经注册的插件
@@ -578,12 +584,17 @@ class PluginService extends MethodService {
         if (apply) {
             const _apply = apply.default || apply;
             if (Array.isArray(_apply)) { // 支持数组模式
-                return _apply.map(_applyItem => {
-                    if (_applyItem) {
-                        return this._resolvePluginResult(item, { apply: _applyItem, link, opts });
+                return _apply.reduce((arr, _applyItem) => {
+                    if (_.isFunction(_applyItem)) {
+                        const res = this._resolvePluginResult(item, { apply: _applyItem, link, opts });
+                        return arr.concat(res || []);
+                    } else if (_applyItem) {
+                        const _parsePlugin = parsePlugin(_applyItem);
+                        const res = this.resolvePlugin(Object.assign(item, _parsePlugin));
+                        return arr.concat(res || []);
                     }
-                    return false;
-                }).filter(_it => !!_it);
+                    return arr;
+                }, []).filter(_it => !!_it);
             }
             return this._resolvePluginResult(item, { apply, link, opts });
         }
