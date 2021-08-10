@@ -31,11 +31,11 @@ class Service extends PluginService {
         const finalConfig = smartMerge({}, ... Object.values(microsConfig).map(item => {
             if (!item) return {};
             return _.pick(item, [
-                'alias',
-                'aliasObj',
+                // 'alias',
+                // 'aliasObj',
                 'resolveAlias',
-                'shared',
-                'sharedObj',
+                // 'shared',
+                // 'sharedObj',
                 'resolveShared',
                 'options',
             ]);
