@@ -48,15 +48,15 @@
     },
     "devDependencies": {
         "@micro-app/plugin-deploy": "^0.0.8",
-        "@micro-app/plugin-vuepress": "^0.2.3",
+        "@micro-app/plugin-vuepress": "^0.3.2",
         "@types/jest": "^24.9.1",
-        "eslint-config-2o3t": "^2.0.1",
+        "eslint-config-2o3t": "^2.0.2",
         "husky": "^3.1.0",
         "jest": "^24.9.0"
     },
     "dependencies": {
-        "@micro-app/shared-utils": "^0.1.24",
-        "dotenv": "^8.2.0",
+        "@micro-app/shared-utils": "^0.1.25",
+        "dotenv": "^8.6.0",
         "dotenv-expand": "^5.1.0"
     },
     "engines": {
