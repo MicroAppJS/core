@@ -1,3 +1,11 @@
+## [0.4.2](https://github.com/MicroAppJS/core/compare/v0.4.1...v0.4.2) (2021-09-15)
+
+
+### Features
+
+* enhance init command ([7b22679](https://github.com/MicroAppJS/core/commit/7b22679f888fad8a723e38795981196f246793f7))
+* 去除无用的配置信息 ([61adaf7](https://github.com/MicroAppJS/core/commit/61adaf7b637e21ad8719ca72092f88485de667a3))
+
 ## [0.4.1](https://github.com/MicroAppJS/core/compare/v0.4.0...v0.4.1) (2021-07-22)
 
 # [0.4.0](https://github.com/MicroAppJS/core/compare/v0.3.30...v0.4.0) (2020-06-10)
