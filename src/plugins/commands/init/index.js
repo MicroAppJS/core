@@ -21,6 +21,13 @@ Examples:
         details,
     };
 
+    // default config
+    api.otherCommandInit(async ({ args }) => {
+        if (args.name) return {}; // default, name is empty!!!
+        // must be return info
+        return defaultInit(args);
+    });
+
     // start
     api.registerCommand('init', cmdOpt, args => {
         const logger = api.logger;
@@ -32,12 +39,13 @@ Examples:
             return api.applyPluginHooks('beforeCommandInit', { args });
         });
 
-        if (!args.name) {
-            chain = chain.then(() => defaultInit(args));
-        } else {
-            // others
-            chain = chain.then(() => api.applyPluginHooksAsync('otherCommandInit', { args }));
-        }
+        chain = chain.then(() => checkInitConfig(args));
+
+        // must be return info
+        chain = chain.then(() => api.applyPluginHooksAsync('otherCommandInit', { args }));
+
+        // create config
+        chain = chain.then(finalInfo => saveInitConfig(args, finalInfo || {}));
 
         chain = chain.then(info => {
             return api.applyPluginHooks('afterCommandInit', { args, info });
@@ -50,14 +58,13 @@ Examples:
 
     });
 
-    function defaultInit(args) {
+    function checkInitConfig(args) {
         const logger = api.logger;
         const configDir = api.configDir;
-        const configJsFilepath = path.resolve(configDir, 'index.js');
-        const configJsonFilepath = path.resolve(configDir, 'index.json');
-        const pkg = api.pkg;
 
-        const info = {};
+        const filename = (args.name || 'index');
+        const configJsFilepath = path.resolve(configDir, `${filename}.js`);
+        const configJsonFilepath = path.resolve(configDir, `${filename}.json`);
 
         let chain = Promise.resolve();
 
@@ -72,6 +79,77 @@ Examples:
                 }
             }
         });
+
+        return chain;
+    }
+
+    function saveInitConfig(args, info) {
+        const logger = api.logger;
+        const configDir = api.configDir;
+
+        let chain = Promise.resolve(info);
+
+        // show
+        chain = chain.then(finalInfo => {
+            const configJson = JSON.stringify(finalInfo, false, 4);
+            logger.logo(`\n${chalk.grey('Config')}: ${chalk.green(configJson)}`);
+            return finalInfo;
+        });
+
+        // confirm
+        chain = chain.then(finalInfo => {
+            return prompt.confirm('Are you ok?').then(answer => {
+                if (answer) {
+                    return Promise.resolve(finalInfo);
+                }
+                return Promise.reject('Cancel !!!');
+            });
+        });
+
+        const filename = (args.name || 'index');
+        const configJsFilepath = path.resolve(configDir, `${filename}.js`);
+        const configJsonFilepath = path.resolve(configDir, `${filename}.json`);
+
+        // create config
+        chain = chain.then(finalInfo => {
+            fs.ensureDirSync(configDir);
+            // delete old file
+            fs.removeSync(configJsFilepath);
+            fs.removeSync(configJsonFilepath);
+            // writer new file
+            // 优先输出 js
+            const jsFileContent = `'use strict';
+
+// example ${filename}.config
+module.exports = {
+${Object.entries(finalInfo).map(([ key, vlaue ]) => {
+        let k = '';
+        if (typeof key === 'string' && /^[A-Za-z_$]\w*$/g.test(key)) {
+            k = key;
+        } else {
+            k = JSON.stringify(key);
+        }
+        return `    ${k}: ${JSON.stringify(vlaue)}`;
+    }).join(',\n')}
+};
+`;
+            // fs.writeJSONSync(configJsonFilepath, finalInfo, { encoding: 'utf8', spaces: 4 });
+            // logger.success('[Init]', `Fnished, Path: ${chalk.gray.underline(configJsonFilepath)}`);
+            fs.writeFileSync(configJsFilepath, jsFileContent, { encoding: 'utf8' });
+            logger.success('[Init]', `Fnished, Path: ${chalk.gray.underline(configJsFilepath)}`);
+            return finalInfo;
+        });
+
+        return chain;
+    }
+
+    function defaultInit(args) {
+        const logger = api.logger;
+        const pkg = api.pkg;
+
+        const info = {};
+
+        let chain = Promise.resolve();
 
         // name
         chain = chain.then(() => {
@@ -132,35 +210,6 @@ Examples:
             return otherInfo.then(oinfos => {
                 return smartMerge({}, copyInfo, oinfos, info);
             });
-        });
-
-        // show
-        chain = chain.then(finalInfo => {
-            const configJson = JSON.stringify(finalInfo, false, 4);
-            logger.logo(`\n${chalk.grey('Config')}: ${chalk.green(configJson)}`);
-            return finalInfo;
-        });
-
-        // confirm
-        chain = chain.then(finalInfo => {
-            return prompt.confirm('Are you ok?').then(answer => {
-                if (answer) {
-                    return Promise.resolve(finalInfo);
-                }
-                return Promise.reject('Cancel !!!');
-            });
-        });
-
-        // create config
-        chain = chain.then(finalInfo => {
-            fs.ensureDirSync(configDir);
-            // delete old file
-            fs.removeSync(configJsFilepath);
-            fs.removeSync(configJsonFilepath);
-            // writer new file
-            fs.writeJSONSync(configJsonFilepath, finalInfo, { encoding: 'utf8', spaces: 4 });
-            logger.success('[Init]', `Fnished, Path: ${chalk.gray.underline(configJsonFilepath)}`);
-            return finalInfo;
         });
 
         return chain;
