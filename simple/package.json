@@ -4,14 +4,14 @@
     "description": "micro app demo",
     "main": "index.js",
     "scripts": {
-      "test": "echo \"Error: no test specified\" && exit 1",
-      "build": "micro-app-build",
-      "dev": "micro-app-dev",
-      "start": "micro-app-start"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "micro-app-build",
+        "dev": "micro-app-dev",
+        "start": "micro-app-start"
     },
     "author": {
-      "name": "Zyao89",
-      "email": "zyao89@gmail.com"
+        "name": "Zyao89",
+        "email": "zyao89@gmail.com"
     },
     "license": "ISC",
     "dependencies": {
@@ -21,4 +21,4 @@
         "@micro-app/core": "^0.0.13",
         "@micro-app/cli": "^0.0.13"
     }
-  }
+}

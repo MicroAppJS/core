@@ -7,7 +7,7 @@
 // console.warn(module.exports);
 // console.warn(exports);
 
-const _ = require('lodash');
+const { _ } = require('@micro-app/shared-utils');
 console.log(_.isEmpty(null));
 console.log(_.isEmpty(false));
 console.log(_.isEmpty(undefined));

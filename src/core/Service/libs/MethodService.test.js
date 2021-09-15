@@ -7,6 +7,7 @@ const MethodService = require('./MethodService');
 describe('MethodService', () => {
 
     it('new constructor', () => {
+        process.env.NODE_ENV = 'test';
         const base = new MethodService();
 
         expect(base.pkg).not.toBeNull();
@@ -46,6 +47,36 @@ describe('MethodService', () => {
         expect(base.microsConfig).not.toBeNull();
 
         console.warn(base.micros);
+        // console.warn(base.microsConfig);
+        // console.warn(base.packages);
+    });
+
+    it('microsPackages', () => {
+        const { logger } = require('@micro-app/shared-utils');
+        logger.level = 'silly';
+        const base = new MethodService();
+
+        expect(base.microsPackages).not.toBeUndefined();
+        expect(base.microsPackages).not.toBeNull();
+
+        // console.warn(base.microsPackages);
+        // console.warn(base.microsConfig);
+        console.warn(base.packages);
+    });
+
+    it('tempDirPackageGraph', () => {
+        const { logger } = require('@micro-app/shared-utils');
+        logger.level = 'silly';
+        const base = new MethodService();
+
+        const tempDirPackageGraph = base.getTempDirPackageGraph();
+
+        expect(tempDirPackageGraph).not.toBeUndefined();
+        expect(tempDirPackageGraph).not.toBeNull();
+
+        // console.warn(base.microsPackages);
+        // console.warn(base.microsConfig);
+        console.warn(tempDirPackageGraph.rawPackageList);
     });
 
 });

@@ -36,9 +36,6 @@ module.exports = {
     },
 
     micros: [ 'test' ],
-    // micros$$test: { // 单独配置
-    //     disabled: true, // 禁用入口
-    // },
 
     // 服务配置
     server: {

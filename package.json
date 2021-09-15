@@ -1,28 +1,36 @@
 {
     "name": "@micro-app/core",
-    "version": "0.3.0",
-    "private": true,
+    "version": "0.4.2",
     "description": "[Core] Pluggable micro application framework.",
     "main": "src/index.js",
     "scripts": {
+        "prepublishOnly": "npm run test",
         "lint": "eslint .",
         "lint:fix": "npm run lint -- --fix",
-        "test": "jest"
+        "test": "jest",
+        "docs:dev": "micro-app-vuepress dev",
+        "docs:build": "micro-app-vuepress build",
+        "docs:info": "micro-app-vuepress info",
+        "release": "node bin/index.js release",
+        "release:alpha": "npm run release -- --preRelease=alpha",
+        "release:next": "npm run release -- --preRelease=next",
+        "release:minor": "npm run release minor",
+        "release:patch": "npm run release patch"
     },
-    "homepage": "https://github.com/MicroAppJS/MicroApp-Core",
+    "homepage": "https://github.com/MicroAppJS/core",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/MicroAppJS/MicroApp-Core.git"
+        "url": "git+https://github.com/MicroAppJS/core.git"
     },
     "bugs": {
-        "url": "https://github.com/MicroAppJS/MicroApp-Core/issues"
+        "url": "https://github.com/MicroAppJS/core/issues"
     },
     "files": [
-        "src",
-        "micro-app.config.js"
+        "src"
     ],
     "keywords": [
         "micro",
+        "microapp",
         "micro-app",
         "micro-application",
         "core",
@@ -33,31 +41,23 @@
         "email": "zyao89@gmail.com"
     },
     "license": "MIT",
-    "lint-staged": {
-        "*.js": [
-            "npm run lint:fix",
-            "git add"
-        ]
+    "husky": {
+        "hooks": {
+            "pre-commit": "npm run test"
+        }
     },
     "devDependencies": {
-        "@types/jest": "^24.0.19",
-        "babel-eslint": "^10.0.3",
-        "coveralls": "^3.0.7",
-        "eslint": "^5.16.0",
-        "eslint-config-2o3t": "^1.1.17",
-        "husky": "^3.0.9",
-        "jest": "^24.9.0",
-        "lint-staged": "^9.4.2",
-        "yargs-parser": "^13.1.1"
+        "@micro-app/plugin-deploy": "^0.0.8",
+        "@micro-app/plugin-vuepress": "^0.3.2",
+        "@types/jest": "^24.9.1",
+        "eslint-config-2o3t": "^2.0.2",
+        "husky": "^3.1.0",
+        "jest": "^24.9.0"
     },
     "dependencies": {
-        "@micro-app/shared-utils": "file:../MicroApp-Shared-Utils",
-        "ajv": "^6.10.2",
-        "ajv-keywords": "^3.4.1",
-        "dotenv": "^8.2.0"
-    },
-    "peerDependencies": {
-        "@micro-app/shared-utils": ">=0.1.0"
+        "@micro-app/shared-utils": "^0.1.25",
+        "dotenv": "^8.6.0",
+        "dotenv-expand": "^5.1.0"
     },
     "engines": {
         "node": ">=8"

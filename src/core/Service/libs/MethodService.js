@@ -1,104 +1,71 @@
 'use strict';
 
-const os = require('os');
-const path = require('path');
-const { logger, _, fs, assert, npa, parseGitUrl, globParent } = require('@micro-app/shared-utils');
+const { logger, _, fs, assert, loadFile, tryRequire, path } = require('@micro-app/shared-utils');
 
 const BaseService = require('./BaseService');
+const { parsePackageInfo } = require('./PackageInfo');
+const ExtraConfig = require('../../ExtraConfig');
 
+const MicroAppConfig = require('../../MicroAppConfig');
+const Package = require('../../Package');
+const PackageGraph = require('../../PackageGraph');
 const CONSTANTS = require('../../Constants');
 const makeFileFinder = require('../../../utils/makeFileFinder');
 
-const requireMicro = require('../../../utils/requireMicro');
-const loadFile = require('../../../utils/loadFile');
+const loadConfig = require('../../../utils/loadConfig');
+const validateSchema = require('../../../utils/validateSchema');
 
-const INIT_TEMP_FILES = Symbol('INIT_TEMP_FILES');
-const INIT_SYMLINKS = Symbol('INIT_SYMLINKS');
+// 全局状态集
+const GLOBAL_STATE = {};
+const G_TEMP_CACHE = new Map();
 
 class MethodService extends BaseService {
 
-    static get MICROS_GLOB() {
-        // return [ '*' ];
-        return [ '.micros/*' ];
+    constructor(context) {
+        super(context);
+
+        this.commands = {};
+        this.commandOptions = {};
+
+        this.state = GLOBAL_STATE; // 状态集
     }
 
-    constructor() {
-        super();
+    get configDir() {
+        const configDir = this.resolveWorkspace(CONSTANTS.MICRO_APP_CONFIG_NAME);
 
-        // 初始化临时文件夹
-        this[INIT_TEMP_FILES]();
-        // 初始化软链
-        this[INIT_SYMLINKS]();
+        Object.defineProperty(this, 'configDir', {
+            value: configDir,
+        });
+        return configDir;
     }
 
-    /**
-     * @private
-     *
-     * @memberof BaseService
-     */
-    [INIT_TEMP_FILES]() {
-        // TODO 初始化临时文件
-        // 1. 有没有这个文件夹?
-        const tempDir = path.resolve(this.nodeModulesPath, '.micros');
-        if (!fs.existsSync(tempDir)) {
-            fs.mkdirpSync(tempDir);
-        }
-        // 2.
+    get tempDir() { // {{ root }}/.temp
+        const tempDir = path.resolve(__dirname, '../../../', CONSTANTS.MICRO_APP_TEMP_DIR);
 
+        Object.defineProperty(this, 'tempDir', {
+            value: tempDir,
+        });
+        return tempDir;
     }
 
     /**
-     * @private
+     * micros 配置
      *
-     * @memberof BaseService
+     * @readonly
+     * @memberof MethodService
+     *
+     * eg. [
+     *     { name: 'a', spec: 'git@....a.git'},
+     *     { name: 'b', spec: 'git@....b.git'},
+     * ]
      */
-    [INIT_SYMLINKS]() {
-        // TODO 初始化链接, 依赖 packages
-        // console.warn(this.packages);
-    }
-
-
     get packages() {
-        const pkgInfos = this.fileFinder(CONSTANTS.PACKAGE_JSON, filePaths => {
-            return filePaths.map(filePath => {
-                return loadFile(filePath);
-            });
-        });
-        logger.debug('packages', `length: '${pkgInfos.length}'`);
-
-        const packages = (this.self.micros || []).map(item => {
-            if (!_.isString(item)) return null; // TODO 处理解析
-            const pkgInfo = npa(item, this.root);
-            // git, remote, file, directory, tag, version, range
-            if ([ 'git', 'remote' ].includes(pkgInfo.type)) {
-                const gitInfo = parseGitUrl(item);
-                pkgInfo.source = pkgInfo.source || gitInfo.resource || undefined;
-                pkgInfo.gitCommittish = pkgInfo.gitCommittish || gitInfo.hash || undefined;
-                if (!pkgInfo.name) {
-                    pkgInfo.setName(gitInfo.name);
-                    pkgInfo.fullName = gitInfo.full_name;
-                }
-                pkgInfo.scope = pkgInfo.scope || gitInfo.organization || undefined;
-            }
-            pkgInfo.fullName = pkgInfo.fullName || pkgInfo.name;
-            return pkgInfo;
-        }).filter(item => {
-            if (!item) return false;
-            const pkgInfo = pkgInfos.find(info => info[CONSTANTS.Symbols.DIRNAME] === item.name);
-            if (pkgInfo && pkgInfo.name) {
-                item.setName(pkgInfo.name);
-                item.location = pkgInfo[CONSTANTS.Symbols.ROOT];
-            }
-            return true;
-        }).map(pkg => {
-            if (pkg.location) { // 存在的重组
-                const rootPath = this.root;
-                const newPkg = npa.resolve(pkg.name, `file:${path.relative(rootPath, pkg.location)}`, rootPath);
-                newPkg.fullName = newPkg.fullName || newPkg.name;
-                return _.merge(pkg, newPkg);
-            }
-            return pkg;
-        });
+        const packages = (this.self.packages || []).map(item => {
+            const name = item.name;
+            const spec = item.spec || false;
+            // ZAP 处理解析
+            return parsePackageInfo(name, this.root, spec);
+        }).filter(pkg => !!pkg);
 
         Object.defineProperty(this, 'packages', {
             value: packages,
@@ -107,9 +74,18 @@ class MethodService extends BaseService {
         return packages;
     }
 
+    /**
+     * micros 依赖
+     *
+     * @readonly
+     * @memberof MethodService
+     *
+     * eg. [ 'a', 'b' ]
+     */
     get micros() {
+        const selfMicros = this.self.micros || [];
+        const microsSet = new Set(selfMicros);
         // 当前可用服务
-        const microsSet = new Set(this.packages.map(pkg => pkg.name));
         const micros = [ ...microsSet ];
         // redefine getter to lazy-loaded value
         Object.defineProperty(this, 'micros', {
@@ -119,53 +95,36 @@ class MethodService extends BaseService {
         return micros;
     }
 
-    get extraConfig() {
-        // 加载高级附加配置
-        const extraConfig = loadFile(this.root, CONSTANTS.EXTRAL_CONFIG_NAME);
-
-        if (extraConfig && _.isPlainObject(extraConfig)) {
-            Object.keys(extraConfig).forEach(key => {
-                const item = extraConfig[key];
-                logger.debug(`【 Extra Config 】${key}: ${os.EOL}${JSON.stringify(item, false, 4)}`);
-            });
-        }
-
-        Object.defineProperty(this, 'extraConfig', {
-            value: extraConfig,
-        });
-
-        return extraConfig || {};
-    }
-
     get microsConfig() {
         const config = {};
         const microsExtraConfig = this.microsExtraConfig || {};
 
-        // TODO 应该去找到正真的package.json, 并且拿到名称
-        const packages = this.packages || [];
-
-        // 暂时已被优化
-        // @custom 开发模式软链接
-        function changeRootPath(id, originalMicPath) {
-            const extralConfig = microsExtraConfig[id];
-            if (extralConfig && extralConfig.link && fs.existsSync(extralConfig.link)) {
-                return [ extralConfig.link, originalMicPath ];
-            }
-            // TODO 从 packages 中获取
-            const pkg = packages.find(pkg => pkg.name === id);
-            if (pkg && pkg.location && fs.existsSync(pkg.location)) {
-                return [ pkg.location, pkg.location ];
-            }
-            return null;
-        }
-
-        const scope = globParent(MethodService.MICROS_GLOB[0]);
+        // [兼容] 在 context 中增加变量判断是否要加 scope，后期可去除
+        const autoPrefixScope = this.context.autoPrefixScope || false;
+        // 已优化
         this.micros.forEach(key => {
-            const microConfig = requireMicro(key, changeRootPath, scope);
-            if (microConfig) {
-                config[key] = _.cloneDeep(microConfig);
+            if (autoPrefixScope) {
+                // 这里可以对 key 做 scope 兼容
+                if (!key.startsWith(`${CONSTANTS.SCOPE_NAME}/`)) {
+                    key = `${CONSTANTS.SCOPE_NAME}/${key}`;
+                }
+            }
+            // @custom 开发模式软链接
+            const extralConfig = microsExtraConfig[key];
+            let originalRootPath = tryRequire.resolve(path.join(key, CONSTANTS.PACKAGE_JSON));
+            originalRootPath = originalRootPath && path.parse(originalRootPath).dir || path.join(this.root, CONSTANTS.NODE_MODULES_NAME, key);
+            let _rootPath = originalRootPath;
+            if (extralConfig && extralConfig.link && fs.existsSync(extralConfig.link)) {
+                _rootPath = extralConfig.link;
+            }
+            let microConfig = null;
+            if (_rootPath) { // 子模块不应该不存在路径
+                microConfig = MicroAppConfig.createInstance(_rootPath, { originalRootPath });
+            }
+            if (!microConfig) {
+                logger.warn('[core]', '[Micros]', `Not Found micros: "${key}"`);
             } else {
-                logger.warn(`Not Found micros: "${key}"`);
+                config[key] = microConfig;
             }
         });
 
@@ -176,10 +135,9 @@ class MethodService extends BaseService {
         });
 
         const selfKey = this.selfKey;
-        config[selfKey] = _.cloneDeep(this.self);
+        config[selfKey] = this.self;
 
         Object.defineProperty(this, 'microsConfig', {
-            writable: true,
             value: config,
         });
 
@@ -194,32 +152,29 @@ class MethodService extends BaseService {
     }
 
     // 扩增配置
+    get extraConfig() {
+        // 加载高级附加配置
+        const extraConfig = new ExtraConfig(this.root, this.context);
+
+        Object.defineProperty(this, 'extraConfig', {
+            value: extraConfig,
+        });
+
+        return extraConfig || {};
+    }
+
+    // 扩增配置中的 micros
     get microsExtraConfig() {
         const extraConfig = this.extraConfig || {};
-        // 兼容旧版本
-        const microsExtra = extraConfig.micro || extraConfig || {};
-        const result = {};
-        Object.keys(microsExtra).forEach(key => {
-            result[key] = Object.assign({}, microsExtra[key] || {
-                disabled: false, // 禁用入口
-                disable: false,
-                link: false,
-            });
+        return extraConfig.micros || {};
+    }
 
-            // 附加内容需要参考全局配置
-            if (process.env.MICRO_APP_OPEN_SOFT_LINK !== 'true') { // 强制禁止使用 软链接
-                result[key].link = false;
-            }
-            if (process.env.MICRO_APP_OPEN_DISABLED_ENTRY !== 'true') { // 强制禁止使用 开启禁用指定模块入口, 优化开发速度
-                result[key].disabled = false;
-                result[key].disable = false;
-            }
-        });
-        return Object.assign({}, microsExtra, result);
+    get microsPackages() {
+        return Object.values(this.microsConfig).map(config => config.manifest);
     }
 
     get fileFinder() {
-        const finder = makeFileFinder(this.nodeModulesPath, MethodService.MICROS_GLOB);
+        const finder = makeFileFinder(this.root, [ '*', '*/*' ]);
 
         // redefine getter to lazy-loaded value
         Object.defineProperty(this, 'fileFinder', {
@@ -229,38 +184,64 @@ class MethodService extends BaseService {
         return finder;
     }
 
+    /**
+     * @private
+     */
+    get fileFinderTempDirNodeModules() {
+        const tempDirNodeModules = path.resolve(this.tempDir, CONSTANTS.NODE_MODULES_NAME);
+        const finder = makeFileFinder(tempDirNodeModules, [ '*', '*/*' ]);
+
+        // redefine getter to lazy-loaded value
+        Object.defineProperty(this, 'fileFinderTempDirNodeModules', {
+            value: finder,
+        });
+
+        return finder;
+    }
+
+    setState(key, value) {
+        this.state[key] = value;
+        return value;
+    }
+
+    getState(key, value) {
+        const v = this.state[key];
+        if (_.isUndefined(v)) {
+            return value;
+        }
+        return v;
+    }
+
+    resolve(..._paths) {
+        return path.resolve(this.root, ..._paths);
+    }
+
+    resolveWorkspace(..._paths) {
+        return this.resolve(CONSTANTS.MICRO_APP_DIR, ..._paths);
+    }
+
+    resolveTemp(..._paths) {
+        return this.resolve(this.tempDir, ..._paths);
+    }
+
     assertExtendOptions(name, opts, fn) {
         assert(typeof name === 'string', 'name must be string.');
         assert(name || /^_/i.test(name), `${name} cannot begin with '_'.`);
-        assert(!this[name] || !this.extendConfigs[name] || !this.extendMethods[name] || !this.pluginMethods[name] || !this.sharedProps[name], `api.${name} exists.`);
+        let override = false;
         if (typeof opts === 'function') {
             fn = opts;
             opts = null;
+        } else if (opts && opts.override === true) {
+            override = true;
+        }
+        if (!override) { // 强制覆盖
+            assert(!this.hasKey(name), `api.${name} exists.`);
         }
         assert(typeof fn === 'function', 'fn must be function.');
         opts = opts || {};
         assert(_.isPlainObject(opts), 'opts must be object.');
         return { name, opts, fn };
     }
-
-    extendConfig(name, opts, fn) {
-        const extendObj = this.assertExtendOptions(name, opts, fn);
-        this.extendConfigs[extendObj.name] = {
-            ...extendObj.opts,
-            fn: extendObj.fn,
-        };
-        logger.debug('[Plugin]', `extendConfig( ${extendObj.name} ); Success!`);
-    }
-
-    extendMethod(name, opts, fn) {
-        const extendObj = this.assertExtendOptions(name, opts, fn);
-        this.extendMethods[extendObj.name] = {
-            ...extendObj.opts,
-            fn: extendObj.fn,
-        };
-        logger.debug('[Plugin]', `extendMethod( ${extendObj.name} ); Success!`);
-    }
-
     registerCommand(name, opts, fn) {
         assert(!this.commands[name], `Command ${name} exists, please select another one.`);
         if (typeof opts === 'function') {
@@ -270,6 +251,17 @@ class MethodService extends BaseService {
         opts = opts || {};
         this.commands[name] = { fn, opts };
         logger.debug('[Plugin]', `registerCommand( ${name} ); Success!`);
+    }
+
+    // 扩充 or 更改 Command Option
+    changeCommandOption(name, newOpts) {
+        assert(name, 'name must supplied');
+        assert(_.isPlainObject(newOpts) || _.isFunction(newOpts), 'newOpts must be object or function');
+        if (!Array.isArray(this.commandOptions[name])) {
+            this.commandOptions[name] = [];
+        }
+        this.commandOptions[name].push(newOpts);
+        logger.debug('[Plugin]', `changeCommandOption( ${name} ); Success!`);
     }
 
     /**
@@ -287,21 +279,77 @@ class MethodService extends BaseService {
         const microConfig = microsConfig[key];
         if (microConfig && microConfig.__isMicroAppConfig) {
             const root = microConfig.root;
-            const filename = CONSTANTS.EXTRAL_CONFIG_NAME.replace('extra', name);
-            const _config = loadFile(root, filename);
+            // 单独配置文件
+            let _config = loadConfig(root, name);
+            if (_.isFunction(_config)) {
+                _config = _config();
+            }
             if (!_.isEmpty(_config)) {
                 return _config;
             }
+            // 附加配置文件中
             const _extraConfig = this.extraConfig || {};
             if (!_.isEmpty(_extraConfig[name])) {
                 return _extraConfig[name];
             }
-            const _originalConfig = microConfig.originalConfig || {};
-            if (!_.isEmpty(_originalConfig[name])) {
-                return _originalConfig[name];
-            }
         }
         return null;
+    }
+
+    getTempDirPackageGraph() {
+        const pkgInfos = this.fileFinderTempDirNodeModules(CONSTANTS.PACKAGE_JSON, filePaths => {
+            return filePaths.map(filePath => {
+                const packageJson = loadFile(filePath);
+                try {
+                    return new Package(packageJson, path.dirname(filePath), this.root);
+                } catch (error) {
+                    return false;
+                }
+            }).filter(item => !!item);
+        });
+        logger.debug('[core > fileFinderTempDirNodeModules]', `packages length: '${pkgInfos.length}'`);
+        const tempDirPackageGraph = new PackageGraph(pkgInfos, 'dependencies');
+        return tempDirPackageGraph;
+    }
+
+    /**
+     * 异步写临时文件
+     * @param {String} file 文件名
+     * @param {String} content 内容
+     * @return {Promise<String>} destPath
+     */
+    async writeTempFile(file, content) {
+        const destPath = path.join(this.tempDir, file);
+        await fs.ensureDir(path.parse(destPath).dir);
+        // cache write to avoid hitting the dist if it didn't change
+        const cached = G_TEMP_CACHE.get(file);
+        if (cached !== content) {
+            await fs.writeFile(destPath, content);
+            G_TEMP_CACHE.set(file, content);
+        }
+        return destPath;
+    }
+
+    /**
+     * 同步写临时文件
+     * @param {String} file 文件名
+     * @param {String} content 内容
+     * @return {String} destPath
+     */
+    writeTempFileSync(file, content) {
+        const destPath = path.join(this.tempDir, file);
+        fs.ensureDirSync(path.parse(destPath).dir);
+        // cache write to avoid hitting the dist if it didn't change
+        const cached = G_TEMP_CACHE.get(file);
+        if (cached !== content) {
+            fs.writeFileSync(destPath, content);
+            G_TEMP_CACHE.set(file, content);
+        }
+        return destPath;
+    }
+
+    validateSchema(schema, config) {
+        return validateSchema(schema, config);
     }
 }
 

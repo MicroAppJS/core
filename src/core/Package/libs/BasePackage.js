@@ -1,7 +1,6 @@
 'use strict';
 
-const path = require('path');
-const { fs, _, npa } = require('@micro-app/shared-utils');
+const { fs, _, npa, assert, stringifyObject, path } = require('@micro-app/shared-utils');
 
 const CONSTANTS = require('../../Constants');
 
@@ -12,6 +11,9 @@ const ROOT_PATH = Symbol('MicroApp#rootPath');
 
 class BasePackage {
     constructor(pkg, location, rootPath = location) {
+        assert(pkg, 'pkg is required!');
+        assert(location, 'location is required!');
+
         this[PKG] = pkg;
 
         // npa will throw an error if the name is invalid
@@ -19,10 +21,6 @@ class BasePackage {
 
         this[LOCATION] = location;
         this[ROOT_PATH] = rootPath;
-    }
-
-    get __isMicroAppPackage() {
-        return true;
     }
 
     get pkg() {
@@ -58,6 +56,10 @@ class BasePackage {
         return this[LOCATION];
     }
 
+    get rootPath() {
+        return this[ROOT_PATH];
+    }
+
     get manifestLocation() {
         return path.join(this.location, CONSTANTS.PACKAGE_JSON);
     }
@@ -68,14 +70,6 @@ class BasePackage {
 
     get binLocation() {
         return path.join(this.nodeModulesLocation, '.bin');
-    }
-
-    /**
-     * Provide shallow copy for munging elsewhere
-     * @return {Object} json
-     */
-    toJSON() {
-        return _.cloneDeep(this.pkg);
     }
 
     /**
@@ -96,6 +90,28 @@ class BasePackage {
      */
     serialize() {
         return fs.writeJSON(this.manifestLocation, this.pkg).then(() => this);
+    }
+
+    toJSON() {
+        return _.pick(this, [
+            'name',
+            'private',
+            'bin',
+            'scripts',
+            'location',
+            'manifestLocation',
+            'nodeModulesLocation',
+            'binLocation',
+        ]);
+    }
+
+
+    toString() {
+        const config = this.toJSON();
+        return stringifyObject(config, {
+            indent: '  ',
+            singleQuotes: false,
+        });
     }
 }
 
