@@ -27,7 +27,6 @@ const MethodServiceKeys = [
     'microsExtraConfig',
     'parseConfig',
     // method
-    'registerCommand',
     'changeCommandOption',
     // new v0.3
     'resolve',
@@ -44,6 +43,7 @@ const MethodServiceKeys = [
 
 // 关于注册的方法
 const registerKeys = [
+    'registerCommand',
     'registerMethod',
     'extendConfig',
     'extendMethod',

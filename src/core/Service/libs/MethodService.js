@@ -224,6 +224,7 @@ class MethodService extends BaseService {
         return this.resolve(this.tempDir, ..._paths);
     }
 
+    // 断言是否存在
     assertExtendOptions(name, opts, fn) {
         assert(typeof name === 'string', 'name must be string.');
         assert(name || /^_/i.test(name), `${name} cannot begin with '_'.`);
@@ -249,6 +250,13 @@ class MethodService extends BaseService {
             opts = null;
         }
         opts = opts || {};
+        if (typeof fn !== 'function') {
+            if (typeof opts.fn === 'function') {
+                fn = opts.fn;
+                delete opts.fn;
+            }
+        }
+        assert(typeof fn === 'function', `registerCommand ${name} params Error!!! please check 'fn'.`);
         this.commands[name] = { fn, opts };
         logger.debug('[Plugin]', `registerCommand( ${name} ); Success!`);
     }

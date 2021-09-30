@@ -3,6 +3,7 @@
 module.exports = function initCommand(api, opts) {
 
     const { _, chalk, fs, prompt, smartMerge, path } = require('@micro-app/shared-utils');
+    const logger = api.logger;
 
     const details = `
 Examples:
@@ -23,15 +24,16 @@ Examples:
 
     // default config
     api.otherCommandInit(async ({ args }) => {
-        if (args.name) return {}; // default, name is empty!!!
+        if (args.name) {
+            logger.info('[Init]', `initialize ${chalk.yellow(args.name)} config`);
+            return {}; // default, name is empty!!!
+        }
         // must be return info
         return defaultInit(args);
     });
 
     // start
     api.registerCommand('init', cmdOpt, args => {
-        const logger = api.logger;
-
         let chain = Promise.resolve();
 
         chain = chain.then(() => {
@@ -59,7 +61,6 @@ Examples:
     });
 
     function checkInitConfig(args) {
-        const logger = api.logger;
         const configDir = api.configDir;
 
         const filename = (args.name || 'index');
@@ -84,7 +85,6 @@ Examples:
     }
 
     function saveInitConfig(args, info) {
-        const logger = api.logger;
         const configDir = api.configDir;
 
         let chain = Promise.resolve(info);
@@ -144,7 +144,6 @@ ${Object.entries(finalInfo).map(([ key, vlaue ]) => {
     }
 
     function defaultInit(args) {
-        const logger = api.logger;
         const pkg = api.pkg;
 
         const info = {};
