@@ -1,3 +1,10 @@
+## [0.4.3](https://github.com/MicroAppJS/core/compare/v0.4.2...v0.4.3) (2021-09-30)
+
+
+### Features
+
+* 增加配置可通过对象 `registerCommand` 进行注册 ([d0cef7b](https://github.com/MicroAppJS/core/commit/d0cef7bddf3f72744c8d344e0bb177af433a9746))
+
 ## [0.4.2](https://github.com/MicroAppJS/core/compare/v0.4.1...v0.4.2) (2021-09-15)
 
 
