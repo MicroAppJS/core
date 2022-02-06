@@ -1,3 +1,5 @@
+# [0.5.0](https://github.com/MicroAppJS/core/compare/v0.4.3...v0.5.0) (2022-02-06)
+
 ## [0.4.3](https://github.com/MicroAppJS/core/compare/v0.4.2...v0.4.3) (2021-09-30)
 
 
