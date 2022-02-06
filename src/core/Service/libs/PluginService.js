@@ -316,6 +316,25 @@ class PluginService extends MethodService {
         this.plugins.push(...this._getPlugins());
         const BUILT_IN = Symbol.for('built-in');
 
+        // 去除重复注册的插件，从设计的角度上，不该有重复的插件出现
+        const alreadyPlugins = {};
+        const duplicatePlugins = [];
+        this.plugins = this.plugins.filter(plugin => {
+            const id = plugin.id;
+            const alias = plugin.alias;
+            const link = plugin.link;
+            const key = `${id}+${alias}+${link}`;
+            if (alreadyPlugins[key]) {
+                duplicatePlugins.push(plugin);
+                return false;
+            }
+            alreadyPlugins[key] = true;
+            return true;
+        });
+        if (duplicatePlugins.length) {
+            logger.debug('[Plugin]', '_sortPlugins() duplicatePlugins:', duplicatePlugins);
+        }
+
         const builtInPlugins = [];
         const prePlugins = [];
         const normalPlugins = [];

@@ -14,8 +14,8 @@
         "release": "node bin/index.js release",
         "release:alpha": "npm run release -- --preRelease=alpha",
         "release:next": "npm run release -- --preRelease=next",
-        "release:minor": "npm run release minor",
-        "release:patch": "npm run release patch"
+        "release:minor": "npm run release -- minor",
+        "release:patch": "npm run release -- patch"
     },
     "homepage": "https://github.com/MicroAppJS/core",
     "repository": {

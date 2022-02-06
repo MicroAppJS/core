@@ -154,6 +154,9 @@ class Service extends PluginService {
             }
         }
 
+        // 清楚多余的命令
+        delete args.preRegisterPlugin;
+
         const { fn, opts } = command;
 
         // TODO 分发引用，待优化
